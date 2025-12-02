@@ -1,0 +1,37 @@
+---
+- name: Configure combined kubectl and docker bash completion
+  hosts: jump
+  become: false # Run tasks as the remote user
+  vars:
+    completion_file: "~/.bash_completions"
+    bashrc_path: "~/.bashrc"
+
+  tasks:
+    - name: Ensure the bash-completion package is installed (optional but recommended)
+      ansible.builtin.apt:
+        name: bash-completion
+        state: present
+        update_cache: true
+      # You can use 'ansible.builtin.yum' or other package managers for different OS families
+
+    - name: Generate the combined completion script file
+      # Use a single shell task with output redirection to combine both
+      ansible.builtin.shell:
+        cmd: |
+          echo "# Combined completions for kubectl and docker" > {{ completion_file }}
+          kubectl completion bash >> {{ completion_file }}
+          echo "" >> {{ completion_file }} # Add a newline for readability
+          docker completion bash >> {{ completion_file }}
+        # Run this command only once to create the file
+        creates: "{{ completion_file }}"
+      args:
+        executable: /bin/bash # Ensure bash handles the redirection correctly
+
+    - name: Add a sourcing line to .bashrc to load the combined completions
+      ansible.builtin.lineinfile:
+        path: "{{ bashrc_path }}"
+        line: 'source {{ completion_file }}'
+        create: true
+        insertafter: EOF
+        state: present
+        # This task ensures the line is present and idempotent
