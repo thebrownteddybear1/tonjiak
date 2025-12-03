@@ -1,0 +1,35 @@
+---
+- name: Deploy Nested ESXi VM
+  hosts: parent_esxi_host
+  gather_facts: false
+  vars:
+    esxi_vm_name: "NestedESXiHost01"
+
+  tasks:
+    - name: Create VM without CD-ROM (this should work)
+      community.vmware.vmware_guest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        name: "{{ esxi_vm_name }}"
+        folder: "/vm"
+        guest_id: "vmkernel8Guest"
+        state: present
+        
+        hardware:
+          memory_mb: 4096
+          num_cpus: 2
+          scsi: paravirtual
+        
+        disk:
+          - size_gb: 40
+            type: thin
+            datastore: "sata4b"
+        
+        networks:
+          - name: "VM Network"
+            device_type: "vmxnet3"
+        
+        validate_certs: false
+      delegate_to: localhost
+      register: vm_result

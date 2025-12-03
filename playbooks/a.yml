@@ -1,0 +1,51 @@
+---
+- name: Deploy Nested ESXi VM
+  hosts: parent_esxi_host
+  gather_facts: false
+  vars:
+    esxi_vm_name: "NestedESXiHost01"
+    folder: "/vm"
+    datastore_name: "sata4b"
+
+  tasks:
+    - name: Create VM with simplified CD-ROM
+      community.vmware.vmware_guest:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        name: "{{ esxi_vm_name }}"
+        folder: "{{ folder }}"
+        guest_id: "vmkernel8Guest"
+        state: present
+        
+        hardware:
+          memory_mb: 4096
+          num_cpus: 2
+          scsi: paravirtual
+        
+        disk:
+          - size_gb: 40
+            type: thin
+            datastore: "{{ datastore_name }}"
+        
+        # Try CD-ROM as a simple string parameter (not a list/dict)
+        cdrom_iso_path: "[sata4b] iso_files/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+        
+        networks:
+          - name: "VM Network"
+            device_type: "vmxnet3"
+        
+        validate_certs: false
+      delegate_to: localhost
+      register: vm_result
+
+    - name: Power on VM
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ ansible_user }}"
+        password: "{{ ansible_password }}"
+        name: "{{ esxi_vm_name }}"
+        state: poweredon
+        validate_certs: false
+      delegate_to: localhost
+      when: vm_result.changed

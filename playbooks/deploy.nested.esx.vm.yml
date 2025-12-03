@@ -3,17 +3,16 @@
 - name: Deploy Nested ESXi VM
   hosts: parent_esxi_host
   gather_facts: false
-  remote_user: root 
-  connection: network_cli 
   vars:
     esxi_vm_name: "NestedESXiHost01"
     datacenter_name: "ha-datacenter"
-    datastore_name: "datastore1"      
-    iso_path: "[datastore1] iso_files/VMware-ESXi-8.0U2-22380479-Lenovo-2.0-amd64.iso"
+    datastore_name: "sata4b"      
+    iso_path: "[sata4b] iso_files/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
     nested_vm_memory_mb: 4096
     nested_vm_cpus: 2
     nested_vm_disk_size_gb: 40
     nested_vm_network: "VM Network"
+    folder: "/vm"
 
   tasks:
     - name: Ensure the nested ESXi VM is present and configured
@@ -23,31 +22,34 @@
         password: "{{ ansible_password }}"
         datacenter: "{{ datacenter_name }}"
         name: "{{ esxi_vm_name }}"
+        folder: "{{ folder }}"
+        guest_id: "vmkernel8Guest"
         state: present
 
         # --- Hardware parameters that MUST be nested ---
         hardware:
           memory_mb: "{{ nested_vm_memory_mb }}"
           num_cpus: "{{ nested_vm_cpus }}"
-          scsi: paravirtual # 'scsi' is a supported parameter name inside 'hardware'
-        # --- End hardware block ---
-
+          scsi: paravirtual
+          nested_virt: true  # Enable nested virtualization
+        
         # --- Disk and CDROM MUST be top-level parameters taking lists ---
         disk:
           - size_gb: "{{ nested_vm_disk_size_gb }}"
             type: thin
             datastore: "{{ datastore_name }}"
         
+        # FIXED CD-ROM CONFIGURATION - Add controller_type and unit_number
         cdrom:
-          - type: iso
+          - type: "iso"
             iso_path: "{{ iso_path }}"
-            state: present
-        # --- End top-level parameters ---
+            state: "present"
+            controller_type: "ide"  # Explicitly set controller type
+            unit_number: 0          # Explicitly set unit number
         
         networks:
           - name: "{{ nested_vm_network }}"
-            ip: ""
-            device_type: vmxnet3
+            device_type: "vmxnet3"
 
         wait_for_ip_address: false
         validate_certs: false
@@ -64,3 +66,4 @@
         state: poweredon
         validate_certs: false
       delegate_to: localhost
+      when: vm_deploy_status.changed
