@@ -12,7 +12,7 @@
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
     
     # VM 配置
-    esxi_vm_name: "NestedESXiHost01"
+    esxi_vm_name: "esx.802-1"
     datacenter_name: "ha-datacenter"
     datastore_name: "sata4b"      
     iso_path: "[sata4tb] VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
@@ -33,7 +33,6 @@
         folder: "{{ folder }}"
         guest_id: "vmkernel8Guest"
         state: present
-        validate_certs: false  # 添加这行！
 
         # Hardware parameters - 确保都是数字
         hardware:
@@ -62,14 +61,13 @@
           - name: "{{ nested_vm_network }}"
             device_type: vmxnet3
         
-        # wait_for_ip_address: false
-        # validate_certs: false
+        validate_certs: false
         force: false
       register: vm_deploy_status
       ignore_errors: false
 
     - name: Power on the newly created VM
-      vmware.vmware.vm_powerstate:
+      community.vmware.vmware_guest_powerstate:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"

@@ -1,51 +1,87 @@
 ---
-- name: Deploy Nested ESXi VM
-  hosts: parent_esxi_host
+- name: Power On and Configure Nested ESXi VM
+  hosts: localhost
+  connection: local
   gather_facts: false
+  
   vars:
-    esxi_vm_name: "NestedESXiHost01"
-    folder: "/vm"
-    datastore_name: "sata4b"
-
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!VMware1!VMware1!"
+    vm_name: "NestedESXiHost01"
+    
+    # 修正 ISO 路径（使用 sata4b，不是 sata4tb）
+    iso_path: "[sata4b] VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+    
   tasks:
-    - name: Create VM with simplified CD-ROM
+    # 首先检查 ISO 是否存在于数据存储
+    - name: Check if ISO file exists on datastore
+      ansible.builtin.shell: |
+        if [ -f "/vmfs/volumes/sata4b/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso" ]; then
+          echo "ISO found: $(ls -lh "/vmfs/volumes/sata4b/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso")"
+        else
+          echo "ISO not found. Searching for any ISO files..."
+          find /vmfs/volumes/sata4b -name "*.iso" 2>/dev/null | head -5
+        fi
+      delegate_to: "{{ esxi_host }}"
+      register: iso_check
+      ignore_errors: yes
+      
+    - name: Show ISO check result
+      debug:
+        msg: "{{ iso_check.stdout_lines | join('\n') }}"
+        
+    # 添加 CD-ROM（如果需要）
+    - name: Add CD-ROM to VM
       community.vmware.vmware_guest:
-        hostname: "{{ inventory_hostname }}"
-        username: "{{ ansible_user }}"
-        password: "{{ ansible_password }}"
-        name: "{{ esxi_vm_name }}"
-        folder: "{{ folder }}"
-        guest_id: "vmkernel8Guest"
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ vm_name }}"
         state: present
-        
-        hardware:
-          memory_mb: 4096
-          num_cpus: 2
-          scsi: paravirtual
-        
-        disk:
-          - size_gb: 40
-            type: thin
-            datastore: "{{ datastore_name }}"
-        
-        # Try CD-ROM as a simple string parameter (not a list/dict)
-        cdrom_iso_path: "[sata4b] iso_files/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-        
-        networks:
-          - name: "VM Network"
-            device_type: "vmxnet3"
-        
-        validate_certs: false
-      delegate_to: localhost
-      register: vm_result
-
-    - name: Power on VM
+        cdrom:
+          - type: iso
+            iso_path: "{{ iso_path }}"
+            state: present
+      register: cdrom_result
+      ignore_errors: yes
+      
+    - name: Show CD-ROM addition status
+      debug:
+        msg: "CD-ROM added: {{ 'Success' if cdrom_result is succeeded and cdrom_result.changed else 'Skipped or failed' }}"
+      when: cdrom_result is defined
+      
+    # 开机 VM
+    - name: Power on the VM
       community.vmware.vmware_guest_powerstate:
-        hostname: "{{ inventory_hostname }}"
-        username: "{{ ansible_user }}"
-        password: "{{ ansible_password }}"
-        name: "{{ esxi_vm_name }}"
-        state: poweredon
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
         validate_certs: false
-      delegate_to: localhost
-      when: vm_result.changed
+        name: "{{ vm_name }}"
+        state: poweredon
+      register: power_on_result
+      
+    - name: Show power on status
+      debug:
+        msg: "VM powered on: {{ 'Success' if power_on_result.changed else 'Already powered on or failed' }}"
+        
+    # 等待一段时间后检查状态
+    - name: Wait 30 seconds for VM to boot
+      ansible.builtin.pause:
+        seconds: 30
+        
+    - name: Check VM power state after boot
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ vm_name }}"
+        state: query
+      register: final_power_state
+      
+    - name: Show final power state
+      debug:
+        msg: "Final power state: {{ final_power_state.current_state }}"
