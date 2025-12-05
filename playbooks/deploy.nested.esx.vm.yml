@@ -1,80 +1,64 @@
 ---
-# Playbook to deploy and configure a nested ESXi VM
-- name: Deploy Nested ESXi VM
+# Playbook to deploy nested ESXi VM using Host CD-ROM
+- name: Deploy Nested ESXi VM with Host CD-ROM
   hosts: localhost
   connection: local
   gather_facts: false
   
   vars:
-    # ESXi 主机连接信息
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
+    vm_name: "NestedESXiHost01"
+    iso_datastore_path: "[sata4tb] iso/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
     
-    # VM 配置
-    esxi_vm_name: "NestedESXiHost01"
-    datacenter_name: "ha-datacenter"
-    datastore_name: "sata4b"      
-    iso_path: "[sata4tb] VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-    nested_vm_memory_mb: 4096
-    nested_vm_cpus: 2
-    nested_vm_disk_size_gb: 40
-    nested_vm_network: "VM Network"
-    folder: "/vm"
-
   tasks:
-    - name: Create nested ESXi VM
+    # 创建 VM（带主机 CD-ROM）
+    - name: Create VM with host CD-ROM
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
-        datacenter: "{{ datacenter_name }}"
-        name: "{{ esxi_vm_name }}"
-        folder: "{{ folder }}"
-        guest_id: "vmkernel8Guest"
+        validate_certs: false
+        name: "{{ vm_name }}"
         state: present
-        validate_certs: false  # 添加这行！
-
-        # Hardware parameters - 确保都是数字
+        guest_id: "vmkernel8Guest"
+        
         hardware:
-          memory_mb: "{{ nested_vm_memory_mb | int }}"
-          num_cpus: "{{ nested_vm_cpus | int }}"
-          num_cpu_cores_per_socket: 1
+          memory_mb: 4096
+          num_cpus: 2
           scsi: paravirtual
-          nested_virt: true
-          hotadd_cpu: false
-          hotadd_memory: false
         
-        # Disk configuration
         disk:
-          - size_gb: "{{ nested_vm_disk_size_gb | int }}"
+          - size_gb: 40
             type: thin
-            datastore: "{{ datastore_name }}"
+            datastore: "sata4b"
         
-        # CD-ROM configuration - 确保路径正确
-        # cdrom:
-        #   - type: iso
-        #     iso_path: "{{ iso_path }}"
-        #     state: present
-        
-        # Network configuration
         networks:
-          - name: "{{ nested_vm_network }}"
+          - name: "VM Network"
             device_type: vmxnet3
         
-        # wait_for_ip_address: false
-        # validate_certs: false
-        force: false
-      register: vm_deploy_status
-      ignore_errors: false
+        # 使用主机 CD-ROM 设备
+        cdrom:
+          - controller_type: ide # Can also be 'sata'
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+            type: iso
+            state: present
 
-    - name: Power on the newly created VM
-      vmware.vmware.vm_powerstate:
+        
+    # 开机
+    - name: Power on VM
+      community.vmware.vmware_guest_powerstate:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
-        datacenter: "{{ datacenter_name }}"
-        name: "{{ esxi_vm_name }}"
-        state: poweredon
         validate_certs: false
-      when: vm_deploy_status.changed
+        name: "{{ vm_name }}"
+        state: "powered-on"
+      register: power_result
+      
+    - name: Show power result
+      debug:
+        msg: "VM powered on: {{ 'Success' if power_result.changed else 'Already on' }}"
