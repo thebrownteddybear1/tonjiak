@@ -24,4 +24,5 @@ nsx_node1:
 compute_manager:
   mgmt_ip: "192.168.50.51"
   username: "administrator@vsphere.local"
-  password: "VMware1!"
+  password: "VMware1!VMware1!"
+  

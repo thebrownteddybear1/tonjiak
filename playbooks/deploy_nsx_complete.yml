@@ -6,14 +6,14 @@
 - hosts: 127.0.0.1
   connection: local
   become: yes
-  vars:
-    ansible_python_interpreter: /usr/local/bin/python3
+  # vars:
+  #   ansible_python_interpreter: /usr/local/bin/python3
   vars_files:
     - deploy_nsx_cluster_vars.yml
   tasks:
     - name: deploy NSX Manager OVA
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
-        ovftool_path: "/usr/bin"
+        ovftool_path: "/root/ovftool"
         datacenter: "{{ nsx_node1['datacenter'] }}"
         datastore: "{{ nsx_node1['datastore'] }}"
         portgroup: "{{ nsx_node1['portgroup'] }}"
