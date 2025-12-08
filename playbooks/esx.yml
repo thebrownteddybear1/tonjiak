@@ -1,0 +1,13 @@
+- hosts: localhost
+  tasks:
+    - name: Test ESXi connection
+      vmware_vm_facts:
+        hostname: "192.168.50.108"
+        username: "root"
+        password: "VMware1!VMware1!VMware1!VMware1!"
+        validate_certs: false
+      register: vm_facts
+      
+    - name: Display VMs
+      debug:
+        var: vm_facts.vms
