@@ -2,7 +2,9 @@
 - hosts: 127.0.0.1
   connection: local
   become: yes
-
+#need to deploy to vcenter
+#documentation is trash, so the blog https://blogs.vmware.com/networkvirtualization/2019/06/ansible-nsx-t-deployment.html/ is trash
+#ansible doc for this trash is here https://ansible-for-nsxt-docs.readthedocs.io/en/latest/nsxt/nsxt_deploy_ova_module.html#parameter-path_to_ova
   tasks:
     - name: deploy NSX Manager OVA
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
