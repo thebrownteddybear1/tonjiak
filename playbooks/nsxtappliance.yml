@@ -20,7 +20,7 @@
     
     # ESXi host configuration
     esxi_host:
-      hostname: "192.168.50.51"  # Replace with your ESXi host IP
+      hostname: "192.168.50.108"  # Replace with your ESXi host IP
       username: "root"           # ESXi typically uses 'root' as username
       password: "VMware1!"       # Replace with your ESXi root password
     
