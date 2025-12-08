@@ -1,4 +1,3 @@
-$> cat 01_deploy_first_node.yml
 ---
 #
 # Playbook to deploy the first NSX Appliance node. Also checks the node
@@ -7,45 +6,36 @@ $> cat 01_deploy_first_node.yml
 - hosts: 127.0.0.1
   connection: local
   become: yes
-
-
   vars:
-    # Simple variables
     nsx_username: "admin"
-    nsx_password: "myPassword!myPassword!"
-    validate_certs: false
-    
-    # Path variables
-    nsx_ova_path: "/root/"
-    nsx_ova: "nsx-unified-appliance-4.2.0.0.0.24105821.ova"
-    
-    # Network variables
+    nsx_password: "VMware1!VMware1!"
+    validate_certs: False
+    nsx_ova_path: "/root"
+    nsx_ova: "/root/nsx-unified-appliance-4.2.0.0.0.24105821.ova"
     domain: "corp.internal"
     netmask: "255.255.255.0"
     gateway: "192.168.50.53"
     dns_server: "192.168.50.53"
     ntp_server: "192.168.50.53"
     
-    # Dictionary variable
+    # ESXi host configuration
+    esxi_host:
+      hostname: "192.168.50.51"  # Replace with your ESXi host IP
+      username: "root"           # ESXi typically uses 'root' as username
+      password: "VMware1!"       # Replace with your ESXi root password
+    
     nsx_node1:
-      hostname: "nsx50.corp.local"
-      mgmt_ip: "192.168.50.50"
-      datacenter: "Datacenter"
-      cluster: "cl1"
-      datastore: "datastore1"
-      portgroup: "VM Network"
-  
+      hostname: "nsx-mgr-01.corp.internal"
+      mgmt_ip: "192.168.50.61"
+      datastore: "datastore1"    # Your ESXi datastore name
+      portgroup: "VM Network"    # Your ESXi portgroup/network name
   tasks:
-    - name: Debug all variables
-      debug:
-        var: vars
     - name: deploy NSX Manager OVA
       nsxt_deploy_ova:
         ovftool_path: "/usr/bin"
-        datacenter: "{{ nsx_node1['datacenter'] }}"
+        # Note: datacenter and cluster parameters removed for ESXi deployment
         datastore: "{{ nsx_node1['datastore'] }}"
         portgroup: "{{ nsx_node1['portgroup'] }}"
-        cluster: "{{ nsx_node1['cluster'] }}"
         vmname: "{{ nsx_node1['hostname'] }}"
         hostname: "{{ nsx_node1['hostname'] }}"
         dns_server: "{{ dns_server }}"
@@ -58,16 +48,17 @@ $> cat 01_deploy_first_node.yml
         cli_password: "{{ nsx_password }}"
         path_to_ova: "{{ nsx_ova_path }}"
         ova_file: "{{ nsx_ova }}"
-        vcenter: "{{ compute_manager['mgmt_ip'] }}"
-        vcenter_user: "{{ compute_manager['username'] }}"
-        vcenter_passwd: "{{ compute_manager['password'] }}"
+        # Connect directly to ESXi host
+        vcenter: "{{ esxi_host.hostname }}"
+        vcenter_user: "{{ esxi_host.username }}"
+        vcenter_passwd: "{{ esxi_host.password }}"
         deployment_size: "small"
         role: "nsx-manager nsx-controller"
 
     - name: Check manager status
       nsxt_manager_status:
-          hostname: "{{ nsx_node1['hostname'] }}"
-          username: "{{ nsx_username }}"
-          password: "{{ nsx_password }}"
-          validate_certs: "{{ validate_certs }}"
-          wait_time: 50
+        hostname: "{{ nsx_node1['hostname'] }}"
+        username: "{{ nsx_username }}"
+        password: "{{ nsx_password }}"
+        validate_certs: "{{ validate_certs }}"
+        wait_time: 50
