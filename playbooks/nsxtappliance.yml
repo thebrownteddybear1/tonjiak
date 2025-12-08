@@ -27,12 +27,12 @@
     nsx_node1:
       hostname: "nsx61.corp.internal"
       mgmt_ip: "192.168.50.61"
-      datastore: "datastore1"    # Your ESXi datastore name
+      datastore: "sata4b"    # Your ESXi datastore name
       portgroup: "VM Network"    # Your ESXi portgroup/network name
   tasks:
     - name: deploy NSX Manager OVA
       nsxt_deploy_ova:
-        ovftool_path: "/usr/bin"
+        ovftool_path: "/root/ovtool/"
         # Note: datacenter and cluster parameters removed for ESXi deployment
         datastore: "{{ nsx_node1['datastore'] }}"
         portgroup: "{{ nsx_node1['portgroup'] }}"
