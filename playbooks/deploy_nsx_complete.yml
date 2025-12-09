@@ -5,6 +5,9 @@
 #need to deploy to vcenter
 #documentation is trash, so the blog is trash https://blogs.vmware.com/networkvirtualization/2019/06/ansible-nsx-t-deployment.html/
 #ansible doc for this trash is here https://ansible-for-nsxt-docs.readthedocs.io/en/latest/nsxt/nsxt_deploy_ova_module.html#parameter-path_to_ova
+#use the ovftool to extract the ova to ovf and see the keys needed. 
+# eg. ./ovftool/ovftool --allowExtraConfig ./nsx-unified-appliance-4.2.0.0.0.241058
+21.ova ./testextractova/nsx.ovf 
   tasks:
     - name: deploy NSX Manager OVA
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
