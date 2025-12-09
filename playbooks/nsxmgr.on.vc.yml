@@ -32,9 +32,9 @@
         vcenter_passwd: "VMware1!VMware1!"
         deployment_size: "medium"
         role: "NSX Manager"
-    - name: Check manager status
-      vmware.ansible_for_nsxt.nsxt_manager_status:
-          username: "admin"
-          password: "VMware1!VMware1!"
-          validate_certs: false
-          wait_time: 50
+    # - name: Check manager status
+    #   vmware.ansible_for_nsxt.nsxt_manager_status:
+    #       username: "admin"
+    #       password: "VMware1!VMware1!"
+    #       validate_certs: false
+    #       wait_time: 50
