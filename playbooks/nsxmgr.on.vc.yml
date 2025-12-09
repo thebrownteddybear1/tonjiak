@@ -7,28 +7,27 @@
 #ansible doc for this trash is here https://ansible-for-nsxt-docs.readthedocs.io/en/latest/nsxt/nsxt_deploy_ova_module.html#parameter-path_to_ova
 #use the ovftool to extract the ova to ovf and see the keys needed. 
 # eg. ./ovftool/ovftool --allowExtraConfig ./nsx-unified-appliance-4.2.0.0.0.241058
-21.ova ./testextractova/nsx.ovf 
   tasks:
     - name: deploy NSX Manager OVA
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
         ovftool_path: "/root/ovftool"
-        datacenter: "datacenter"
+        datacenter: "Datacenter"
         datastore: "sata4b"
         portgroup: "VM Network"
-        cluster: "c"
-        vmname: "nsx61"
-        hostname: "nsx61"
+        cluster: "cc"
+        vmname: "nsx54"
+        hostname: "nsx54"
         dns_server: "192.168.50.53"
-        dns_domain: "eng.vmware.com"
+        dns_domain: "corp.internal"
         ntp_server: "192.168.50.53"
         gateway: "192.168.50.53"
-        ip_address: "192.168.50.61"
+        ip_address: "192.168.50.54"
         netmask: "255.255.255.0"
         admin_password: "VMware1!VMware1!"
         cli_password: "VMware1!VMware1!"
         path_to_ova: "/root"
         ova_file: "nsx-unified-appliance-4.2.0.0.0.24105821.ova"
-        vcenter: "192.168.50.8"
+        vcenter: "192.168.50.52"
         vcenter_user: "administrator@vsphere.local"
         vcenter_passwd: "VMware1!VMware1!"
         deployment_size: "medium"

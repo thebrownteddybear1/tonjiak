@@ -1,7 +1,7 @@
 ---
 - name: Deploy NSX Manager OVA directly to ESXi host
   hosts: localhost
-  
+  #host must not be mananged by vcenter or iAccess to resource settings on the host is restricted to the server that is managing it, just disconnect will do
   tasks:
     - name: Deploy NSX Manager to ESXi using ovftool
       shell: |
@@ -15,18 +15,20 @@
           --X:logFile=/tmp/ovftool_deploy.log \
           --datastore="sata4b" \
           --network="VM Network" \
-          --name="nsx62" \
-          --prop:nsx_hostname="nsx62" \
+          --name="nsx.54" \
+          --prop:nsx_hostname="nsx54" \
           --prop:nsx_dns1_0="192.168.50.53" \
           --prop:nsx_domain_0="corp.internal" \
           --prop:nsx_ntp_0="192.168.50.53" \
           --prop:nsx_gateway_0="192.168.50.53" \
-          --prop:nsx_ip_0="192.168.50.62" \
+          --prop:nsx_ip_0="192.168.50.54" \
           --prop:nsx_netmask_0="255.255.255.0" \
           --prop:nsx_passwd_0="VMware1!VMware1!" \
           --prop:nsx_cli_passwd_0="VMware1!VMware1!" \
           --prop:nsx_role="NSX Manager" \
           --deploymentOption="medium" \
+          --nsx_allowSSHRootLogin="true"\
+          --nsx_isSSHEnabled="true" \
           "/root/nsx-unified-appliance-4.2.0.0.0.24105821.ova" \
           "vi://root:VMware1!VMware1!VMware1!VMware1!@192.168.50.108/"
       
