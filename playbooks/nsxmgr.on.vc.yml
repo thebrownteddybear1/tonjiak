@@ -12,7 +12,7 @@
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
         ovftool_path: "/root/ovftool"
         datacenter: "Datacenter"
-        datastore: "sata4b"
+        datastore: "nvme2"
         portgroup: "VM Network"
         cluster: "cc"
         vmname: "nsx54"
