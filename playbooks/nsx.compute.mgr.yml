@@ -1,0 +1,31 @@
+---
+- name: Add Compute Manager to NSX-T
+  hosts: localhost  # Or your designated Ansible control node
+  connection: local
+  gather_facts: false
+
+  vars:
+    nsx_manager_ip: "192.168.50.54"
+    nsx_manager_username: "admin"
+    nsx_manager_password: "VMware1!VMware1!"
+    vcenter_ip: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    compute_manager_name: "vc52"
+
+  tasks:
+    - name: Deploy compute manager
+      vmware.ansible_for_nsxt.nsxt_fabric_compute_managers:
+        hostname: "{{ nsx_manager_ip }}"
+        username: "{{ nsx_manager_username }}"
+        password: "{{ nsx_manager_password }}"
+        validate_certs: false # Set to true in production with valid certificates
+        display_name: "{{ compute_manager_name }}"
+        server: "{{ vcenter_ip }}"
+        origin_type: vCenter
+        credential:
+          credential_type: UsernamePasswordLoginCredential
+          username: "{{ vcenter_username }}"
+          password: "{{ vcenter_password }}"
+        state: present
+      
