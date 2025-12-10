@@ -91,7 +91,7 @@
         display_name: "TNC1"
         resource_type: "TransportNodeCollection"
         description: "Transport Node Collections 1"
-        compute_manager_name: "VC1"
-        cluster_name: "os-compute-cluster-1"
+        compute_manager_name: "vc52"
+        cluster_name: "c"
         transport_node_profile_name: "TNP1"
         state: present

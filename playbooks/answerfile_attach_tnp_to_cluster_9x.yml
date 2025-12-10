@@ -133,7 +133,7 @@ transport_node_profiles:
 - display_name: TNP1
   host_switches:
   - host_switch_profiles:
-    - name: esx.profile
+    - name: esx.profile #uplinkprofile
       type: UplinkHostSwitchProfile
     host_switch_name: DSwitch #name of vds
     # host_switch_id: "50 17 4c 3f 86 bf 44 be-11 6f 69 80 90 f7 22 21"
