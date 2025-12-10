@@ -1,7 +1,7 @@
 ---
 - hosts: localhost
   tasks:
-    - name: Edit nsx-default-uplink-hostswitch-profile
+    - name: esx.uplink.profile
       vmware.ansible_for_nsxt.nsxt_uplink_profiles:
         hostname: "192.168.50.54"
         username: "admin"
@@ -18,5 +18,25 @@
           standby_list:
             - uplink_name: "uplink-2"
               uplink_type: "PNIC"
+          policy: "FAILOVER_ORDER"
+        state: "present"
+
+    - name: edge.uplink.profile
+      vmware.ansible_for_nsxt.nsxt_uplink_profiles:
+        hostname: "192.168.50.54"
+        username: "admin"
+        password: "VMware1!VMware1!"
+        validate_certs: false
+        display_name: "edge.uplink.profile"
+        mtu: 1700
+        transport_vlan: 116
+        resource_type: "UplinkHostSwitchProfile"  # Added quotes
+        teaming:
+          active_list:
+            - uplink_name: "uplink-1"
+              uplink_type: "PNIC"
+          # standby_list:
+          #   - uplink_name: "uplink-2"
+          #     uplink_type: "PNIC"
           policy: "FAILOVER_ORDER"
         state: "present"
