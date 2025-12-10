@@ -12,14 +12,14 @@
         username: "admin"
         password: "VMware1!VMware1!"
         validate_certs: false
-        display_name: test-ip-pool-1
+        display_name: ippool
         state: "present"
         pool_static_subnets:
-          - id: test-ip-static-subnet-1
+          - id: ip-static-subnet-1
             state: present
             allocation_ranges:
-              - start: '192.116.0.10'
-                end: '192.116.0.20'
-              - start: '192.116.0.30'
-                end: '192.116.0.40'
-            cidr: '192.116.0.0/26'
+              - start: '192.168.116.10'
+                end: '192.168.116.20'
+              - start: '192.168.116.30'
+                end: '192.168.116.40'
+            cidr: '192.168.116.0/26'
