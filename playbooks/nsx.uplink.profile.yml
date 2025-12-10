@@ -8,7 +8,6 @@
         password: "VMware1!VMware1!"
         validate_certs: false
         display_name: "esx.uplink.profile"
-        mtu: 1700
         transport_vlan: 116
         resource_type: "UplinkHostSwitchProfile"  # Added quotes
         teaming:
