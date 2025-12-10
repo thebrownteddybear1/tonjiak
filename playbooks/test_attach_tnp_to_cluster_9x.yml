@@ -8,6 +8,15 @@
   vars_files:
     - answerfile_attach_tnp_to_cluster_9x.yml
   tasks:
+    - name: Add license key to NSX-T Manager
+      vmware.ansible_for_nsxt.nsxt_licenses:
+        hostname: "192.168.50.54" # Replace with your NSX-T Manager IP or FQDN
+        username: "admin" 
+        password: "VMware1!VMware1!"
+        validate_certs: False # Set to True if you have valid certificates and want validation
+        license_key: "9069J-LD81H-L88N1-LJX2V-KMZHV" # Replace with your actual NSX-T license key
+        state: present
+    
     - name: Register compute manager
       vmware.ansible_for_nsxt.nsxt_fabric_compute_managers:
           hostname: "{{hostname}}"

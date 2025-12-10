@@ -42,92 +42,97 @@ uplink_profiles:
     policy: FAILOVER_ORDER
   transport_vlan: 116
 
-host_transport_nodes:
-- display_name: TN1
-  resource_type: "HostTransportNode"
+# host_transport_nodes:
+# - display_name: TN1
+#   resource_type: "HostTransportNode"
+#   host_switches:
+#   - host_switch_profiles:
+#     - name: esx.profile
+#       type: UplinkHostSwitchProfile
+#     host_switch_name: DSwitch
+#     host_switch_mode: ENS_INTERRUPT
+# #    host_switch_mode: STANDARD
+#     host_switch_type: VDS
+#     uplinks:
+#     - vds_uplink_name: Uplink 1
+#       uplink_name: uplink-1
+#     - vds_uplink_name: Uplink 2
+#       uplink_name: uplink-2
+#     ip_assignment_spec:
+#       resource_type: StaticIpPoolSpec
+#       ip_pool_name: "IPPool-IPV4-1"
+#     transport_zone_endpoints:
+#     - transport_zone_name: "TZ1"
+#     - transport_zone_name: "TZ2"
+#   node_deployment_info:
+#     resource_type: "HostNode"
+#     display_name: "192.168.50.11"
+#     ip_addresses: ["192.168.50.11"]
+#     os_type: "ESXI"
+#     #os_version: "9.0.0"
+#     os_version: "8.0.2"
+#     host_credential:
+#       username: "root"
+#       password: "VMware1!VMware1!"
+
+edge_transport_nodes:
+- display_name: EdgeTN1
   host_switches:
   - host_switch_profiles:
-    - name: esx.profile
+    - name: edge.profile
       type: UplinkHostSwitchProfile
-    host_switch_name: DSwitch
-    host_switch_mode: ENS_INTERRUPT
-#    host_switch_mode: STANDARD
-    host_switch_type: VDS
-    uplinks:
-    - vds_uplink_name: Uplink 1
-      uplink_name: uplink-1
-    - vds_uplink_name: Uplink 2
-      uplink_name: uplink-2
+    host_switch_name: nsxHostSwitch
+    host_switch_mode: STANDARD
+    pnics:
+    - device_name: "fp-eth0"
+      uplink_name: "uplink-1"
     ip_assignment_spec:
+      # resource_type: StaticIpListSpec
       resource_type: StaticIpPoolSpec
-      ip_pool_name: "IPPool-IPV4-1"
+      ip_pool_name: "IPPool-IPV4-1"   
+      # ip_list: ["192.168.116.55"]
+      # subnet_mask: "255.255.255.0"
+      # default_gateway: "192.168.116.53"
     transport_zone_endpoints:
     - transport_zone_name: "TZ1"
     - transport_zone_name: "TZ2"
   node_deployment_info:
-    resource_type: "HostNode"
-    display_name: "192.168.50.11"
-    ip_addresses: ["192.168.50.11"]
-    os_type: "ESXI"
-    #os_version: "9.0.0"
-    os_version: "8.0.2"
-    host_credential:
-      username: "root"
-      password: "VMware1!VMware1!"
-
-# edge_transport_nodes:
-# - display_name: EdgeTN1
-#   host_switches:
-#   - host_switch_profiles:
-#     - name: nsx-edge-single-nic-uplink-profile
-#       type: UplinkHostSwitchProfile
-#     host_switch_name: nsxHostSwitch
-#     host_switch_mode: STANDARD
-#     pnics:
-#     - device_name: "fp-eth0"
-#       uplink_name: "uplink-1"
-#     ip_assignment_spec:
-#       resource_type: StaticIpListSpec
-#       ip_list: ["192.168.32.1"]
-#       subnet_mask: "255.255.255.254"
-#       default_gateway: "192.168.32.0"
-#     transport_zone_endpoints:
-#     - transport_zone_name: "nsx-overlay-transportzone"
-#   node_deployment_info:
-#     resource_type: "EdgeNode"
-#     display_name: "EdgeTN1"
-#     deployment_type: "VIRTUAL_MACHINE"
-#     deployment_config:
-#       form_factor: "SMALL"
-#       node_user_settings:
-#         cli_username: "admin"
-#         cli_password: "Admin!23Admin"
-#         root_password: "Admin!23Admin"
-#       vm_deployment_config:
-#         ipv4_assignment_enabled: false
-#         ipv6_assignment_type: "STATIC"
-#         management_port_subnets:
-#           - ip_addresses:
-#               - "2002:0:0:0:0:0:0:10"
-#             prefix_length: 64
-#         default_gateway_addresses:
-#           - "2002:0:0:0:0:0:0:10"
-#         placement_type: VsphereDeploymentConfig
-#         vc_name: "VC"
-#         vc_username: "administrator@vsphere.local"
-#         vc_password:  "VMware$123"
-#         data_networks:
-#         - VM Network
-#         - VM Network
-#         - VM Network
-#         management_network: "VM Network"
-#         compute: "HostCluster1"
-#         storage: "datastore-esx67-4"
-#         host: "10.105.15.236"
-#     node_settings:
-#       allow_ssh_root_login: true
-#       enable_ssh: true
-#       hostname: "edge.vmware.com"
+    resource_type: "EdgeNode"
+    display_name: "EdgeTN1"
+    deployment_type: "VIRTUAL_MACHINE"
+    deployment_config:
+      form_factor: "MEDIUM"
+      node_user_settings:
+        cli_username: "admin"
+        cli_password: "VMware1!VMware1!"
+        root_password: "VMware1!VMware1!"
+      vm_deployment_config:
+        ipv4_assignment_enabled: true
+        # ipv6_assignment_type: "STATIC"
+        management_port_subnets:
+          - ip_addresses:
+              - "192.168.50.55"
+            prefix_length: 24
+        default_gateway_addresses:
+          - "192.168.50.53"
+        placement_type: VsphereDeploymentConfig
+        vc_name: "vc52"
+        vc_username: "administrator@vsphere.local"
+        vc_password:  "VMware1!VMware1!"
+        data_networks:
+        - VM Network
+        - VM Network
+        - VM Network
+        management_network: "VM Network"
+        compute: "c"
+        storage: "Datastore"
+        host: "192.168.50.11"
+    node_settings:
+      allow_ssh_root_login: true
+      enable_ssh: true
+      hostname: "edge1.corp.internal"
+    ntp_servers:
+      - 192.168.50.53
 
 transport_node_profiles:
 - display_name: TNP1
@@ -194,13 +199,13 @@ compute_managers:
 #   id: "LM1"
 #   fqdn: "10.186.3.163"
 #   username: "admin"
-#   password: "Admin!23Admin"
+#   password: "VMware1!VMware1!"
 #   thumbprint: "ec8ba0322b987bc7bce14097667104f43340befce84d75e0820b02a2f3839441"
 # - id: "LM2"
 #   display_name: ""
 #   fqdn: "10.182.6.97"
 #   username: "admin"
-#   password: "Admin!23Admin"
+#   password: "VMware1!VMware1!"
 #   thumbprint: "d2ec50124fcd487c37d46f85d8f6f80b24441f4e5ed9cac5c8c47d2649043078"
 
 
@@ -212,6 +217,6 @@ compute_managers:
 # - display_name: "10.92.78.184"
 #   fqdn: "10.92.78.184"
 #   username: "admin"
-#   password: "Admin!23Admin"
+#   password: "VMware1!VMware1!"
 #   thumbprint: "703e69dce489beaa1a683d12a16efbf9c81630d23c5f32fc25becc5340169f1e"
 #   mode: "STANDBY"
