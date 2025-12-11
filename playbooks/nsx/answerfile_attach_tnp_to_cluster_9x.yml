@@ -98,7 +98,7 @@ edge_transport_nodes:
     - transport_zone_name: "TZ2"
   node_deployment_info:
     resource_type: "EdgeNode"
-    display_name: "EdgeTN1"
+    display_name: "edge1"
     deployment_type: "VIRTUAL_MACHINE"
     deployment_config:
       form_factor: "MEDIUM"
@@ -120,13 +120,13 @@ edge_transport_nodes:
         vc_username: "administrator@vsphere.local"
         vc_password:  "VMware1!VMware1!"
         data_networks:
-        - "vds.v0"
         - segment-vlan-trunk
         - segment-vlan-trunk
-        management_network: "VM Network"
+        - segment-vlan-trunk
+        management_network: "vds.v0"
         compute: "c"
         storage: "nfs1"
-        host: "192.168.50.11"
+        host: "192.168.50.12"
     node_settings:
       allow_ssh_root_login: true
       enable_ssh: true
