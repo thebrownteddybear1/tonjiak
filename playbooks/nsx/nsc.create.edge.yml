@@ -1,0 +1,40 @@
+# Copyright 2020 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
+---
+- hosts: 127.0.0.1
+  connection: local
+  become: yes
+  vars_files:
+    - answerfile_9x.yml
+  tasks:
+    - name: Create VLAN trunk segment in Policy Mode
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        display_name: "segment-vlan-trunk"
+        description: "Policy segment with VLANs 11 and 116"
+
+        vlan_ids: "11,116"
+        
+        # Transport zone (must be VLAN-backed)
+        transport_zone_display_name: "TZ1"
+        admin_state: "UP"
+        state: present
+
+    - name: Create edge transport nodes
+      vmware.ansible_for_nsxt.nsxt_transport_nodes:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        validate_certs: False
+        display_name: "{{item.display_name}}"
+        description: "Edge transport node ansible"
+        host_switch_spec:
+          resource_type: StandardHostSwitchSpec
+          host_switches: "{{item.host_switches}}"
+        node_deployment_info: "{{item.node_deployment_info}}"
+        state: present
+      with_items:
+        - "{{edge_transport_nodes}}"
