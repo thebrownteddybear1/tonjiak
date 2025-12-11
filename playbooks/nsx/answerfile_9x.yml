@@ -14,11 +14,6 @@ edge_transport_nodes:
     pnics:
     - device_name: "fp-eth0"
       uplink_name: "uplink-1"
-    # ip_assignment_spec:
-    #   resource_type: StaticIpListSpec
-    #   ip_list: ["192.168.32.1"]
-    #   subnet_mask: "255.255.255.254"
-    #   default_gateway: "192.168.32.0"
     ip_assignment_spec:
       resource_type: StaticIpPoolSpec
       ip_pool_name: "IPPool-IPV4-1"
@@ -36,7 +31,6 @@ edge_transport_nodes:
         root_password: "Admin!23Admin"
       vm_deployment_config:
         ipv4_assignment_enabled: true
-        # ipv6_assignment_type: "STATIC"
         management_port_subnets:
           - ip_addresses:
               - "192.168.50.55"
