@@ -15,9 +15,7 @@
         validate_certs: false
         display_name: "segment-vlan-trunk"
         description: "Policy segment with VLANs 11 and 116"
-
         vlan_ids: "11,116"
-        
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "TZ1"
         admin_state: "UP"

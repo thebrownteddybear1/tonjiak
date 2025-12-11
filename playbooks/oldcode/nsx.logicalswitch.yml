@@ -15,22 +15,10 @@
         validate_certs: false
         display_name: "segment-vlan-trunk"
         description: "Policy segment with VLANs 11 and 116"
-        
-        # VLAN trunk - multiple VLANs
+
         vlan_ids: "11,116"
         
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "TZ1"
-        
-        # Optional: Connect to Tier-1 gateway
-        # tier1_display_name: "my-tier1"
-        
-        # Optional: Subnet configuration
-        # subnets:
-        #   - gateway_address: "192.168.116.1/24"
-        
-        # Admin state
         admin_state: "UP"
-        
-        # REQUIRED: State parameter
         state: present
