@@ -1,57 +1,49 @@
 ---
 - hosts: 127.0.0.1
   connection: local
-  vars:
-    hostname: "192.168.50.54"
-    username: "admin"
-    password: "VMware1!VMware1!"
   vars_files:
-    - answerfile_9x.yml
+    - answerfile_attach_tnp_to_cluster_9x.yml
+  
   tasks:
-    - name: Create VLAN trunk segment in Policy Mode
-      vmware.ansible_for_nsxt.nsxt_policy_segment:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: false
-        display_name: "segment-vlan-trunk"
-        description: "Policy segment with VLANs 11 and 116"
-
-        vlan_ids: "11,116"
-        
-        # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "TZ1"
-        admin_state: "UP"
-        state: absent
-
-    - name: Create VLAN trunk segment in Policy Mode
-      vmware.ansible_for_nsxt.nsxt_policy_segment:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: false
-        display_name: "segment-vlan-trunk"
-        description: "Policy segment with VLANs 11 and 116"
-
-        vlan_ids: "11,116"
-        
-        # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "TZ1"
-        admin_state: "UP"
-        state: present
-      
-    - name: Create edge transport nodes
+    - name: Create edge transport nodes (async)
       vmware.ansible_for_nsxt.nsxt_transport_nodes:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
-        display_name: "{{item.display_name}}"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        display_name: "{{ item.display_name }}"
         description: "Edge transport node ansible"
         host_switch_spec:
           resource_type: StandardHostSwitchSpec
-          host_switches: "{{item.host_switches}}"
-        node_deployment_info: "{{item.node_deployment_info}}"
+          host_switches: "{{ item.host_switches }}"
+        node_deployment_info: "{{ item.node_deployment_info }}"
         state: present
-      with_items:
-        - "{{edge_transport_nodes}}"        
+      with_items: "{{ edge_transport_nodes }}"
+      async: 3600  # 1 hour timeout
+      poll: 0  # Don't wait
+      register: async_results
+    
+    - name: Monitor deployment progress
+      shell: |
+        echo "=== Deployment Progress Log ===" > /tmp/edge_deploy_progress.log
+        for i in {1..60}; do
+          echo "[$(date)] Check $i/60" >> /tmp/edge_deploy_progress.log
+          curl -s -k -u "{{ username }}:{{ password }}" \
+            https://{{ hostname }}/api/v1/transport-nodes \
+            | jq -r '.results[] | select(.display_name | contains("Edge")) | "  - " + .display_name + ": " + .state' \
+            >> /tmp/edge_deploy_progress.log
+          echo "" >> /tmp/edge_deploy_progress.log
+          sleep 30
+        done
+      async: 1800
+      poll: 1
+    
+    - name: Wait for completion and show tail of log
+      shell: |
+        sleep 5
+        tail -20 /tmp/edge_deploy_progress.log
+      register: log_tail
+    
+    - name: Show recent progress
+      debug:
+        msg: "{{ log_tail.stdout_lines }}"
