@@ -9,7 +9,8 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     vcenter_validate_certs: false
-  
+    datacenter_name: "Datacenter"
+    cluster_name: "c"
   tasks:
     - name: Build a list of all the folders
       vmware.vmware_rest.vcenter_folder_info:
@@ -29,11 +30,17 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-        name: "Datacenter"
-        folder: "group-d1"  # Root folder
+        name: "{{ datacenter_name }}"
+        folder: "group-d1"  # grab it from the output of folder_info
         state: present
-      register: datacenter_result
-    
-    - name: Show datacenter creation result
-      debug:
-        msg: "Datacenter created: {{ datacenter_result.changed }}, ID: {{ datacenter_result.value }}"
+      
+    - name: Create the cluster
+      vmware.vmware.cluster:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        datacenter_name: "{{ datacenter_name }}"
+        cluster_name: "{{ cluster_name }}"
+        state: present
+      delegate_to: localhost
