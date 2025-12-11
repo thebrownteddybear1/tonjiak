@@ -19,31 +19,5 @@
         node_deployment_info: "{{ item.node_deployment_info }}"
         state: present
       with_items: "{{ edge_transport_nodes }}"
-      async: 3600  # 1 hour timeout
-      poll: 0  # Don't wait
-      register: async_results
-    
-    - name: Monitor deployment progress
-      shell: |
-        echo "=== Deployment Progress Log ===" > /tmp/edge_deploy_progress.log
-        for i in {1..60}; do
-          echo "[$(date)] Check $i/60" >> /tmp/edge_deploy_progress.log
-          curl -s -k -u "{{ username }}:{{ password }}" \
-            https://{{ hostname }}/api/v1/transport-nodes \
-            | jq -r '.results[] | select(.display_name | contains("Edge")) | "  - " + .display_name + ": " + .state' \
-            >> /tmp/edge_deploy_progress.log
-          echo "" >> /tmp/edge_deploy_progress.log
-          sleep 30
-        done
-      async: 1800
-      poll: 1
-    
-    - name: Wait for completion and show tail of log
-      shell: |
-        sleep 5
-        tail -20 /tmp/edge_deploy_progress.log
-      register: log_tail
-    
-    - name: Show recent progress
-      debug:
-        msg: "{{ log_tail.stdout_lines }}"
+
+

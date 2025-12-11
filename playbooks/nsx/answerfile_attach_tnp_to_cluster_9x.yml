@@ -131,8 +131,7 @@ edge_transport_nodes:
       allow_ssh_root_login: true
       enable_ssh: true
       hostname: "edge1.corp.internal"
-    ntp_servers:
-      - 192.168.50.53
+
 
 transport_node_profiles:
 - display_name: TNP1
