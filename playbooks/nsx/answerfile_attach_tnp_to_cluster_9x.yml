@@ -101,7 +101,7 @@ edge_transport_nodes:
     display_name: "edge1"
     deployment_type: "VIRTUAL_MACHINE"
     deployment_config:
-      form_factor: "MEDIUM"
+      form_factor: "LARGE"
       node_user_settings:
         cli_username: "admin"
         cli_password: "VMware1!VMware1!"
