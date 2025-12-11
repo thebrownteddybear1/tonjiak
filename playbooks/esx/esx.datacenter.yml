@@ -1,0 +1,39 @@
+---
+# Playbook to deploy multiple nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vcenter_hostname: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    vcenter_validate_certs: false
+  
+  tasks:
+    - name: Build a list of all the folders
+      vmware.vmware_rest.vcenter_folder_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+      register: folder_info
+    
+    - name: Display folder information
+      debug:
+        var: folder_info.value
+    
+    - name: Create datacenter in root folder
+      vmware.vmware_rest.vcenter_datacenter:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        name: "Datacenter"
+        folder: "group-d1"  # Root folder
+        state: present
+      register: datacenter_result
+    
+    - name: Show datacenter creation result
+      debug:
+        msg: "Datacenter created: {{ datacenter_result.changed }}, ID: {{ datacenter_result.value }}"
