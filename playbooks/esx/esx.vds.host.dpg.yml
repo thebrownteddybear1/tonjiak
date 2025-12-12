@@ -1,0 +1,78 @@
+---
+- name: Configure vSphere Distributed Switch with Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vcenter_hostname: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    validate_certs: false
+
+    # Your exact specifications
+    datacenter_name: "Datacenter"
+    vds_name: "vds"
+    dpg_name: "vds.v0"
+    mtu_size: 1700
+    esxi_hosts:
+      - "192.168.50.11"
+      - "192.168.50.12"
+    host_vmnics: ["vmnic2", "vmnic3"]
+
+  tasks:
+    # Task 1: Create the vDS with the specified MTU
+    - name: Create vSphere Distributed Switch '{{ vds_name }}'
+      community.vmware.vmware_dvs:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
+        datacenter_name: "{{ datacenter_name }}"
+        switch_name: "{{ vds_name }}"
+        mtu: "{{ mtu_size }}"
+        state: present
+      register: create_vds
+
+    # Task 2: Create the Distributed Port Group on VLAN 0
+    - name: Create Distributed Port Group '{{ dpg_name }}'
+      community.vmware.vmware_dvs_portgroup:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
+        switch_name: "{{ vds_name }}"
+        portgroup_name: "{{ dpg_name }}"
+        vlan_id: 0
+        num_ports: 120
+        state: present
+      register: create_pg
+      when: create_vds is succeeded
+
+    # Task 3: Add each ESXi host to the vDS with the specified physical NICs
+    - name: Add ESXi hosts to the vDS with vmnics
+      community.vmware.vmware_dvs_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
+        esxi_hostname: "{{ item }}"
+        vds_name: "{{ vds_name }}"
+        vmnics: "{{ host_vmnics }}"
+        state: present
+      loop: "{{ esxi_hosts }}"
+      register: add_hosts
+      when: create_vds is succeeded
+
+    # Task 4: Final summary of the configuration
+    - name: Display configuration summary
+      debug:
+        msg: |
+          ✅ Configuration Complete using community.vmware
+
+          ✅ vDS named "{{ vds_name }}" created in "{{ datacenter_name }}".
+          ✅ DPG named "{{ dpg_name }}" created on VLAN 0.
+          ✅ MTU set to {{ mtu_size }}.
+          ✅ Hosts added to vDS:
+            {% for result in add_hosts.results %}
+            - {{ result.item }} (using {{ host_vmnics | join(', ') }}) → {{ "SUCCESS" if result.changed else "No change" }}
+            {% endfor %}
