@@ -11,7 +11,7 @@
     
     # Uplink segment details
     uplink_segment_name: "segment-uplink-vlan11"
-    uplink_interface_ip: "192.168.11.1"
+    uplink_interface_ip: "10.11.11.253"  # Updated
     uplink_prefix_len: 24
     
     # Edge cluster details
@@ -20,7 +20,7 @@
     
     # BGP configuration
     local_as: "65002"
-    neighbor_ip: "192.168.11.53"
+    neighbor_ip: "10.11.11.53"  # Updated
     neighbor_as: "65001"
   
   tasks:
@@ -68,7 +68,7 @@
                   edge_cluster_display_name: "{{ edge_cluster_name }}"
                   edge_node_display_name: "{{ edge_node_name }}"
             
-            # BGP Configuration - FIXED: inter_sr_ibgp should be false for ACTIVE_STANDBY
+            # BGP Configuration
             BGP:
               state: present
               enabled: true
@@ -122,7 +122,7 @@
           🚦 BGP Configuration:
             - Local AS: {{ local_as }}
             - Neighbor: {{ neighbor_ip }} (AS {{ neighbor_as }})
-            - HA Mode: ACTIVE_STANDBY (inter_sr_ibgp: false)
+            - HA Mode: ACTIVE_STANDBY
           
           🔄 Route Redistribution:
             - Tier-0 routes redistributed to BGP
