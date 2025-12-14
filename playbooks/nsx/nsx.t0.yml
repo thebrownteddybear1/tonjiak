@@ -18,7 +18,7 @@
     edge_cluster_name: "edge-cluster-1"
     edge_node_name: "edge1"
     
-    # BGP configuration (as strings to avoid conversion warnings)
+    # BGP configuration
     local_as: "65002"
     neighbor_ip: "192.168.11.53"
     neighbor_as: "65001"
@@ -68,12 +68,12 @@
                   edge_cluster_display_name: "{{ edge_cluster_name }}"
                   edge_node_display_name: "{{ edge_node_name }}"
             
-            # BGP Configuration
+            # BGP Configuration - FIXED: inter_sr_ibgp should be false for ACTIVE_STANDBY
             BGP:
               state: present
               enabled: true
               local_as_num: "{{ local_as }}"
-              inter_sr_ibgp: true
+              inter_sr_ibgp: false  # Must be false for ACTIVE_STANDBY
               graceful_restart_config:
                 mode: "GR_AND_HELPER"
                 timer:
@@ -95,45 +95,18 @@
                     interval: 1000
                     multiple: 3
             
-            # Route Redistribution - CORRECTED TYPES
+            # Route Redistribution
             route_redistribution_config:
               bgp_enabled: true
               redistribution_rules:
-                # Redistribute Tier-0 routes (using valid types from error)
-                - name: "tier0-routes"
+                # Redistribute common routes
+                - name: "redistribute-common"
                   route_redistribution_types: 
                     - "TIER0_CONNECTED"
                     - "TIER0_STATIC"
                     - "TIER0_NAT"
-                    - "TIER0_DNS_FORWARDER_IP"
-                    - "TIER0_IPSEC_LOCAL_IP"
-                    - "TIER0_EXTERNAL_INTERFACE"
-                    - "TIER0_SEGMENT"
-                    - "TIER0_SERVICE_INTERFACE"
-                    - "TIER0_LOOPBACK_INTERFACE"
-                    - "TIER0_EVPN_TEP_IP"
-                
-                # Redistribute Tier-1 routes (using valid types from error)
-                - name: "tier1-routes"
-                  route_redistribution_types:
-                    - "TIER1_STATIC"
                     - "TIER1_CONNECTED"
-                    - "TIER1_LB_VIP"
-                    - "TIER1_LB_SNAT"
-                    - "TIER1_NAT"
-                    - "TIER1_DNS_FORWARDER_IP"
-                    - "TIER1_SERVICE_INTERFACE"
-                    - "TIER1_SEGMENT"
-                    - "TIER1_IPSEC_LOCAL_ENDPOINT"
-        
-        # Optional: Default static route
-        static_routes:
-          - state: present
-            display_name: "default-route"
-            network: "0.0.0.0/0"
-            next_hops:
-              - ip_address: "{{ neighbor_ip }}"
-                admin_distance: 1
+                    - "TIER1_STATIC"
 
     - name: Display configuration summary
       debug:
@@ -149,6 +122,7 @@
           🚦 BGP Configuration:
             - Local AS: {{ local_as }}
             - Neighbor: {{ neighbor_ip }} (AS {{ neighbor_as }})
+            - HA Mode: ACTIVE_STANDBY (inter_sr_ibgp: false)
           
           🔄 Route Redistribution:
             - Tier-0 routes redistributed to BGP
