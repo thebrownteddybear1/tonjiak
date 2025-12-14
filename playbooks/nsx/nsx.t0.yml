@@ -18,10 +18,10 @@
     edge_cluster_name: "edge-cluster-1"
     edge_node_name: "edge1"
     
-    # BGP configuration
-    local_as: 65002
+    # BGP configuration (as strings to avoid conversion warnings)
+    local_as: "65002"
     neighbor_ip: "192.168.11.53"
-    neighbor_as: 65001
+    neighbor_as: "65001"
   
   tasks:
     - name: Create Tier-0 Gateway with uplink interface and BGP
@@ -95,23 +95,26 @@
                     interval: 1000
                     multiple: 3
             
-            # Route Redistribution - REDISTRIBUTE ALL INTO BGP
+            # Route Redistribution - CORRECTED TYPES
             route_redistribution_config:
               bgp_enabled: true
               redistribution_rules:
-                # Redistribute ALL Tier-0 routes
-                - name: "tier0-all-routes"
+                # Redistribute Tier-0 routes (using valid types from error)
+                - name: "tier0-routes"
                   route_redistribution_types: 
                     - "TIER0_CONNECTED"
                     - "TIER0_STATIC"
                     - "TIER0_NAT"
-                    - "TIER0_LB_VIP"
-                    - "TIER0_LB_SNAT"
                     - "TIER0_DNS_FORWARDER_IP"
                     - "TIER0_IPSEC_LOCAL_IP"
+                    - "TIER0_EXTERNAL_INTERFACE"
+                    - "TIER0_SEGMENT"
+                    - "TIER0_SERVICE_INTERFACE"
+                    - "TIER0_LOOPBACK_INTERFACE"
+                    - "TIER0_EVPN_TEP_IP"
                 
-                # Redistribute ALL Tier-1 routes
-                - name: "tier1-all-routes"
+                # Redistribute Tier-1 routes (using valid types from error)
+                - name: "tier1-routes"
                   route_redistribution_types:
                     - "TIER1_STATIC"
                     - "TIER1_CONNECTED"
@@ -119,7 +122,9 @@
                     - "TIER1_LB_SNAT"
                     - "TIER1_NAT"
                     - "TIER1_DNS_FORWARDER_IP"
-                    - "TIER1_IPSEC_LOCAL_IP"
+                    - "TIER1_SERVICE_INTERFACE"
+                    - "TIER1_SEGMENT"
+                    - "TIER1_IPSEC_LOCAL_ENDPOINT"
         
         # Optional: Default static route
         static_routes:
@@ -146,5 +151,5 @@
             - Neighbor: {{ neighbor_ip }} (AS {{ neighbor_as }})
           
           🔄 Route Redistribution:
-            - All Tier-0 routes redistributed to BGP
-            - All Tier-1 routes redistributed to BGP
+            - Tier-0 routes redistributed to BGP
+            - Tier-1 routes redistributed to BGP
