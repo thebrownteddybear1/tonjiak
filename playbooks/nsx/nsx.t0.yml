@@ -14,6 +14,10 @@
     uplink_interface_ip: "192.168.11.1"
     uplink_prefix_len: 24
     
+    # Edge cluster details
+    edge_cluster_name: "edge-cluster-1"
+    edge_node_name: "edge1"
+    
     # BGP configuration
     local_as: 65002
     neighbor_ip: "192.168.11.53"
@@ -42,47 +46,58 @@
             id: "default-locale-service"
             display_name: "default-locale-service"
             
+            # Edge cluster info (required for interfaces)
+            edge_cluster_info:
+              edge_cluster_display_name: "{{ edge_cluster_name }}"
+            
             # Uplink interface on VLAN 11 segment
             interfaces:
               - state: present
                 id: "vlan11-uplink-interface"
                 display_name: "vlan11-uplink"
-                segment_path: "/infra/segments/{{ uplink_segment_name }}"
+                segment_display_name: "{{ uplink_segment_name }}"
                 subnets:
                   - ip_addresses: ["{{ uplink_interface_ip }}"]
                     prefix_len: "{{ uplink_prefix_len }}"
                 urpf_mode: "STRICT"
                 mtu: 1500
-                enabled: true
+                type: "EXTERNAL"
+                edge_node_info:
+                  site_id: "default"
+                  enforcementpoint_id: "default"
+                  edge_cluster_display_name: "{{ edge_cluster_name }}"
+                  edge_node_display_name: "{{ edge_node_name }}"
             
             # BGP Configuration
             BGP:
               state: present
               enabled: true
-              local_as: "{{ local_as }}"
-              graceful_restart: true
-              graceful_restart_timer: 180
-              graceful_restart_stale_timer: 600
+              local_as_num: "{{ local_as }}"
               inter_sr_ibgp: true
+              graceful_restart_config:
+                mode: "GR_AND_HELPER"
+                timer:
+                  restart_timer: 180
+                  stale_route_timer: 600
               
               # BGP Neighbor
-              bgp_neighbors:
+              neighbors:
                 - state: present
                   display_name: "bgp-neighbor-{{ neighbor_ip }}"
                   neighbor_address: "{{ neighbor_ip }}"
-                  remote_as: "{{ neighbor_as }}"
-                  keep_alive_time: 4
-                  hold_down_time: 12
+                  remote_as_num: "{{ neighbor_as }}"
+                  keep_alive_time: 60
+                  hold_down_time: 180
                   allow_as_in: false
                   # password: "your-bgp-password"  # Uncomment and add if needed
                   bfd:
-                    enabled: false  # Set to true if BFD is configured
+                    enabled: false
                     interval: 1000
                     multiple: 3
             
-            # Route Redistribution - FIXED: Remove 'enabled' parameter
+            # Route Redistribution - REDISTRIBUTE ALL INTO BGP
             route_redistribution_config:
-              # enabled: true  # REMOVE THIS LINE - not a valid parameter
+              bgp_enabled: true
               redistribution_rules:
                 # Redistribute ALL Tier-0 routes
                 - name: "tier0-all-routes"
@@ -94,8 +109,6 @@
                     - "TIER0_LB_SNAT"
                     - "TIER0_DNS_FORWARDER_IP"
                     - "TIER0_IPSEC_LOCAL_IP"
-                  bgp_enabled: true
-                  ospf_enabled: false
                 
                 # Redistribute ALL Tier-1 routes
                 - name: "tier1-all-routes"
@@ -107,8 +120,15 @@
                     - "TIER1_NAT"
                     - "TIER1_DNS_FORWARDER_IP"
                     - "TIER1_IPSEC_LOCAL_IP"
-                  bgp_enabled: true
-                  ospf_enabled: false
+        
+        # Optional: Default static route
+        static_routes:
+          - state: present
+            display_name: "default-route"
+            network: "0.0.0.0/0"
+            next_hops:
+              - ip_address: "{{ neighbor_ip }}"
+                admin_distance: 1
 
     - name: Display configuration summary
       debug:
@@ -119,6 +139,7 @@
             - Name: vlan11-uplink
             - Segment: {{ uplink_segment_name }}
             - IP: {{ uplink_interface_ip }}/{{ uplink_prefix_len }}
+            - Edge Node: {{ edge_node_name }} (Cluster: {{ edge_cluster_name }})
           
           🚦 BGP Configuration:
             - Local AS: {{ local_as }}
