@@ -55,7 +55,7 @@
                 mtu: 1500
                 enabled: true
             
-            # BGP Configuration - MUST BE UPPERCASE "BGP"
+            # BGP Configuration
             BGP:
               state: present
               enabled: true
@@ -80,9 +80,9 @@
                     interval: 1000
                     multiple: 3
             
-            # Route Redistribution - REDISTRIBUTE ALL INTO BGP
+            # Route Redistribution - FIXED: Remove 'enabled' parameter
             route_redistribution_config:
-              enabled: true
+              # enabled: true  # REMOVE THIS LINE - not a valid parameter
               redistribution_rules:
                 # Redistribute ALL Tier-0 routes
                 - name: "tier0-all-routes"
