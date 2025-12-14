@@ -13,7 +13,7 @@
         username: "{{ user }}"
         password: "{{ password }}"
         validate_certs: False
-        state: "{{ state }}"
+        state: "present"
         display_name: "myTier-0"
         edge_cluster_name: "Eedge-cluster-1"
         router_type: "TIER0"
