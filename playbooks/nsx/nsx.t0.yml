@@ -1,49 +1,138 @@
-# Copyright 2018 VMware, Inc.
-# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 ---
-#
-# Playbook to test Tier0
-#
-- hosts: localhost
+- name: Create Tier-0 Gateway with BGP on VLAN11 uplink
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    nsxt_host: "192.168.50.54"
+    nsxt_user: "admin"
+    nsxt_pass: "VMware1!VMware1!"
+    
+    # Uplink segment details
+    uplink_segment_name: "segment-uplink-vlan11"
+    uplink_interface_ip: "192.168.11.1"
+    uplink_prefix_len: 24
+    
+    # BGP configuration
+    local_as: 65002
+    neighbor_ip: "192.168.11.53"
+    neighbor_as: 65001
+  
   tasks:
-    - name: Update Tier0
+    - name: Create Tier-0 Gateway with uplink interface and BGP
       vmware.ansible_for_nsxt.nsxt_policy_tier0:
-        hostname: "default"
+        hostname: "{{ nsxt_host }}"
+        username: "{{ nsxt_user }}"
+        password: "{{ nsxt_pass }}"
         validate_certs: false
-        display_name: tier0
+        
+        # Basic Tier-0 configuration
+        display_name: "tier0-gateway"
+        description: "Tier-0 Gateway with VLAN11 uplink and BGP"
         state: present
         ha_mode: "ACTIVE_STANDBY"
         failover_mode: "PREEMPTIVE"
-        disable_firewall: True
-        force_whitelisting: True
-
+        disable_firewall: true
+        force_whitelisting: true
+        
+        # Locale Services
         locale_services:
           - state: present
-            id: "tier0"
-            route_redistribution_config:
-              redistribution_rules:
-                - name: abc
-                  route_redistribution_types: ["TIER0_CONNECTED", "TIER0_STATIC", "TIER1_CONNECTED", "TIER1_STATIC"]
-
-            BGP:
-              state: present
-              local_as_num: '65001'
-              inter_sr_ibgp: False
-              graceful_restart_config:
-                mode: "GR_AND_HELPER"
-                timer:
-                  restart_timer: 12
-
-              neighbors:
-                - display_name: neigh1
-                  neighbor_address: "10.11.11.53"
-                  remote_as_num: "65001"
-                  state: present
+            id: "default-locale-service"
+            display_name: "default-locale-service"
+            
+            # Uplink interface on VLAN 11 segment
             interfaces:
-              - id: "uplink.192.168.11.53
-                display_name: "uplink.192.168.11.53"
-                state: present
+              - state: present
+                id: "vlan11-uplink-interface"
+                display_name: "vlan11-uplink"
+                segment_path: "/infra/segments/{{ uplink_segment_name }}"
                 subnets:
-                  - ip_addresses: ["192.168.11.53"]
-                    prefix_len: 24
-                segment_id: "segment-uplink-vlan11"
+                  - ip_addresses: ["{{ uplink_interface_ip }}"]
+                    prefix_len: "{{ uplink_prefix_len }}"
+                urpf_mode: "STRICT"
+                mtu: 1500
+                enabled: true
+            
+            # BGP Configuration
+            bgp:
+              state: present
+              enabled: true
+              local_as: "{{ local_as }}"
+              graceful_restart: true
+              graceful_restart_timer: 180
+              graceful_restart_stale_timer: 600
+              inter_sr_ibgp: true
+              
+              # BGP Neighbor
+              bgp_neighbors:
+                - state: present
+                  display_name: "bgp-neighbor-{{ neighbor_ip }}"
+                  neighbor_address: "{{ neighbor_ip }}"
+                  remote_as: "{{ neighbor_as }}"
+                  keep_alive_time: 4
+                  hold_down_time: 12
+                  allow_as_in: false
+                  # password: "your-bgp-password"  # Uncomment and add if needed
+                  bfd:
+                    enabled: false  # Set to true if BFD is configured
+                    interval: 1000
+                    multiple: 3
+            
+            # Route Redistribution - REDISTRIBUTE ALL INTO BGP
+            route_redistribution_config:
+              enabled: true
+              redistribution_rules:
+                # Redistribute ALL Tier-0 routes
+                - name: "tier0-all-routes"
+                  route_redistribution_types: 
+                    - "TIER0_CONNECTED"
+                    - "TIER0_STATIC"
+                    - "TIER0_NAT"
+                    - "TIER0_LB_VIP"
+                    - "TIER0_LB_SNAT"
+                    - "TIER0_DNS_FORWARDER_IP"
+                    - "TIER0_IPSEC_LOCAL_IP"
+                  bgp_enabled: true
+                  ospf_enabled: false
+                
+                # Redistribute ALL Tier-1 routes
+                - name: "tier1-all-routes"
+                  route_redistribution_types:
+                    - "TIER1_STATIC"
+                    - "TIER1_CONNECTED"
+                    - "TIER1_LB_VIP"
+                    - "TIER1_LB_SNAT"
+                    - "TIER1_NAT"
+                    - "TIER1_DNS_FORWARDER_IP"
+                    - "TIER1_IPSEC_LOCAL_IP"
+                  bgp_enabled: true
+                  ospf_enabled: false
+        
+        # Optional: Default static route
+        static_routes:
+          - state: present
+            display_name: "default-route"
+            network: "0.0.0.0/0"
+            next_hops:
+              - ip_address: "{{ neighbor_ip }}"
+                admin_distance: 1
+
+    - name: Display configuration summary
+      debug:
+        msg: |
+          ✅ Tier-0 Gateway configured:
+          
+          📍 Interface:
+            - Name: vlan11-uplink
+            - Segment: {{ uplink_segment_name }}
+            - IP: {{ uplink_interface_ip }}/{{ uplink_prefix_len }}
+          
+          🚦 BGP Configuration:
+            - Local AS: {{ local_as }}
+            - Neighbor: {{ neighbor_ip }} (AS {{ neighbor_as }})
+          
+          🔄 Route Redistribution:
+            - All Tier-0 routes redistributed to BGP
+            - All Tier-1 routes redistributed to BGP
