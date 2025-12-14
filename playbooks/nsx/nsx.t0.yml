@@ -110,29 +110,3 @@
                   bgp_enabled: true
                   ospf_enabled: false
         
-        # Optional: Default static route
-        static_routes:
-          - state: present
-            display_name: "default-route"
-            network: "0.0.0.0/0"
-            next_hops:
-              - ip_address: "{{ neighbor_ip }}"
-                admin_distance: 1
-
-    - name: Display configuration summary
-      debug:
-        msg: |
-          ✅ Tier-0 Gateway configured:
-          
-          📍 Interface:
-            - Name: vlan11-uplink
-            - Segment: {{ uplink_segment_name }}
-            - IP: {{ uplink_interface_ip }}/{{ uplink_prefix_len }}
-          
-          🚦 BGP Configuration:
-            - Local AS: {{ local_as }}
-            - Neighbor: {{ neighbor_ip }} (AS {{ neighbor_as }})
-          
-          🔄 Route Redistribution:
-            - All Tier-0 routes redistributed to BGP
-            - All Tier-1 routes redistributed to BGP
