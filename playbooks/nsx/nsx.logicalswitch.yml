@@ -16,7 +16,7 @@
         display_name: "segment-vlan-trunk"
         description: "Policy segment with VLANs 11 and 116"
 
-        vlan_ids: "11,116"
+        vlan_ids: "11, 116"
         
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "TZ1"
@@ -26,7 +26,7 @@
     - name: Wait for 10 seconds before continuing
       ansible.builtin.pause:
         seconds: 10
-        
+
     - name: Create VLAN 11 for uplink
       vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{hostname}}"
