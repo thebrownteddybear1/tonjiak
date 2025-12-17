@@ -1,6 +1,5 @@
 ---
-# Playbook to deploy multiple nested ESXi VMs using the certified vmware.vmware collection
-- name: Deploy Multiple Nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs using certified collection
   hosts: localhost
   connection: local
   gather_facts: false
@@ -26,30 +25,38 @@
         folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
-        hardware:
-          memory_mb: 81920
-          num_cpus: 56
-          scsi: paravirtual
-          nested_virt: true
+        # From suboptions: cores, nested_virt
+        cpu:
+          cores: 56
+          enable_performance_counters: true
+        # From suboptions: size_mb
+        memory:
+          size_mb: 81920
+        # From suboptions: size, device_node, provisioning, datastore
         disks:
-          - size: "40gb"           # Changed from size_gb to size (requires units like 'gb')
-            device_node: "scsi0:0" # Required by the certified collection
-            type: thin
+          - size: "40gb"
+            device_node: "SCSI(0:0)"
+            provisioning: thin
             datastore: "sata4b"
-        nics:
-          - name: "VM Network"
+        # The module requires SCSI controllers to be explicitly defined if referenced
+        scsi_controllers:
+          - bus_number: 0
+            controller_type: paravirtual
+        # From suboptions: network
+        network_adapters:
+          - network: "VM Network"
             adapter_type: vmxnet3
-          - name: "nestedtrunk"
+          - network: "nestedtrunk"
             adapter_type: vmxnet3
-          - name: "nestedtrunk"
+          - network: "nestedtrunk"
             adapter_type: vmxnet3
-          - name: "nestedtrunk"
+          - network: "nestedtrunk"
             adapter_type: vmxnet3
+        # From suboptions: iso_media_path, device_node, connect_at_power_on
         cdroms:
-          - type: iso
-            iso_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-            device_node: "ide0:0"
-            state: present
+          - iso_media_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+            device_node: "IDE(0:0)"
+            connect_at_power_on: true
       loop: "{{ vm_list }}"
       register: vm_creation_results
 
