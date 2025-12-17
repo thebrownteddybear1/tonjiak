@@ -29,7 +29,7 @@
         name: "{{ item.vm_name }}"
         # Set to false to help the module identify the standalone structure
         folder_paths_are_absolute: false 
-        folder: "{{ vm_folder }}"
+        #folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
         cpu:
