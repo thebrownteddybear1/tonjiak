@@ -8,7 +8,7 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    vm_folder: "vm"  # Relative path under ha-datacenter
+    vm_folder: "vm"
     
     vm_list:
       - vm_name: "esx13"
@@ -21,15 +21,17 @@
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
-        # For standalone ESXi, use 'ha-datacenter'
         datacenter: "ha-datacenter"
         esxi_host: "{{ esxi_host }}"
+        # Added datastore at the top level for the VM configuration files
+        datastore: "sata4b"  
         name: "{{ item.vm_name }}"
         folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
         cpu:
           cores: 56
+          # Using vm_options later if nested_virt isn't supported here
         memory:
           size_mb: 81920
         disks:
