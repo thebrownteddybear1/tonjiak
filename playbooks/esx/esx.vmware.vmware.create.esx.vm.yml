@@ -8,7 +8,7 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    vm_folder: "/vm"
+    vm_folder: "vm"  # Relative path under ha-datacenter
     
     vm_list:
       - vm_name: "esx13"
@@ -21,28 +21,25 @@
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
+        # For standalone ESXi, use 'ha-datacenter'
+        datacenter: "ha-datacenter"
+        esxi_host: "{{ esxi_host }}"
         name: "{{ item.vm_name }}"
         folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
-        # From suboptions: cores, nested_virt
         cpu:
           cores: 56
-          enable_performance_counters: true
-        # From suboptions: size_mb
         memory:
           size_mb: 81920
-        # From suboptions: size, device_node, provisioning, datastore
         disks:
           - size: "40gb"
             device_node: "SCSI(0:0)"
             provisioning: thin
             datastore: "sata4b"
-        # The module requires SCSI controllers to be explicitly defined if referenced
         scsi_controllers:
           - bus_number: 0
             controller_type: paravirtual
-        # From suboptions: network
         network_adapters:
           - network: "VM Network"
             adapter_type: vmxnet3
@@ -52,7 +49,6 @@
             adapter_type: vmxnet3
           - network: "nestedtrunk"
             adapter_type: vmxnet3
-        # From suboptions: iso_media_path, device_node, connect_at_power_on
         cdroms:
           - iso_media_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
             device_node: "IDE(0:0)"
