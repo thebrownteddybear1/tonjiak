@@ -6,15 +6,11 @@
   gather_facts: false
   
   vars:
-    # Connection details for your physical ESXi host
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    
-    # Target folder on the ESXi host (usually /ha-datacenter/vm for standalone ESXi)
     vm_folder: "/vm"
     
-    # List of VMs to deploy
     vm_list:
       - vm_name: "esx13"
       - vm_name: "esx14"
@@ -34,9 +30,10 @@
           memory_mb: 81920
           num_cpus: 56
           scsi: paravirtual
-          nested_virt: true  # Required for Nested ESXi to support inner VMs
+          nested_virt: true
         disks:
-          - size_gb: 40
+          - size: "40gb"           # Changed from size_gb to size (requires units like 'gb')
+            device_node: "scsi0:0" # Required by the certified collection
             type: thin
             datastore: "sata4b"
         nics:
@@ -51,15 +48,10 @@
         cdroms:
           - type: iso
             iso_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-            device_node: "ide0:0"  # Explicitly defined to avoid 'missing argument' error
+            device_node: "ide0:0"
             state: present
       loop: "{{ vm_list }}"
       register: vm_creation_results
-
-    - name: Show VM creation results
-      debug:
-        msg: "VM '{{ item.item.vm_name }}' status: {{ 'Changed/Created' if item.changed else 'No changes' }}"
-      loop: "{{ vm_creation_results.results }}"
 
     - name: Power on the VMs
       vmware.vmware.vm_powerstate:
@@ -70,9 +62,3 @@
         name: "{{ item.vm_name }}"
         state: "powered-on"
       loop: "{{ vm_list }}"
-      register: power_results
-
-    - name: Show power on results
-      debug:
-        msg: "VM '{{ item.item.vm_name }}' is now powered on."
-      loop: "{{ power_results.results }}"
