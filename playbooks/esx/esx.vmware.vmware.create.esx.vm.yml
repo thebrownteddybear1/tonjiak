@@ -8,7 +8,9 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    vm_folder: "vm"
+    # Changed from "vm" to "/vm" or "vm" (root level)
+    # On standalone ESXi, the default root folder is simply 'vm'
+    vm_folder: "vm" 
     
     vm_list:
       - vm_name: "esx13"
@@ -23,15 +25,15 @@
         validate_certs: false
         datacenter: "ha-datacenter"
         esxi_host: "{{ esxi_host }}"
-        # Added datastore at the top level for the VM configuration files
         datastore: "sata4b"  
         name: "{{ item.vm_name }}"
+        # Set to false to help the module identify the standalone structure
+        folder_paths_are_absolute: false 
         folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
         cpu:
           cores: 56
-          # Using vm_options later if nested_virt isn't supported here
         memory:
           size_mb: 81920
         disks:
