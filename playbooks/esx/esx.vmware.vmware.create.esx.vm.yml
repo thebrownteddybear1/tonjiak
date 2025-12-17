@@ -1,6 +1,5 @@
 ---
-# Playbook to deploy multiple nested ESXi VMs
-- name: Deploy Multiple Nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs using vmware.vmware
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,20 +8,15 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    
-    # Datacenter name and folder path are inferred differently in certified collection
-    datacenter_name: "ha-datacenter" # Assuming the default DC name
-    vm_folder: "/ha-datacenter/vm" 
-    
-    # Define VM list
+    vm_folder: "/vm"
     vm_list:
       - vm_name: "esx13"
       - vm_name: "esx14"
     
   tasks:
-    # Create VM - Using loop to create
-    - name: Create VMs with host CD-ROM
-      vmware.vmware.vcenter_vm:
+    - name: Create the VMs
+      # Using the certified vm module
+      vmware.vmware.vm:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
@@ -30,100 +24,35 @@
         name: "{{ item.vm_name }}"
         folder: "{{ vm_folder }}"
         state: present
-        guest_os: "vmkernel8Guest" # Parameter name change from guest_id to guest_os
-        
-        hardware:
-          memory_mb: 81920
-          num_cpus: 56
-          scsi_controller:
-            type: pvscsi # Parameter value change for paravirtual
-        
-        disks: # Parameter name change from disk to disks (list of dicts)
-          - size_gb: 40
-            type: thin
-            datastore: "sata4b"
-        
-        # Networks list needs to be a single list, not multiple 'networks' keys
-        networks:
-          - name: "VM Network"
-            device_type: vmxnet3
----
-# Playbook to deploy multiple nested ESXi VMs
-- name: Deploy Multiple Nested ESXi VMs
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  
-  vars:
-    esxi_host: "192.168.50.108"
-    esxi_user: "root"
-    esxi_password: "VMware1!VMware1!VMware1!VMware1!"
-    
-    # VM 文件夹路径（通常为 /vm 或 /ha-datacenter/vm）
-    vm_folder: "/vm"
-    # 或者尝试: vm_folder: "/ha-datacenter/vm"
-    
-    # 定义 VM 列表
-    vm_list:
-      - vm_name: "esx13"
-      - vm_name: "esx14"
-    
-  tasks:
-    # 创建 VM - 使用 loop 循环创建
-    - name: Create VMs with host CD-ROM
-      community.vmware.vmware_guest:
-        hostname: "{{ esxi_host }}"
-        username: "{{ esxi_user }}"
-        password: "{{ esxi_password }}"
-        validate_certs: false
-        name: "{{ item.vm_name }}"
-        folder: "{{ vm_folder }}"  # 添加 folder 参数
-        state: present
         guest_id: "vmkernel8Guest"
-        
         hardware:
           memory_mb: 81920
           num_cpus: 56
           scsi: paravirtual
-        
-        disk:
+          nested_virt: true
+        disks:
           - size_gb: 40
             type: thin
             datastore: "sata4b"
-        
-        networks:
+        nics:
           - name: "VM Network"
-            device_type: vmxnet3
+            adapter_type: vmxnet3
           - name: "nestedtrunk"
-            device_type: vmxnet3
+            adapter_type: vmxnet3
           - name: "nestedtrunk"
-            device_type: vmxnet3
+            adapter_type: vmxnet3
           - name: "nestedtrunk"
-            device_type: vmxnet3
-
-
-
-        
-        # CD-ROM 配置
-        cdrom:
-          - controller_type: ide
-            controller_number: 0
-            unit_number: 0
+            adapter_type: vmxnet3
+        cdroms:
+          - type: iso
             iso_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-            type: iso
             state: present
       loop: "{{ vm_list }}"
       register: vm_creation_results
-      
-    # 显示创建结果
-    - name: Show VM creation results
-      debug:
-        msg: "VM '{{ item.item.vm_name }}' created: {{ 'Success' if item.changed else 'Already exists' }}"
-      loop: "{{ vm_creation_results.results }}"
-      
-    # 开机所有 VM
-    - name: Power on all VMs
-      community.vmware.vmware_guest_powerstate:
+
+    - name: Power on the VMs
+      # Power state is handled by a dedicated module in this collection
+      vmware.vmware.vm_powerstate:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
@@ -131,44 +60,3 @@
         name: "{{ item.vm_name }}"
         state: "powered-on"
       loop: "{{ vm_list }}"
-      register: power_results
-          - name: "nestedtrunk"
-            device_type: vmxnet3
-          - name: "nestedtrunk"
-            device_type: vmxnet3
-          - name: "nestedtrunk"
-            device_type: vmxnet3
-        
-        # CD-ROM configuration structure changed
-        cdroms:
-          - datastore: "lex1"
-            iso_path: "/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
-            type: iso
-            state: present
-      loop: "{{ vm_list }}"
-      register: vm_creation_results
-      
-    # Display creation results
-    - name: Show VM creation results
-      debug:
-        msg: "VM '{{ item.item.vm_name }}' created: {{ 'Success' if item.changed else 'Already exists' }}"
-      loop: "{{ vm_creation_results.results }}"
-      
-    # Power on all VMs
-    - name: Power on all VMs
-      vmware.vmware.vcenter_vm_power: # Module name change
-        hostname: "{{ esxi_host }}"
-        username: "{{ esxi_user }}"
-        password: "{{ esxi_password }}"
-        validate_certs: false
-        name: "{{ item.vm_name }}"
-        state: "powered_on" # Parameter value change from "powered-on" to "powered_on"
-      loop: "{{ vm_list }}"
-      register: power_results
-      
-    - name: Show power on results
-      debug:
-        msg: "VM '{{ item.item.vm_name }}' powered on: {{ 'Success' if item.changed else 'Already on' }}"
-      loop: "{{ power_results.results }}"
-
-
