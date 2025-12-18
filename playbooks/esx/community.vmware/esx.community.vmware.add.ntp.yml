@@ -1,5 +1,5 @@
 ---
-- name: Configure NTP on ESXi Hosts
+- name: Configure NTP and Enable Management Services on ESXi
   hosts: localhost
   gather_facts: false
   vars:
@@ -12,6 +12,11 @@
     ntp_servers:
       - "pool.ntp.org"
       - "0.pool.ntp.org"
+    # List of services to ensure are running and persistent
+    mgmt_services:
+      - ntpd
+      - TSM-SSH
+      - ESXShell
 
   tasks:
     - name: Set NTP server list on ESXi hosts
@@ -25,14 +30,14 @@
         state: present
       loop: "{{ esxi_hosts }}"
 
-    - name: Ensure the NTP service (ntpd) is running and persistent
+    - name: Ensure NTP, SSH, and Shell services are started and persistent
       community.vmware.vmware_host_service_manager:
         hostname: "{{ vcenter_host }}"
         username: "{{ vcenter_user }}"
         password: "{{ vcenter_pass }}"
         validate_certs: false
-        esxi_hostname: "{{ item }}"
-        service_name: ntpd
-        state: start             # Changed from 'started' to 'start'
+        esxi_hostname: "{{ item.0 }}"
+        service_name: "{{ item.1 }}"
+        state: start
         service_policy: on
-      loop: "{{ esxi_hosts }}"
+      loop: "{{ esxi_hosts | product(mgmt_services) | list }}"
