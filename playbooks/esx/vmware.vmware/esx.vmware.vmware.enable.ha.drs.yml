@@ -1,0 +1,35 @@
+---
+- name: Configure vCenter Cluster HA and DRS
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_host: "192.168.50.52"
+    vcenter_user: "administrator@vsphere.local"
+    vcenter_pass: "VMware1!VMware1!"
+    dc_name: "datacenter"
+    cluster_name: "cluster"
+
+  tasks:
+    - name: Enable HA on Cluster
+      vmware.vmware.cluster_ha:
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
+        datacenter: "{{ dc_name }}"
+        cluster: "{{ cluster_name }}"
+        enable: true
+        ha_restart_priority: medium
+        state: present
+
+    - name: Enable DRS on Cluster
+      vmware.vmware.cluster_drs:
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
+        datacenter: "{{ dc_name }}"
+        cluster: "{{ cluster_name }}"
+        enable: true
+        drs_automation_level: fullyAutomated
+        state: present
