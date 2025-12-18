@@ -1,0 +1,38 @@
+---
+- name: Configure Cluster HA and DRS using VMware Collection
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_host: "192.168.50.52"
+    vcenter_user: "administrator@vsphere.local"
+    vcenter_pass: "VMware1!VMware1!"
+    cluster_name: "cluster"
+
+  tasks:
+    - name: Enable HA on the Cluster
+      vmware.vmware.cluster_ha:
+        vcenter_hostname: "{{ vcenter_host }}"
+        vcenter_username: "{{ vcenter_user }}"
+        vcenter_password: "{{ vcenter_pass }}"
+        vcenter_validate_certs: false
+        cluster: "{{ cluster_name }}"
+        state: present
+        enable: true
+        # Optimization for HA
+        ha_restart_priority: medium
+        ha_host_monitoring: enabled
+      delegate_to: localhost
+
+    - name: Enable DRS on the Cluster
+      vmware.vmware.cluster_drs:
+        vcenter_hostname: "{{ vcenter_host }}"
+        vcenter_username: "{{ vcenter_user }}"
+        vcenter_password: "{{ vcenter_pass }}"
+        vcenter_validate_certs: false
+        cluster: "{{ cluster_name }}"
+        state: present
+        enable: true
+        # Set to fullyAutomated for k8s/production efficiency
+        drs_automation_level: fullyAutomated
+        drs_migration_threshold: 3
+      delegate_to: localhost
