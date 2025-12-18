@@ -10,33 +10,37 @@
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!VMware1!VMware1!"
     
-    # VM 文件夹路径（通常为 /vm 或 /ha-datacenter/vm）
-    vm_folder: "/vm"
-    # 或者尝试: vm_folder: "/ha-datacenter/vm"
+    # On standalone ESXi, the folder path must include the datacenter
+    vm_folder: "/ha-datacenter/vm"
     
-    # 定义 VM 列表
     vm_list:
       - vm_name: "esx11"
       - vm_name: "esx12"
     
   tasks:
-    # 创建 VM - 使用 loop 循环创建
-    - name: Create VMs with host CD-ROM
+    - name: Create VMs with hardware virtualization enabled
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
         name: "{{ item.vm_name }}"
-        folder: "{{ vm_folder }}"  # 添加 folder 参数
+        folder: "{{ vm_folder }}"
         state: present
         guest_id: "vmkernel8Guest"
         
+        # This is the native way according to your python source code
         hardware:
           memory_mb: 81920
           num_cpus: 56
           scsi: paravirtual
+          nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
         
+        # If you want to be extra safe, you can also use advanced_settings
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+
         disk:
           - size_gb: 40
             type: thin
@@ -51,12 +55,7 @@
             device_type: vmxnet3
           - name: "nestedtrunk"
             device_type: vmxnet3
-# This section enables Nested Hardware Virtualization
-        extra_config:
-          vhv.enable: "True"
-
-     
-        # CD-ROM 配置
+        
         cdrom:
           - controller_type: ide
             controller_number: 0
@@ -67,13 +66,11 @@
       loop: "{{ vm_list }}"
       register: vm_creation_results
       
-    # 显示创建结果
     - name: Show VM creation results
       debug:
         msg: "VM '{{ item.item.vm_name }}' created: {{ 'Success' if item.changed else 'Already exists' }}"
       loop: "{{ vm_creation_results.results }}"
       
-    # 开机所有 VM
     - name: Power on all VMs
       community.vmware.vmware_guest_powerstate:
         hostname: "{{ esxi_host }}"
@@ -83,4 +80,3 @@
         name: "{{ item.vm_name }}"
         state: "powered-on"
       loop: "{{ vm_list }}"
-      register: power_results
