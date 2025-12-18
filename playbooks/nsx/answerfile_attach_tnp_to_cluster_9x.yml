@@ -124,7 +124,7 @@ edge_transport_nodes:
         - segment-vlan-trunk
         - segment-vlan-trunk
         management_network: "vds.v0"
-        compute: "c"
+        compute: "cluster"
         storage: "nfs1"
         host: "192.168.50.12"
     node_settings:
