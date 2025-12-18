@@ -116,7 +116,7 @@ edge_transport_nodes:
         default_gateway_addresses:
           - "192.168.50.53"
         placement_type: VsphereDeploymentConfig
-        vc_name: "vc52"
+        vc_name: "vcsa52"
         vc_username: "administrator@vsphere.local"
         vc_password:  "VMware1!VMware1!"
         data_networks:
