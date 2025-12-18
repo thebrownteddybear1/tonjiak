@@ -158,13 +158,13 @@ transport_node_profiles:
 
 
 compute_managers:
-- display_name: "vc52"
+- display_name: "vcsa52"
   server: "192.168.50.52"
   origin_type: vCenter
   credential_type: UsernamePasswordLoginCredential
   username: "administrator@vsphere.local"
   password: "VMware1!VMware1!"
-  thumbprint: "46:1E:31:DD:0B:37:4C:F0:91:5B:49:A1:A1:94:B5:DF:82:93:90:52:D9:68:0F:86:C8:CA:6C:34:CB:82:D7:D5"
+  #thumbprint: "46:1E:31:DD:0B:37:4C:F0:91:5B:49:A1:A1:94:B5:DF:82:93:90:52:D9:68:0F:86:C8:CA:6C:34:CB:82:D7:D5"
 
 
 # route_advertise:
