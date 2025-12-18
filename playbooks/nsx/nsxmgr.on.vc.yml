@@ -11,7 +11,7 @@
     - name: deploy NSX Manager OVA
       vmware.ansible_for_nsxt.nsxt_deploy_ova:
         ovftool_path: "/root/ovftool"
-        datacenter: "Datacenter"
+        datacenter: "datacenter"
         datastore: "nvme2"
         portgroup: "VM Network"
         cluster: "c"
