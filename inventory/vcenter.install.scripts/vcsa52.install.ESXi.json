@@ -31,7 +31,8 @@
         "os": {
             "password": "VMware1!VMware1!",
             "ntp_servers": "192.168.50.53",
-            "ssh_enable": true
+            "ssh_enable": true,
+            "ntp_servers": ["time.google.com"]
         },
         "sso": {
             "password": "VMware1!VMware1!",

@@ -43,7 +43,7 @@
             datastore: "sata4b"
         
         networks:
-          - name: "VM Network"
+          - name: "nestedtrunk"
             device_type: vmxnet3
           - name: "nestedtrunk"
             device_type: vmxnet3
