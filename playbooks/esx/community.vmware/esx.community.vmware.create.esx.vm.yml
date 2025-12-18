@@ -16,8 +16,8 @@
     
     # 定义 VM 列表
     vm_list:
-      - vm_name: "esx13"
-      - vm_name: "esx14"
+      - vm_name: "esx11"
+      - vm_name: "esx12"
     
   tasks:
     # 创建 VM - 使用 loop 循环创建
