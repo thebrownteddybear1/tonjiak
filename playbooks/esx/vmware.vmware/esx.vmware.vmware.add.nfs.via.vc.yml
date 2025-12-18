@@ -1,26 +1,53 @@
 ---
-- name: Mount NFS Storage for Tanzu Preparation
+- name: VMware NFS Mounting and K8s Tagging
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
-    # vCenter configuration
+    # vCenter connection details
     vcenter_hostname: "192.168.50.52"
     vcenter_user: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
-    
-    # NFS specific details
+
+    # NFS configurations
     nfs_server_ip: "192.168.50.53"
     nfs_export_path: "/mnt/nfs1"
     datastore_name: "nfs1"
-    
+
+    # Tagging configurations for TKGS
+    tag_name: "k8"
+    category_name: "k8"
+
     # Target ESXi hosts
     esxi_hosts:
       - "192.168.50.11"
       - "192.168.50.12"
 
   tasks:
-    - name: Mount NFS datastore to ESXi hosts
+    - name: Create Tag Category for Kubernetes
+      vmware.vmware.vmware_category:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "{{ category_name }}"
+        description: "Category for TKGS Storage Policies"
+        cardinality: single
+        associable_types:
+          - Datastore
+        state: present
+
+    - name: Create Tag within Category
+      vmware.vmware.vmware_tag:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        tag_name: "{{ tag_name }}"
+        category_name: "{{ category_name }}"
+        state: present
+
+    - name: Mount NFS Datastore to ESXi Hosts
       vmware.vmware.vmware_host_datastore:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_user }}"
@@ -34,10 +61,15 @@
         esxi_hostname: "{{ item }}"
         state: present
       loop: "{{ esxi_hosts }}"
-      register: mount_result
 
-    - name: Display mount status
-      ansible.builtin.debug:
-        msg: "Datastore {{ datastore_name }} is now present on {{ item.item }}"
-      loop: "{{ mount_result.results }}"
-      when: item.changed
+    - name: Apply k8 Tag to the Datastore
+      vmware.vmware.vmware_tag_manager:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        tag_names:
+          - "{{ tag_name }}"
+        object_name: "{{ datastore_name }}"
+        object_type: Datastore
+        state: add
