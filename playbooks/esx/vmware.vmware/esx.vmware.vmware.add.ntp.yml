@@ -10,13 +10,12 @@
       - "192.168.50.11"
       - "192.168.50.12"
     ntp_servers:
-      - "time.google.com"
-      - "pool.ntp.org"
       - "0.pool.ntp.org"
+      - "1.pool.ntp.org"
 
   tasks:
-    - name: Set NTP servers and policy for each host
-      vmware.vmware.host_ntp:
+    - name: Set NTP server list on ESXi hosts
+      community.vmware.vmware_host_ntp:
         hostname: "{{ vcenter_host }}"
         username: "{{ vcenter_user }}"
         password: "{{ vcenter_pass }}"
@@ -26,8 +25,8 @@
         state: present
       loop: "{{ esxi_hosts }}"
 
-    - name: Ensure NTP service is running and set to start with host
-      vmware.vmware.host_service:
+    - name: Ensure the NTP service (ntpd) is running and persistent
+      community.vmware.vmware_host_service_manager:
         hostname: "{{ vcenter_host }}"
         username: "{{ vcenter_user }}"
         password: "{{ vcenter_pass }}"
