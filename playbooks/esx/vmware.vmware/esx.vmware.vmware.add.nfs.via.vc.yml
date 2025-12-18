@@ -1,0 +1,43 @@
+---
+- name: Mount NFS Storage for Tanzu Preparation
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    # vCenter configuration
+    vcenter_hostname: "192.168.50.52"
+    vcenter_user: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    
+    # NFS specific details
+    nfs_server_ip: "192.168.50.53"
+    nfs_export_path: "/mnt/nfs1"
+    datastore_name: "nfs1"
+    
+    # Target ESXi hosts
+    esxi_hosts:
+      - "192.168.50.11"
+      - "192.168.50.12"
+
+  tasks:
+    - name: Mount NFS datastore to ESXi hosts
+      vmware.vmware.vmware_host_datastore:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        datastore_name: "{{ datastore_name }}"
+        datastore_type: nfs
+        nfs_server: "{{ nfs_server_ip }}"
+        nfs_path: "{{ nfs_export_path }}"
+        nfs_ro: false
+        esxi_hostname: "{{ item }}"
+        state: present
+      loop: "{{ esxi_hosts }}"
+      register: mount_result
+
+    - name: Display mount status
+      ansible.builtin.debug:
+        msg: "Datastore {{ datastore_name }} is now present on {{ item.item }}"
+      loop: "{{ mount_result.results }}"
+      when: item.changed
