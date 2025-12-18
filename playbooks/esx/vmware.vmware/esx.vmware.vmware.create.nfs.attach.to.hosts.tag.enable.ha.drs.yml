@@ -43,11 +43,12 @@
         state: present
         tag_categories:
           - name: "k8"
-            cardinality: "SINGLE" # Matches "One tag" in your screenshot
+            cardinality: "SINGLE"
+            # Using the exact API strings expected by the vCenter REST API
             associable_types:
               - Datastore
-              - ClusterComputeResource # Matches "Cluster" in screenshot
-              - VirtualMachine         # Matches "Virtual Machine" in screenshot
+              - ClusterComputeResource
+              - VirtualMachine
 
     - name: Create Tag
       vmware.vmware.tags:
@@ -58,7 +59,7 @@
         state: present
         tags:
           - name: "k8"
-            category_name: "k8" # Changed from 'category' to 'category_name'
+            category_name: "k8"  # Confirmed as required by your tags.py output
 
     - name: Attach Tag to Datastore
       vmware.vmware.tag_associations:
@@ -66,14 +67,15 @@
         username: "{{ vcenter_user }}"
         password: "{{ vcenter_pass }}"
         validate_certs: false
-        tag: "k8"
-        category: "k8"
+        state: present
         object_name: "{{ ds_name }}"
         object_type: Datastore
-        state: present
+        tags:
+          - name: "k8"
+            category_name: "k8"
 
     # 3. CLUSTER CONFIG
-    - name: Enable HA on Cluster
+    - name: Enable HA/DRS (Using standard parameters)
       vmware.vmware.cluster_ha:
         hostname: "{{ vcenter_host }}"
         username: "{{ vcenter_user }}"
@@ -82,10 +84,9 @@
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
         enable: true
-        ha_restart_priority: medium
         state: present
 
-    - name: Enable DRS on Cluster
+    - name: Enable DRS
       vmware.vmware.cluster_drs:
         hostname: "{{ vcenter_host }}"
         username: "{{ vcenter_user }}"
