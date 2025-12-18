@@ -27,7 +27,7 @@
         cli_password: "VMware1!VMware1!"
         path_to_ova: "/root"
         ova_file: "nsx-unified-appliance-4.2.0.0.0.24105821.ova"
-        vcenter: "192.168.50.52"
+        vcenter: "192.168.50.8"
         vcenter_user: "administrator@vsphere.local"
         vcenter_passwd: "VMware1!VMware1!"
         deployment_size: "medium"
