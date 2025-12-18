@@ -26,6 +26,8 @@
           display_name: "{{item.display_name}}"
           server: "{{item.server}}"
           origin_type: "{{item.origin_type}}"
+          # Mandatory for TKGS - this "Enables Trust"
+          set_as_oidc_provider: True
           credential:
             credential_type: "{{item.credential_type}}"
             username: "{{item.username}}"
