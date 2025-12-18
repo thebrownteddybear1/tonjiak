@@ -19,8 +19,11 @@
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
         enable: true
-        ha_restart_priority: medium
-        state: present
+        # Based on your source code: host_failure_response is a dict
+        host_failure_response:
+          restart_vms: true
+          default_vm_restart_priority: medium
+        host_isolation_response: none
 
     - name: Enable DRS on Cluster
       vmware.vmware.cluster_drs:
@@ -31,5 +34,5 @@
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
         enable: true
-        drs_automation_level: fullyAutomated
-        state: present
+        drs_default_vm_behavior: fullyAutomated
+        drs_vmotion_rate: 3
