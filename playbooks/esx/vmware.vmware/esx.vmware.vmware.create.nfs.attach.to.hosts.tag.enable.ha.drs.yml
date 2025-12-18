@@ -33,7 +33,7 @@
         state: present
       loop: "{{ target_hosts }}"
 
-    # 2. TAGGING (Using 'hostname/username/password' and list format)
+    # 2. TAGGING
     - name: Create Tag Category
       vmware.vmware.tag_categories:
         hostname: "{{ vcenter_host }}"
@@ -43,9 +43,11 @@
         state: present
         tag_categories:
           - name: "k8"
-            cardinality: "SINGLE"
+            cardinality: "SINGLE" # Matches "One tag" in your screenshot
             associable_types:
               - Datastore
+              - ClusterComputeResource # Matches "Cluster" in screenshot
+              - VirtualMachine         # Matches "Virtual Machine" in screenshot
 
     - name: Create Tag
       vmware.vmware.tags:
@@ -56,7 +58,7 @@
         state: present
         tags:
           - name: "k8"
-            category: "k8"
+            category_name: "k8" # Changed from 'category' to 'category_name'
 
     - name: Attach Tag to Datastore
       vmware.vmware.tag_associations:
