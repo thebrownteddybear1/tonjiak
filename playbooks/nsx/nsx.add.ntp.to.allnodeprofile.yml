@@ -3,10 +3,10 @@
   hosts: localhost
   gather_facts: false
   vars:
-    nsx_manager: "192.168.50.60"
+    nsx_manager: "192.168.50.54"
     nsx_user: "admin"
     nsx_pass: "VMware1!VMware1!"
-    # Profile ID from your system screenshots
+    # Profile ID for "All NSX Nodes" from your screenshot
     profile_id: "00000000-0000-0000-0000-000000000001"
     
     ntp_servers:
@@ -14,7 +14,7 @@
     timezone: "UTC"
 
   tasks:
-    - name: Patch All NSX Nodes Profile
+    - name: Patch All NSX Nodes Profile with NTP and Timezone
       vmware.ansible_for_nsxt.nsxt_rest:
         hostname: "{{ nsx_manager }}"
         username: "{{ nsx_user }}"
@@ -29,4 +29,6 @@
 
     - name: Verify Change Status
       ansible.builtin.debug:
-        msg: "Profile updated: {{ ntp_update_result.changed }}"
+        msg: 
+          - "Changed: {{ ntp_update_result.changed }}"
+          - "New Revision: {{ ntp_update_result.body._revision }}"
