@@ -1,0 +1,39 @@
+---
+- name: Configure NTP on ESXi Hosts
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_host: "192.168.50.52"
+    vcenter_user: "administrator@vsphere.local"
+    vcenter_pass: "VMware1!VMware1!"
+    esxi_hosts:
+      - "192.168.50.11"
+      - "192.168.50.12"
+    ntp_servers:
+      - "time.google.com"
+      - "pool.ntp.org"
+      - "0.pool.ntp.org"
+
+  tasks:
+    - name: Set NTP servers and policy for each host
+      vmware.vmware.host_ntp:
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
+        esxi_hostname: "{{ item }}"
+        ntp_servers: "{{ ntp_servers }}"
+        state: present
+      loop: "{{ esxi_hosts }}"
+
+    - name: Ensure NTP service is running and set to start with host
+      vmware.vmware.host_service:
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
+        esxi_hostname: "{{ item }}"
+        service_name: ntpd
+        state: started
+        service_policy: on
+      loop: "{{ esxi_hosts }}"

@@ -30,7 +30,7 @@
         },
         "os": {
             "password": "VMware1!VMware1!",
-            "ntp_servers": "192.168.50.53",
+            "ntp_servers": "time.google.com",
             "ssh_enable": true,
             "ntp_servers": ["time.google.com"]
         },
