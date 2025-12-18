@@ -51,10 +51,11 @@
             device_type: vmxnet3
           - name: "nestedtrunk"
             device_type: vmxnet3
+# This section enables Nested Hardware Virtualization
+        extra_config:
+          vhv.enable: "True"
 
-
-
-        
+     
         # CD-ROM 配置
         cdrom:
           - controller_type: ide
