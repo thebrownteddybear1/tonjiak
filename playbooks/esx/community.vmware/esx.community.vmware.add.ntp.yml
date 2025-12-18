@@ -12,11 +12,11 @@
     ntp_servers:
       - "pool.ntp.org"
       - "0.pool.ntp.org"
-    # List of services to ensure are running and persistent
+    # Corrected service names: TSM is the key for ESXi Shell
     mgmt_services:
       - ntpd
       - TSM-SSH
-      - ESXShell
+      - TSM
 
   tasks:
     - name: Set NTP server list on ESXi hosts
