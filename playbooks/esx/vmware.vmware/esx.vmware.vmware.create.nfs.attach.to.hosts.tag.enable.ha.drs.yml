@@ -33,13 +33,13 @@
         state: present
       loop: "{{ target_hosts }}"
 
-    # 2. TAGGING (Using the list format required by your specific module version)
+    # 2. TAGGING (Using 'hostname/username/password' and list format)
     - name: Create Tag Category
       vmware.vmware.tag_categories:
-        vcenter_hostname: "{{ vcenter_host }}"
-        vcenter_username: "{{ vcenter_user }}"
-        vcenter_password: "{{ vcenter_pass }}"
-        vcenter_validate_certs: false
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
         state: present
         tag_categories:
           - name: "k8"
@@ -49,10 +49,10 @@
 
     - name: Create Tag
       vmware.vmware.tags:
-        vcenter_hostname: "{{ vcenter_host }}"
-        vcenter_username: "{{ vcenter_user }}"
-        vcenter_password: "{{ vcenter_pass }}"
-        vcenter_validate_certs: false
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
         state: present
         tags:
           - name: "k8"
@@ -60,10 +60,10 @@
 
     - name: Attach Tag to Datastore
       vmware.vmware.tag_associations:
-        vcenter_hostname: "{{ vcenter_host }}"
-        vcenter_username: "{{ vcenter_user }}"
-        vcenter_password: "{{ vcenter_pass }}"
-        vcenter_validate_certs: false
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
         tag: "k8"
         category: "k8"
         object_name: "{{ ds_name }}"
@@ -73,10 +73,10 @@
     # 3. CLUSTER CONFIG
     - name: Enable HA on Cluster
       vmware.vmware.cluster_ha:
-        vcenter_hostname: "{{ vcenter_host }}"
-        vcenter_username: "{{ vcenter_user }}"
-        vcenter_password: "{{ vcenter_pass }}"
-        vcenter_validate_certs: false
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
         enable: true
@@ -85,10 +85,10 @@
 
     - name: Enable DRS on Cluster
       vmware.vmware.cluster_drs:
-        vcenter_hostname: "{{ vcenter_host }}"
-        vcenter_username: "{{ vcenter_user }}"
-        vcenter_password: "{{ vcenter_pass }}"
-        vcenter_validate_certs: false
+        hostname: "{{ vcenter_host }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: false
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
         enable: true
