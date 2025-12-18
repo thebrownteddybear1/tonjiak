@@ -9,8 +9,8 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     vcenter_validate_certs: false
-    datacenter_name: "Datacenter"
-    cluster_name: "c"
+    datacenter_name: "datacenter"
+    cluster_name: "cluster"
   tasks:
     - name: Build a list of all the folders
       vmware.vmware_rest.vcenter_folder_info:

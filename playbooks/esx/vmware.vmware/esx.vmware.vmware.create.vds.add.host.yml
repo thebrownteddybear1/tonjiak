@@ -9,7 +9,7 @@
     vcenter_password: "VMware1!VMware1!"
     validate_certs: false
 
-    datacenter_name: "Datacenter"
+    datacenter_name: "datacenter"
     vds_name: "vds"
     dpg_name: "vds.v0"
     mtu_size: 1700
