@@ -14,7 +14,7 @@
         datacenter: "Datacenter"
         datastore: "nvme2"
         portgroup: "VM Network"
-        cluster: "cc"
+        cluster: "c"
         vmname: "nsx54"
         hostname: "nsx54"
         dns_server: "192.168.50.53"
