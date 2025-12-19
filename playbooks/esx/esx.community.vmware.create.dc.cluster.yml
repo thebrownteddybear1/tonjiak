@@ -1,16 +1,16 @@
 ---
-- name: Create vSphere Infrastructure using Community Collection
+- name: Multi-Collection vSphere Setup
   hosts: localhost
   gather_facts: false
   vars:
-    vcenter_hostname: "vcenter.example.local"
+    vcenter_hostname: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
-    vcenter_password: "YourPassword123!"
-    dc_name: "Datacenter-01"
-    cluster_name: "Compute-Cluster-01"
+    vcenter_password: "VMware1!VMware1!"
+    dc_name: "datacenter"
+    cluster_name: "cluster"
 
   tasks:
-    - name: Ensure the Datacenter exists
+    - name: Create Datacenter using community.vmware
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
@@ -19,12 +19,13 @@
         state: present
         validate_certs: false
 
-    - name: Ensure the Cluster exists
-      community.vmware.vmware_cluster:
+    - name: Create Cluster using vmware.vmware
+      # This uses the cluster.py module you saw in the official collection
+      vmware.vmware.cluster:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter_name: "{{ dc_name }}"
-        cluster_name: "{{ cluster_name }}"
+        datacenter: "{{ dc_name }}"
+        cluster: "{{ cluster_name }}"
         state: present
         validate_certs: false
