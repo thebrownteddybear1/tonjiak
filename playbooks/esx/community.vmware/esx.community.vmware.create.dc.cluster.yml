@@ -1,22 +1,30 @@
-- name: Setup vSphere Environment
+---
+- name: Create vSphere Infrastructure using Community Collection
   hosts: localhost
   gather_facts: false
+  vars:
+    vcenter_hostname: "vcenter.example.local"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "YourPassword123!"
+    dc_name: "Datacenter-01"
+    cluster_name: "Compute-Cluster-01"
+
   tasks:
-    - name: Create Datacenter
-      vmware.vmware.datacenter:
+    - name: Ensure the Datacenter exists
+      community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter_name: "DC1"
+        datacenter_name: "{{ dc_name }}"
         state: present
         validate_certs: false
 
-    - name: Create Cluster
-      vmware.vmware.cluster:
+    - name: Ensure the Cluster exists
+      community.vmware.vmware_cluster:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter: "DC1"
-        cluster: "Cluster1"
+        datacenter_name: "{{ dc_name }}"
+        cluster_name: "{{ cluster_name }}"
         state: present
         validate_certs: false
