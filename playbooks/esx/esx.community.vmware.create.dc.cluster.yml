@@ -1,0 +1,32 @@
+---
+- name: Create vSphere Datacenter and Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    vcenter_hostname: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    validate_certs: false
+    datacenter_name: "datacenter"
+    cluster_name: "cluster"
+
+  tasks:
+    - name: Create Datacenter
+      community.vmware.vmware_datacenter:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
+        datacenter_name: "{{ datacenter_name }}"
+        state: present
+
+    - name: Create Cluster
+      community.vmware.vmware_cluster:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
+        datacenter_name: "{{ datacenter_name }}"
+        cluster_name: "{{ cluster_name }}"
+        state: present
