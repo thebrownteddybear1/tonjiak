@@ -1,0 +1,23 @@
+---
+- name: Create vSphere Storage Policy
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "YourPassword"
+    policy_name: "storageclass"
+    k8_val: "k8"
+
+  tasks:
+    - name: Create 'storageclass' policy targeting 'k8' tags
+      community.vmware.vmware_vm_storage_policy:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+        name: "{{ policy_name }}"
+        tag_category: "{{ k8_val }}"
+        tag_name: "{{ k8_val }}"
+        tag_affinity: true
+        state: present
