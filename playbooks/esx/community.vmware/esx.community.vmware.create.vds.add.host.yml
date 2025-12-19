@@ -1,14 +1,16 @@
 ---
-- name: Configure vSphere Distributed Switch with Hosts
+- name: Configure vSphere Infrastructure (Network and Storage)
   hosts: localhost
   connection: local
   gather_facts: false
   vars:
+    # Connection Details
     vcenter_hostname: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     validate_certs: false
 
+    # Networking Variables
     datacenter_name: "datacenter"
     vds_name: "vds"
     dpg_name: "vds.v0"
@@ -21,8 +23,13 @@
       - esxi_name: "192.168.50.12"
         vmnics: ["vmnic1", "vmnic2"]
 
+    # Storage Variables
+    storage_policy_name: "k8storagepolicy"
+    tag_name: "k8"
+
   tasks:
-    # Task 1: Create the vDS
+    # --- NETWORK SECTION ---
+
     - name: Create vSphere Distributed Switch '{{ vds_name }}'
       community.vmware.vmware_dvswitch:
         hostname: "{{ vcenter_hostname }}"
@@ -36,8 +43,7 @@
         state: present
       register: create_vds
 
-    # Task 2: Create the Distributed Port Group
-    - name: Create Distributed Port Group '{{ dpg_name }}'
+    - name: Create Ephemeral Distributed Port Group '{{ dpg_name }}'
       community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
@@ -47,12 +53,10 @@
         portgroup_name: "{{ dpg_name }}"
         vlan_id: 0
         num_ports: 120
-        port_binding: "static"
+        portgroup_type: "ephemeral"  # Set to Ephemeral as requested
         state: present
-      register: create_pg
       when: create_vds is succeeded
 
-    # Task 3: Add all hosts to vDS using loop
     - name: Add ESXi hosts to vDS
       community.vmware.vmware_dvs_host:
         hostname: "{{ vcenter_hostname }}"
@@ -64,7 +68,39 @@
         vmnics: "{{ item.vmnics }}"
         state: present
       loop: "{{ esxi_hosts }}"
-      register: host_results
-      when: create_vds is succeeded
       loop_control:
         label: "{{ item.esxi_name }}"
+      when: create_vds is succeeded
+
+    # --- STORAGE SECTION (Using API for Policy Creation) ---
+
+    - name: Get Session Token from vCenter
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_hostname }}/api/session"
+        method: POST
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        force_basic_auth: yes
+        validate_certs: false
+        status_code: 201
+      register: session_info
+
+    - name: Create k8storagepolicy via vSphere API
+      ansible.builtin.uri:
+        url: "https://{{ vcenter_hostname }}/api/vcenter/storage/policies"
+        method: POST
+        headers:
+          vmware-api-session-id: "{{ session_info.json }}"
+        validate_certs: false
+        body_format: json
+        body:
+          name: "{{ storage_policy_name }}"
+          description: "Policy for datastores tagged with {{ tag_name }}"
+          tag_policies:
+            - tag_operator: "ANY"
+              tags: ["{{ tag_name }}"]
+        status_code: 201
+      register: policy_result
+      failed_when: 
+        - policy_result.status != 201 
+        - "'ALREADY_EXISTS' not in policy_result.content" # Don't fail if already there
