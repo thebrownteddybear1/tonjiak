@@ -53,7 +53,7 @@
         portgroup_name: "{{ dpg_name }}"
         vlan_id: 0
         num_ports: 120
-        portgroup_type: "ephemeral"  # Set to Ephemeral as requested
+        portgroup_binding: "ephemeral"  # Set to Ephemeral as requested
         state: present
       when: create_vds is succeeded
 
