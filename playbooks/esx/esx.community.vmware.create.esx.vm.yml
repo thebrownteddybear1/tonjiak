@@ -14,8 +14,8 @@
     vm_folder: "/ha-datacenter/vm"
     
     vm_list:
-      - vm_name: "esx11"
-      - vm_name: "esx12"
+      - vm_name: "esx13"
+     # - vm_name: "esx12"
     
   tasks:
     - name: Create VMs with hardware virtualization enabled
