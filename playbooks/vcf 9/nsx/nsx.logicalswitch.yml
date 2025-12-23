@@ -1,0 +1,49 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    hostname: "192.168.50.54"
+    username: "admin"
+    password: "VMware1!VMware1!"
+    
+  tasks:
+    - name: Create VLAN trunk segment in Policy Mode
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        display_name: "segment-vlan-trunk"
+        description: "Policy segment with VLANs 11 and 116"
+
+        vlan_ids: "11,116"
+        
+        # Transport zone (must be VLAN-backed)
+        transport_zone_display_name: "TZ1"
+        admin_state: "UP"
+        state: present
+
+    - name: Wait for 10 seconds before continuing
+      ansible.builtin.pause:
+        seconds: 10
+
+    - name: Create VLAN 11 for uplink
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        display_name: "segment-uplink-vlan11"
+        description: "Policy segment with VLANs 11"
+
+        vlan_ids: "11"
+        
+        # Transport zone (must be VLAN-backed)
+        transport_zone_display_name: "TZ1"
+        admin_state: "UP"
+        state: present
+
+
+
+
+      

@@ -1,0 +1,34 @@
+---
+- name: Configure Google NTP on All NSX Nodes Profile
+  hosts: localhost
+  gather_facts: false
+  vars:
+    nsx_manager: "192.168.50.54"
+    nsx_user: "admin"
+    nsx_pass: "VMware1!VMware1!"
+    # Profile ID for "All NSX Nodes" from your screenshot
+    profile_id: "00000000-0000-0000-0000-000000000001"
+    
+    ntp_servers:
+      - "time.google.com"
+    timezone: "UTC"
+
+  tasks:
+    - name: Patch All NSX Nodes Profile with NTP and Timezone
+      vmware.ansible_for_nsxt.nsxt_rest:
+        hostname: "{{ nsx_manager }}"
+        username: "{{ nsx_user }}"
+        password: "{{ nsx_pass }}"
+        validate_certs: false
+        method: patch
+        path: "/api/v1/node-profiles/{{ profile_id }}"
+        content:
+          ntp_servers: "{{ ntp_servers }}"
+          timezone: "{{ timezone }}"
+      register: ntp_update_result
+
+    - name: Verify Change Status
+      ansible.builtin.debug:
+        msg: 
+          - "Changed: {{ ntp_update_result.changed }}"
+          - "New Revision: {{ ntp_update_result.body._revision }}"

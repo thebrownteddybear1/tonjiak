@@ -1,0 +1,82 @@
+---
+# Playbook to deploy multiple nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!VMware1!VMware1!"
+    
+    # On standalone ESXi, the folder path must include the datacenter
+    vm_folder: "/ha-datacenter/vm"
+    
+    vm_list:
+      - vm_name: "esx11"
+      - vm_name: "esx12"
+    
+  tasks:
+    - name: Create VMs with hardware virtualization enabled
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        # This is the native way according to your python source code
+        hardware:
+          memory_mb: 81920
+          num_cpus: 56
+          scsi: paravirtual
+          nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
+        
+        # If you want to be extra safe, you can also use advanced_settings
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+
+        disk:
+          - size_gb: 40
+            type: thin
+            datastore: "sata4b"
+        
+        networks:
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+        
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[lex1] /VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ vm_list }}"
+      register: vm_creation_results
+      
+    - name: Show VM creation results
+      debug:
+        msg: "VM '{{ item.item.vm_name }}' created: {{ 'Success' if item.changed else 'Already exists' }}"
+      loop: "{{ vm_creation_results.results }}"
+      
+    - name: Power on all VMs
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        state: "powered-on"
+      loop: "{{ vm_list }}"
