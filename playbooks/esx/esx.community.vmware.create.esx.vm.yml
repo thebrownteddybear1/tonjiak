@@ -15,7 +15,7 @@
     
     vm_list:
       - vm_name: "esx13"
-     # - vm_name: "esx12"
+      - vm_name: "esx14"
     
   tasks:
     - name: Create VMs with hardware virtualization enabled
