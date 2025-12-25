@@ -27,4 +27,4 @@ openssl genrsa -out server.key 2048
 openssl req -new -key server.key -out server.csr -config server_openssl.cnf
 openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 3650 -out rootCA.pem -subj "/C=US/ST=CA/L=Palo Alto/O=WilliamLam/OU=R&D/CN=WilliamLam-RootCA"
 openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.crt -days 825 -sha256 -extensions req_ext -extfile server_openssl.cnf
-cat server.crt rootCA.perm > flt-depot-fullchain.pem
+cat server.crt rootCA.perm > depot-fullchain.pem
