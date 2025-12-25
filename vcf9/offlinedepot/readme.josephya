@@ -1,0 +1,2 @@
+you need tls, python webserver, exposed on 443 with usename password.
+run tls.cert.sh 
