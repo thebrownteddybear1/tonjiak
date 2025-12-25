@@ -2,7 +2,7 @@ import json
 import os
 
 # Set the filename explicitly
-CATALOG_FILE = 'productVersionCatalog.json'
+CATALOG_FILE = 'ProductVersionCatalog.json'
 
 def create_vcf_directories():
     if not os.path.exists(CATALOG_FILE):
