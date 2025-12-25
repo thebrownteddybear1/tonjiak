@@ -15,3 +15,4 @@ curl --request POST \
 #     "https://my.localdomain/*"
 #   ]
 # }
+#this is to download from files from staging depot
