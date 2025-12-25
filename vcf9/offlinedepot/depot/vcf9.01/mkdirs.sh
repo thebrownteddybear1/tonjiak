@@ -39,4 +39,4 @@ mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/
 mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/manifest/v1/"
 mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/productVersionCatalog/"
 mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/productVersionCatalog/v1/"
-mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/uptManifests
+mkdir -p "/root/tonjiak/playbooks/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/uptManifest"
