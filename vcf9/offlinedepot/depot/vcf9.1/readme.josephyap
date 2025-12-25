@@ -1,0 +1,6 @@
+confluence page: 
+https://vmw-confluence.broadcom.net/spaces/~wlam/pages/2228281458/VCF+9+Offline+Depot+Setup+for+Internal+Broadcom
+
+run 
+python3 build_vcf_dir.py
+to make the directories from the json file
