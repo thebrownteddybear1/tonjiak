@@ -29,4 +29,4 @@ openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 3650 -out rootCA.pem
 openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.crt -days 825 -sha256 -extensions req_ext -extfile server_openssl.cnf
 cat server.crt rootCA.pem > depot-fullchain.pem
 python3 http_server_auth.py --user vcf --password VMware1!VMware1! --port 443 --directory /root/tonjiak/vcf9/offlinedepot \
- --certfile server.crt --keyfile server.key 
+ --certfile server.crt --keyfile server.key &
