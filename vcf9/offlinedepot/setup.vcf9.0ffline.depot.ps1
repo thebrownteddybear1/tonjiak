@@ -15,7 +15,8 @@ $vcfComponents = @(
     "VRA"
 )
 
-$vcfToplevelRootDir = "/Users/wlam/Desktop/VCF901"
+#$vcfToplevelRootDir = "/Users/wlam/Desktop/VCF901"
+$vcfToplevelRootDir = "/root/tonjiak/vcf9/offlinedepot/depot/vcf9.01"
 
 ### DO NOT EDIT BEYOND HERE ###
 
