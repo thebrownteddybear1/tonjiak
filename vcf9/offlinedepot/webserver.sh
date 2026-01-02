@@ -1,6 +1,2 @@
-<<<<<<< HEAD
-python3 http_server_auth.py --bind 0.0.0.0 --user vcf --password VMware1!VMware1! --port 443 --directory /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01 \
-=======
 python3 http_server_auth.py --bind 0.0.0.0 --user root --password VMware1!VMware1! --port 443 --directory /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01 \
->>>>>>> 7c4ec0b (asdf)
  --certfile server.crt --keyfile server.key &
