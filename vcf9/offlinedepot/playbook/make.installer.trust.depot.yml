@@ -53,7 +53,7 @@
 - name: Configure VCF installer to trust depot (KB procedure)
   hosts: vcf_appliance
   gather_facts: no
-  become: yes  # <--- CRITICAL: This enables sudo/su elevation
+  become: yes
   vars:
     ansible_user: vcf
     ansible_ssh_pass: "VMware1!VMware1!"
@@ -77,19 +77,16 @@
     
     - name: Import to SDDC Manager trust store
       shell: |
-        # Use the key captured in the previous step
         TRUST_PASS="{{ trust_key_result.stdout | trim }}"
-        
-        # -noprompt is needed so keytool doesn't wait for "yes"
         keytool -importcert -alias depot -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
           -storepass "$TRUST_PASS"
       register: sddc_import
-      # Handle idempotency: don't fail if the alias already exists
       failed_when: 
         - sddc_import.rc != 0
         - "'already exists' not in sddc_import.stdout"
+        - "'already exists' not in sddc_import.stderr"
       changed_when: sddc_import.rc == 0
     
     - name: Import to Java trust store
@@ -102,6 +99,7 @@
       failed_when: 
         - java_import.rc != 0
         - "'already exists' not in java_import.stdout"
+        - "'already exists' not in java_import.stderr"
       changed_when: java_import.rc == 0
     
     - name: Add depot.corp.internal to hosts file
