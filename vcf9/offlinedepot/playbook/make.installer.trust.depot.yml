@@ -52,7 +52,7 @@
 
 # PLAY 2: Copy rootCA.pem to VCF installer and follow KB procedure
 - name: Configure VCF installer to trust depot (KB procedure)
-  hosts: vcf_installer
+  hosts: vcf_appliance
   gather_facts: no
   vars:
     ansible_user: vcf
