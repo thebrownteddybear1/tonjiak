@@ -1,7 +1,5 @@
 ---
-# VCF Depot Certificate Setup - Fixed with SSH host key checking disabled
-
-# PLAY 1: Generate certificates for depot server
+# PLAY 1: Generate SSL certificates for depot server
 - name: Generate SSL certificates for depot
   hosts: localhost
   connection: local
@@ -48,12 +46,14 @@
         openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 3650 -out rootCA.pem -subj "/C=US/ST=CA/L=Palo Alto/O=WilliamLam/OU=R&D/CN=WilliamLam-RootCA"
         openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.crt -days 825 -sha256 -extensions req_ext -extfile server_openssl.cnf
         cat server.crt rootCA.pem > depot-fullchain.pem
+      args:
+        creates: "{{ playbook_dir }}/certs/rootCA.pem"
 
 # PLAY 2: Copy rootCA.pem to VCF installer and follow KB procedure
 - name: Configure VCF installer to trust depot (KB procedure)
   hosts: vcf_appliance
   gather_facts: no
-  become: yes
+  become: yes  # <--- CRITICAL: This enables sudo/su elevation
   vars:
     ansible_user: vcf
     ansible_ssh_pass: "VMware1!VMware1!"
@@ -62,7 +62,6 @@
     depot_ip: "192.168.50.53"
   
   tasks:
-    # Step 1: Copy rootCA.pem to VCF appliance
     - name: Copy rootCA.pem to VCF installer
       copy:
         src: "{{ playbook_dir }}/certs/rootCA.pem"
@@ -71,41 +70,40 @@
         group: vcf
         mode: '0644'
     
-    # Step 2a: Get trusted certificates key using shell (no slurp needed)
     - name: Get trusted certificates key
       shell: cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key
       register: trust_key_result
       changed_when: false
-      ignore_errors: yes  # File might not exist
     
-    # Step 2b: Import to SDDC Manager trust store using key from step 2a
     - name: Import to SDDC Manager trust store
       shell: |
-        # Read password from file or use default
-        if [ -f "/etc/vmware/vcf/commonsvcs/trusted_certificates.key" ]; then
-          TRUST_PASS=$(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
-        else
-          TRUST_PASS="changeit"
-        fi
+        # Use the key captured in the previous step
+        TRUST_PASS="{{ trust_key_result.stdout | trim }}"
         
-        keytool -importcert -alias depot \
+        # -noprompt is needed so keytool doesn't wait for "yes"
+        keytool -importcert -alias depot -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
-          --storepass "$TRUST_PASS"
+          -storepass "$TRUST_PASS"
       register: sddc_import
-      ignore_errors: yes
+      # Handle idempotency: don't fail if the alias already exists
+      failed_when: 
+        - sddc_import.rc != 0
+        - "'already exists' not in sddc_import.stdout"
+      changed_when: sddc_import.rc == 0
     
-    # Step 2c: Import to Java trust store with changeit
     - name: Import to Java trust store
       shell: |
-        keytool -importcert -alias depot \
+        keytool -importcert -alias depot -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/alternatives/jre/lib/security/cacerts \
-          --storepass changeit
+          -storepass changeit
       register: java_import
-      ignore_errors: yes
+      failed_when: 
+        - java_import.rc != 0
+        - "'already exists' not in java_import.stdout"
+      changed_when: java_import.rc == 0
     
-    # Additional step: Add to hosts file
     - name: Add depot.corp.internal to hosts file
       lineinfile:
         path: /etc/hosts
