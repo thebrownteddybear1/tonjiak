@@ -82,7 +82,7 @@
       become: yes
       shell: |
         TRUST_PASS="{{ trust_key_result.stdout | trim }}"
-        keytool -importcert -alias depot -noprompt \
+        keytool -importcert -alias depot1 -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
           -storepass "$TRUST_PASS"
@@ -96,7 +96,7 @@
     - name: Import to Java trust store
       become: yes
       shell: |
-        keytool -importcert -alias depot -noprompt \
+        keytool -importcert -alias depot1 -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/alternatives/jre/lib/security/cacerts \
           -storepass changeit
