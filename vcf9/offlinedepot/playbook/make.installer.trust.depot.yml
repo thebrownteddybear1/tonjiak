@@ -76,6 +76,15 @@
       register: trust_key_result
       changed_when: false
 
+    - name: Delete existing depot alias from SDDC trust store
+      become: yes
+      shell: |
+        TRUST_PASS="{{ trust_key_result.stdout | trim }}"
+        keytool -delete -alias depot -noprompt \
+          -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
+          -storepass "$TRUST_PASS"
+      ignore_errors: yes
+
     - name: Delete existing depot1 alias from SDDC trust store
       become: yes
       shell: |
@@ -95,6 +104,14 @@
           -storepass "$TRUST_PASS"
       register: sddc_import
 
+    - name: Delete existing depot alias from Java trust store
+      become: yes
+      shell: |
+        keytool -delete -alias depot -noprompt \
+          -keystore /etc/alternatives/jre/lib/security/cacerts \
+          -storepass changeit
+      ignore_errors: yes
+
     - name: Delete existing depot1 alias from Java trust store
       become: yes
       shell: |
@@ -106,7 +123,7 @@
     - name: Import to Java trust store
       become: yes
       shell: |
-        keytool -importcert -alias depot1 -noprompt \
+        keytool -importcert -alias depot -noprompt \
           -file /home/vcf/rootCA.pem \
           -keystore /etc/alternatives/jre/lib/security/cacerts \
           -storepass changeit
