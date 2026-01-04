@@ -1,1 +1,2 @@
-python3 http_server_auth.py --bind 0.0.0.0 --user root --password "VMware1!VMware1!" --port 443 --directory /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01 --certfile ./playbook/cert/server.crt --keyfile ./playbook/cert/server.key &
+python3 http_server_auth.py --bind 0.0.0.0 --user root --password "VMware1!VMware1!" --port 443 --directory /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01 \
+--certfile ~/tonjiak/vcf9/offlinedepot/playbook/certs/server.crt --keyfile ~/tonjiak/vcf9/offlinedepot/playbook/certs/server.key &
