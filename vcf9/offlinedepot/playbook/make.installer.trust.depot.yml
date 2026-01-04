@@ -1,5 +1,5 @@
 ---
-# PLAY 1: Generate SSL certificates for depot server locally
+# PLAY 1: Generate SSL certificates locally
 - name: Generate SSL certificates for depot
   hosts: localhost
   connection: local
@@ -49,18 +49,16 @@
       args:
         creates: "{{ playbook_dir }}/certs/rootCA.pem"
 
-# PLAY 2: Copy rootCA.pem to VCF installer and follow KB procedure
-- name: Configure VCF installer to trust depot (KB procedure)
+# PLAY 2: Configure VCF Appliance
+- name: Configure VCF installer to trust depot
   hosts: vcf_appliance
   gather_facts: no
   vars:
     ansible_user: vcf
     ansible_ssh_pass: "VMware1!VMware1!"
     ansible_become_pass: "VMware1!VMware1!"
-    # Elevation settings
     ansible_become_method: su
     ansible_become_flags: '-'
-    # Connection stability settings
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_ssh_transfer_method: scp
     depot_ip: "192.168.50.53"
@@ -78,6 +76,15 @@
       register: trust_key_result
       changed_when: false
 
+    - name: Delete existing depot1 alias from SDDC trust store
+      become: yes
+      shell: |
+        TRUST_PASS="{{ trust_key_result.stdout | trim }}"
+        keytool -delete -alias depot1 -noprompt \
+          -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
+          -storepass "$TRUST_PASS"
+      ignore_errors: yes
+
     - name: Import to SDDC Manager trust store
       become: yes
       shell: |
@@ -87,11 +94,14 @@
           -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store \
           -storepass "$TRUST_PASS"
       register: sddc_import
-      failed_when: 
-        - sddc_import.rc != 0
-        - "'already exists' not in sddc_import.stdout"
-        - "'already exists' not in sddc_import.stderr"
-      changed_when: sddc_import.rc == 0
+
+    - name: Delete existing depot1 alias from Java trust store
+      become: yes
+      shell: |
+        keytool -delete -alias depot1 -noprompt \
+          -keystore /etc/alternatives/jre/lib/security/cacerts \
+          -storepass changeit
+      ignore_errors: yes
 
     - name: Import to Java trust store
       become: yes
@@ -101,11 +111,6 @@
           -keystore /etc/alternatives/jre/lib/security/cacerts \
           -storepass changeit
       register: java_import
-      failed_when: 
-        - java_import.rc != 0
-        - "'already exists' not in java_import.stdout"
-        - "'already exists' not in java_import.stderr"
-      changed_when: java_import.rc == 0
 
     - name: Add depot.corp.internal to hosts file
       become: yes
@@ -113,3 +118,7 @@
         path: /etc/hosts
         line: "{{ depot_ip }} depot.corp.internal"
         state: present
+
+    - name: Restart SDDC Manager Services
+      become: yes
+      shell: /opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
