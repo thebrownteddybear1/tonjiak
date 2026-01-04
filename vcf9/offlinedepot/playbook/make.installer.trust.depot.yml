@@ -53,6 +53,7 @@
 - name: Configure VCF installer to trust depot (KB procedure)
   hosts: vcf_appliance
   gather_facts: no
+  become: yes
   vars:
     ansible_user: vcf
     ansible_ssh_pass: "VMware1!VMware1!"
