@@ -54,5 +54,4 @@
     - name: Execute SDDC Manager service restart script on SDDC Manager
       ansible.builtin.shell:
         cmd: echo 'y' | /opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
-        warn: false
       become: no
