@@ -16,7 +16,6 @@
     - name: Execute SDDC Manager service restart script
       ansible.builtin.shell:
         cmd: echo 'y' | /opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
-        warn: false
       become: no
 
     - name: Enable single ESXi host feature on VCF Installer
