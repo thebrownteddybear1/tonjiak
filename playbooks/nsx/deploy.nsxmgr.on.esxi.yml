@@ -1,0 +1,35 @@
+---
+- name: Deploy NSX Manager to ESXi
+  hosts: localhost
+  connection: local
+  
+  tasks:
+    - name: Deploy NSX Manager OVA
+      ansible.builtin.shell: |
+        /root/ovftool/ovftool \
+          --disableVerification \
+          --acceptAllEulas \
+          --allowAllExtraConfig \
+          --allowExtraConfig \
+          --skipManifestCheck \
+          --powerOn \
+          --name="nsx54" \
+          --datastore="nvme2" \
+          --net:"VM Network"="VM Network" \
+          --diskMode=thin \
+          --prop:nsx_role="NSX Manager" \
+          --prop:nsx_deployment_size="medium" \
+          --prop:nsx_hostname="nsx54" \
+          --prop:nsx_ip_0="192.168.50.54" \
+          --prop:nsx_netmask_0="255.255.255.0" \
+          --prop:nsx_gateway_0="192.168.50.53" \
+          --prop:nsx_dns1_0="192.168.50.53" \
+          --prop:nsx_domain_0="corp.internal" \
+          --prop:nsx_ntp_0="time.google.com" \
+          --prop:nsx_passwd_0="VMware1!VMware1!" \
+          --prop:nsx_cli_passwd_0="VMware1!VMware1!" \
+          /root/nsx-unified-appliance-4.2.0.0.0.24105821.ova \
+          "vi://root:VMware1!VMware1!VMware1!VMware1!@192.168.50.108/"
+      args:
+        executable: /bin/bash
+      no_log: true
