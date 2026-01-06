@@ -10,7 +10,7 @@
     profile_id: "00000000-0000-0000-0000-000000000001"
     
     ntp_servers:
-      - "time.google.com"
+      - "192.168.50.53"
     timezone: "UTC"
 
   tasks:
