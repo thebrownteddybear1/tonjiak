@@ -1,35 +1,47 @@
 ---
-- name: Deploy NSX Manager to ESXi
+- name: Deploy NSX Manager OVA to ESXi
   hosts: localhost
   connection: local
+  gather_facts: no
   
   tasks:
-    - name: Deploy NSX Manager OVA
+    - name: Deploy NSX Manager using ovftool
       ansible.builtin.shell: |
         /root/ovftool/ovftool \
-          --disableVerification \
-          --acceptAllEulas \
-          --allowAllExtraConfig \
+          --name=nsx54 \
+          --X:injectOvfEnv \
+          --X:logFile=/tmp/ovftool_nsx54.log \
+          --sourceType=OVA \
           --allowExtraConfig \
-          --skipManifestCheck \
-          --powerOn \
-          --name="nsx54" \
-          --datastore="nvme2" \
+          --datastore=nvme2 \
           --net:"VM Network"="VM Network" \
+          --acceptAllEulas \
+          --skipManifestCheck \
+          --noSSLVerify \
+          --disableVerification \
           --diskMode=thin \
+          --quiet \
+          --hideEula \
+          --powerOn \
+          --ipProtocol=IPv4 \
+          --ipAllocationPolicy="fixedPolicy" \
+          --prop:nsx_ip_0=192.168.50.54 \
+          --prop:nsx_netmask_0=255.255.255.0 \
+          --prop:nsx_gateway_0=192.168.50.53 \
+          --prop:nsx_dns1_0=192.168.50.53 \
+          --prop:nsx_domain_0=corp.internal \
+          --prop:nsx_ntp_0=time.google.com \
+          --prop:nsx_isSSHEnabled=True \
+          --prop:nsx_passwd_0=VMware1!VMware1! \
+          --prop:nsx_cli_passwd_0=VMware1!VMware1! \
+          --prop:nsx_cli_audit_passwd_0=VMware1!VMware1! \
+          --prop:nsx_hostname=nsx54 \
+          --prop:mgrhostname01="nsx54@corp.internal" \
+          --prop:nsx_allowSSHRootLogin=True \
           --prop:nsx_role="NSX Manager" \
-          --prop:nsx_deployment_size="medium" \
-          --prop:nsx_hostname="nsx54" \
-          --prop:nsx_ip_0="192.168.50.54" \
-          --prop:nsx_netmask_0="255.255.255.0" \
-          --prop:nsx_gateway_0="192.168.50.53" \
-          --prop:nsx_dns1_0="192.168.50.53" \
-          --prop:nsx_domain_0="corp.internal" \
-          --prop:nsx_ntp_0="time.google.com" \
-          --prop:nsx_passwd_0="VMware1!VMware1!" \
-          --prop:nsx_cli_passwd_0="VMware1!VMware1!" \
+          --prop:nsx_deployment_size=medium \
           /root/nsx-unified-appliance-4.2.0.0.0.24105821.ova \
           "vi://root:VMware1!VMware1!VMware1!VMware1!@192.168.50.108/"
       args:
         executable: /bin/bash
-      #no_log: true
+      
