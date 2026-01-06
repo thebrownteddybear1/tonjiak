@@ -14,7 +14,7 @@
           --sourceType=OVA \
           --allowExtraConfig \
           --datastore=nvme2 \
-          --net:Network1="VM Network" \
+          --net:="VM Network" \
           --acceptAllEulas \
           --skipManifestCheck \
           --noSSLVerify \
