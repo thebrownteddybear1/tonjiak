@@ -14,7 +14,7 @@
           --sourceType=OVA \
           --allowExtraConfig \
           --datastore=nvme2 \
-          --net:"VM Network"="VM Network" \
+          --net:Network1="VM Network" \
           --acceptAllEulas \
           --skipManifestCheck \
           --noSSLVerify \
@@ -30,7 +30,7 @@
           --prop:nsx_gateway_0=192.168.50.53 \
           --prop:nsx_dns1_0=192.168.50.53 \
           --prop:nsx_domain_0=corp.internal \
-          --prop:nsx_ntp_0=time.google.com \
+          --prop:nsx_ntp_0=192.168.50.53 \
           --prop:nsx_isSSHEnabled=True \
           --prop:nsx_passwd_0=VMware1!VMware1! \
           --prop:nsx_cli_passwd_0=VMware1!VMware1! \
