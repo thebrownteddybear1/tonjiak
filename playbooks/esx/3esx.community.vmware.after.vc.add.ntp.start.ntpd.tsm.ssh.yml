@@ -10,6 +10,7 @@
       - "192.168.50.11"
       - "192.168.50.12"
     ntp_servers:
+      - "192.168.50.53"
       - "pool.ntp.org"
       - "0.pool.ntp.org"
     # Corrected service names: TSM is the key for ESXi Shell
