@@ -4,6 +4,8 @@
   gather_facts: no
   
   vars:
+    ansible_user: root
+    ansible_password: VMware1!VMware1!
     script_name: "disable_ovf_validation_flag.sh"
   
   tasks:
@@ -28,13 +30,3 @@
     - name: Display script execution result
       ansible.builtin.debug:
         msg: "{{ script_output.stdout_lines }}"
-    
-    - name: Verify the flag was updated
-      ansible.builtin.shell:
-        cmd: grep "^INTERNAL_OVFS_VALIDATION_FLAG=" /config/vmware/auth/ovf_validation.properties || echo "File or flag not found"
-      register: flag_check
-      changed_when: false
-    
-    - name: Display flag status
-      ansible.builtin.debug:
-        msg: "Current flag value: {{ flag_check.stdout }}"
