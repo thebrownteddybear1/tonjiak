@@ -1,0 +1,40 @@
+---
+- name: Apply OVF validation workaround on NSX Manager
+  hosts: nsx_manager
+  gather_facts: no
+  
+  vars:
+    script_name: "disable_ovf_validation_flag.sh"
+  
+  tasks:
+    - name: Copy script to NSX Manager /root directory
+      ansible.builtin.copy:
+        src: "{{ script_name }}"
+        dest: /root/{{ script_name }}
+        owner: root
+        group: root
+        mode: '0644'
+    
+    - name: Make script executable
+      ansible.builtin.file:
+        path: /root/{{ script_name }}
+        mode: '0755'
+    
+    - name: Execute the OVF validation disable script
+      ansible.builtin.shell:
+        cmd: /root/{{ script_name }}
+      register: script_output
+    
+    - name: Display script execution result
+      ansible.builtin.debug:
+        msg: "{{ script_output.stdout_lines }}"
+    
+    - name: Verify the flag was updated
+      ansible.builtin.shell:
+        cmd: grep "^INTERNAL_OVFS_VALIDATION_FLAG=" /config/vmware/auth/ovf_validation.properties || echo "File or flag not found"
+      register: flag_check
+      changed_when: false
+    
+    - name: Display flag status
+      ansible.builtin.debug:
+        msg: "Current flag value: {{ flag_check.stdout }}"
