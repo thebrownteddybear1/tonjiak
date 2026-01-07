@@ -14,8 +14,8 @@
     vm_folder: "/ha-datacenter/vm"
     
     vm_list:
-      - vm_name: "esx13"
-      - vm_name: "esx14"
+      - vm_name: "esx11"
+      - vm_name: "esx12"
     
   tasks:
     - name: Create VMs with hardware virtualization enabled
@@ -44,7 +44,7 @@
         disk:
           - size_gb: 40
             type: thin
-            datastore: "sata4b"
+            datastore: "lex2"
         
         networks:
           - name: "nestedtrunk"
@@ -60,7 +60,7 @@
           - controller_type: ide
             controller_number: 0
             unit_number: 0
-            iso_path: "[lex1] /VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
+            iso_path: "[lex2] /iso/VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
             type: iso
             state: present
       loop: "{{ vm_list }}"

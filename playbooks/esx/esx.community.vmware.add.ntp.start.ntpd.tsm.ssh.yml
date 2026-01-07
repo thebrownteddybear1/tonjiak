@@ -7,8 +7,8 @@
     vcenter_user: "administrator@vsphere.local"
     vcenter_pass: "VMware1!VMware1!"
     esxi_hosts:
-      - "192.168.50.11"
-      - "192.168.50.12"
+      - "192.168.50.13"
+      - "192.168.50.14"
     ntp_servers:
       - "pool.ntp.org"
       - "0.pool.ntp.org"
