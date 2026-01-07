@@ -43,6 +43,7 @@
         state: present
       register: create_vds
 
+# don't use this portgroup for supervisor, can't find dns
     - name: Create Ephemeral Distributed Port Group '{{ dpg_name }}'
       community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_hostname }}"
