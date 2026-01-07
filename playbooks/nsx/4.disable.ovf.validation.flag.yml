@@ -1,6 +1,6 @@
 ---
 - name: Apply OVF validation workaround on NSX Manager
-  hosts: nsx_manager
+  hosts: 192.168.50.54
   gather_facts: no
   
   vars:
