@@ -38,14 +38,3 @@
       loop: "{{ esxi_hosts }}"
 
 
-    - name: Create Cluster using vmware.vmware
-      # This uses the cluster.py module you saw in the official collection
-      vmware.vmware.cluster:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        datacenter: "{{ dc_name }}"
-        cluster: "{{ cluster_name }}"
-        state: present
-        validate_certs: false
-
