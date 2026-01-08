@@ -1,111 +1,221 @@
+# Copyright 2018 VMware, Inc.
+# SPDX-License-Identifier: BSD-2-Clause OR GPL-3.0-only
 ---
-- hosts: 127.0.0.1
-  connection: local
-  become: yes
+hostname: "192.168.50.54"
+username: "admin"
+password: "VMware1!VMware1!"
+validate_certs: False
 
-  vars_files:
-    - answerfile_attach_tnp_to_cluster_9x.yml
+ip_pools:
+- display_name: IPPool-IPV4-1
+  pool_static_subnets:
+  - display_name: test-ip-static-subnet-1
+    state: present
+    allocation_ranges:
+    - start: "192.168.116.1"
+      end: "192.168.116.100"
+    cidr: "192.168.116.0/24"
 
-  pre_tasks:
-    - name: 0. Dynamically grab vCenter SHA-256 thumbprint
-      # This replaces manual copy-pasting and ensures Trust/Service Account works
-      shell: |
-        openssl s_client -connect 192.168.50.52:443 < /dev/null 2>/dev/null \
-        | openssl x509 -fingerprint -sha256 -noout \
-        | cut -d'=' -f2
-      register: vcenter_thumbprint_cmd
-      changed_when: false
+transportzones:
+- display_name: "TZ1"
+  tz_type: "VLAN_BACKED"
+- display_name: "TZ2"
+  tz_type: "OVERLAY_BACKED"
 
-    - name: Set thumbprint fact
-      set_fact:
-        vc_thumbprint: "{{ vcenter_thumbprint_cmd.stdout }}"
+uplink_profiles:
+- display_name: esx.profile
+  teaming:
+    active_list:
+    - uplink_name: "uplink-1"
+      uplink_type: PNIC
+    standby_list:
+    - uplink_name: "uplink-2"
+      uplink_type: "PNIC"
+    policy: FAILOVER_ORDER
+  transport_vlan: 116
+- display_name: edge.profile
+  mtu: 1700
+  teaming:
+    active_list:
+    - uplink_name: "uplink-2"
+      uplink_type: PNIC
+    policy: FAILOVER_ORDER
+  transport_vlan: 116
 
-  tasks:
-    - name: 1. Add license key to NSX-T Manager
-      vmware.ansible_for_nsxt.nsxt_licenses:
-        hostname: "192.168.50.54"
-        username: "admin"
-        password: "VMware1!VMware1!"
-        validate_certs: false
-        license_key: "9069J-LD81H-L88N1-LJX2V-KMZHV"
-        state: present
+# host_transport_nodes:
+# - display_name: TN1
+#   resource_type: "HostTransportNode"
+#   host_switches:
+#   - host_switch_profiles:
+#     - name: esx.profile
+#       type: UplinkHostSwitchProfile
+#     host_switch_name: DSwitch
+#     host_switch_mode: ENS_INTERRUPT
+# #    host_switch_mode: STANDARD
+#     host_switch_type: VDS
+#     uplinks:
+#     - vds_uplink_name: Uplink 1
+#       uplink_name: uplink-1
+#     - vds_uplink_name: Uplink 2
+#       uplink_name: uplink-2
+#     ip_assignment_spec:
+#       resource_type: StaticIpPoolSpec
+#       ip_pool_name: "IPPool-IPV4-1"
+#     transport_zone_endpoints:
+#     - transport_zone_name: "TZ1"
+#     - transport_zone_name: "TZ2"
+#   node_deployment_info:
+#     resource_type: "HostNode"
+#     display_name: "192.168.50.11"
+#     ip_addresses: ["192.168.50.11"]
+#     os_type: "ESXI"
+#     #os_version: "9.0.0"
+#     os_version: "8.0.2"
+#     host_credential:
+#       username: "root"
+#       password: "VMware1!VMware1!"
 
-    - name: 2. Register compute manager with Trust Enabled
-      vmware.ansible_for_nsxt.nsxt_fabric_compute_managers:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        display_name: "{{ item.display_name }}"
-        server: "{{ item.server }}"
-        origin_type: "{{ item.origin_type }}"
-        set_as_oidc_provider: true  # Key for Tanzu/Trust
-        credential:
-          credential_type: "{{ item.credential_type }}"
-          username: "{{ item.username }}"
-          password: "{{ item.password }}"
-          thumbprint: "{{ vc_thumbprint }}"
-        state: present
-      loop: "{{ compute_managers }}"
+edge_transport_nodes:
+- display_name: edge1
+  host_switches:
+  - host_switch_profiles:
+    - name: edge.profile
+      type: UplinkHostSwitchProfile
+    host_switch_name: nsxHostSwitch
+    host_switch_mode: STANDARD
+    pnics:
+    - device_name: "fp-eth0"
+      uplink_name: "uplink-2"
+    ip_assignment_spec:
+      # resource_type: StaticIpListSpec
+      resource_type: StaticIpPoolSpec
+      ip_pool_name: "IPPool-IPV4-1"   
+      # ip_list: ["192.168.116.55"]
+      # subnet_mask: "255.255.255.0"
+      # default_gateway: "192.168.116.53"
+    transport_zone_endpoints:
+    - transport_zone_name: "TZ1"
+    - transport_zone_name: "TZ2"
+  node_deployment_info:
+    resource_type: "EdgeNode"
+    display_name: "edge1"
+    deployment_type: "VIRTUAL_MACHINE"
+    deployment_config:
+      form_factor: "LARGE"
+      node_user_settings:
+        cli_username: "admin"
+        cli_password: "VMware1!VMware1!"
+        root_password: "VMware1!VMware1!"
+      vm_deployment_config:
+        ipv4_assignment_enabled: true
+        # ipv6_assignment_type: "STATIC"
+        management_port_subnets:
+          - ip_addresses:
+              - "192.168.50.55"
+            prefix_length: 24
+        default_gateway_addresses:
+          - "192.168.50.53"
+        placement_type: VsphereDeploymentConfig
+        vc_name: "vcsa52"
+        vc_username: "administrator@vsphere.local"
+        vc_password:  "VMware1!VMware1!"
+        data_networks:
+        - segment-vlan-trunk
+        - segment-vlan-trunk
+        - segment-vlan-trunk
+        management_network: "vds.v0"
+        compute: "cluster"
+        storage: "nfs1"
+        host: "192.168.50.12"
+    node_settings:
+      allow_ssh_root_login: true
+      enable_ssh: true
+      hostname: "edge1.corp.internal"
 
-    - name: 3. Create IP pool
-      vmware.ansible_for_nsxt.nsxt_policy_ip_pool:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        display_name: "{{ item.display_name }}"
-        pool_static_subnets: "{{ item.pool_static_subnets }}"
-        state: present
-      loop: "{{ ip_pools }}"
 
-    - name: 4. Create transport zone
-      vmware.ansible_for_nsxt.nsxt_transport_zones:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        resource_type: "PolicyTransportZone"
-        display_name: "{{ item.display_name }}"
-        tz_type: "{{ item.tz_type }}"
-        state: present
-      loop: "{{ transportzones }}"
+transport_node_profiles:
+- display_name: TNP1
+  host_switches:
+  - host_switch_profiles:
+    - name: esx.profile #uplinkprofile
+      type: UplinkHostSwitchProfile
+    host_switch_name: vds #name of vds
+    # host_switch_id: "50 17 4c 3f 86 bf 44 be-11 6f 69 80 90 f7 22 21"
+    host_switch_mode: STANDARD
+    host_switch_type: VDS
+    uplinks:
+    - vds_uplink_name: Uplink 1
+      uplink_name: uplink-1
+    - vds_uplink_name: Uplink 2
+      uplink_name: uplink-2
+      
+    ip_assignment_spec:
+      resource_type: StaticIpPoolSpec
+      ip_pool_name: "IPPool-IPV4-1"
+    transport_zone_endpoints:
+    - transport_zone_name: "TZ1"
+    - transport_zone_name: "TZ2"
 
-    - name: 5. Create uplink profile
-      vmware.ansible_for_nsxt.nsxt_uplink_profiles:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        resource_type: UplinkHostSwitchProfile
-        display_name: "{{ item.display_name }}"
-        teaming: "{{ item.teaming }}"
-        transport_vlan: "{{ item.transport_vlan }}"
-        state: present
-      loop: "{{ uplink_profiles }}"
 
-    - name: 6. Create transport node profile
-      vmware.ansible_for_nsxt.nsxt_transport_node_profiles:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        resource_type: PolicyHostTransportNodeProfile
-        display_name: "{{ item.display_name }}"
-        host_switch_spec:
-          resource_type: StandardHostSwitchSpec
-          host_switches: "{{ item.host_switches }}"
-        state: present
-      loop: "{{ transport_node_profiles }}"
+compute_managers:
+- display_name: "vcsa52"
+  server: "192.168.50.52"
+  origin_type: vCenter
+  credential_type: UsernamePasswordLoginCredential
+  username: "administrator@vsphere.local"
+  password: "VMware1!VMware1!"
+  #thumbprint: "46:1E:31:DD:0B:37:4C:F0:91:5B:49:A1:A1:94:B5:DF:82:93:90:52:D9:68:0F:86:C8:CA:6C:34:CB:82:D7:D5"
 
-    - name: 7. Attach Transport node profile to cluster
-      vmware.ansible_for_nsxt.nsxt_transport_node_collections:
-        hostname: "{{ hostname }}"
-        username: "{{ username }}"
-        password: "{{ password }}"
-        validate_certs: false
-        display_name: "TNC1"
-        compute_manager_name: "vcsa52"
-        cluster_name: "cluster"
-        transport_node_profile_name: "TNP1"
-        state: present
+
+# route_advertise:
+#   display_name: "tier-1" # Must be a tier 1 router name
+#   enabled: True
+#   advertise_dns_forwarder: False
+#   advertise_lb_snat_ip: True
+#   advertise_lb_vip: True
+#   advertise_nat_routes: True
+#   advertise_nsx_connected_routes: True
+#   advertise_static_routes: True
+
+
+# #
+# # vIDM properties
+# #
+# vidm:
+#   client_id: "NSX_client_credentials_client_ID"
+#   client_secret: "NSX_client_credentials_client_SECRET"
+#   host_name: "colo-vshield3-dhcp168.eng.vmware.com"
+#   lb_enable: False
+#   node_host_name: "10.186.17.88"
+#   thumbprint: "BF838E7A1CF7B84F7B556F35E0D9A0A365F6AE021885809A2D42AAF78A06B0A4"
+
+
+# #
+# # One or more local managers that have to be registered with NSX
+# #
+# local_managers:
+# - display_name: "My LM1"
+#   id: "LM1"
+#   fqdn: "10.186.3.163"
+#   username: "admin"
+#   password: "VMware1!VMware1!"
+#   thumbprint: "ec8ba0322b987bc7bce14097667104f43340befce84d75e0820b02a2f3839441"
+# - id: "LM2"
+#   display_name: ""
+#   fqdn: "10.182.6.97"
+#   username: "admin"
+#   password: "VMware1!VMware1!"
+#   thumbprint: "d2ec50124fcd487c37d46f85d8f6f80b24441f4e5ed9cac5c8c47d2649043078"
+
+
+
+# #
+# # One or more global managers that have to be registered with current global manager
+# #
+# global_managers:
+# - display_name: "10.92.78.184"
+#   fqdn: "10.92.78.184"
+#   username: "admin"
+#   password: "VMware1!VMware1!"
+#   thumbprint: "703e69dce489beaa1a683d12a16efbf9c81630d23c5f32fc25becc5340169f1e"
+#   mode: "STANDBY"
