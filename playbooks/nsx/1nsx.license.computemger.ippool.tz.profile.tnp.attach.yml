@@ -92,12 +92,14 @@
         validate_certs: false
         resource_type: PolicyHostTransportNodeProfile
         display_name: "{{ item.display_name }}"
+        description: "NSX configured Test Transport Node Profile"
         host_switch_spec:
           resource_type: StandardHostSwitchSpec
           host_switches: "{{ item.host_switches }}"
         state: present
       loop: "{{ transport_node_profiles }}"
 
+      
     - name: 7. Attach Transport node profile to cluster
       vmware.ansible_for_nsxt.nsxt_transport_node_collections:
         hostname: "{{ hostname }}"
