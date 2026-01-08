@@ -12,10 +12,9 @@
     esxi_hosts:
       - "192.168.50.11"
       - "192.168.50.12"
-    esxi_user: "root"
-    esxi_password: "VMware1!VMware1!" 
 
   tasks:
+    # Task 1 & 2 succeeded already, but we keep them for idempotency
     - name: 1. Create Datacenter
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
@@ -25,7 +24,7 @@
         state: present
         validate_certs: false
 
-    - name: 2. Add Hosts to Datacenter folder first
+    - name: 2. Add Hosts to Datacenter folder
       community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
@@ -33,20 +32,23 @@
         datacenter_name: "{{ dc_name }}"
         folder: "/{{ dc_name }}/host"
         esxi_hostname: "{{ item }}"
-        esxi_username: "{{ esxi_user }}"
-        esxi_password: "{{ esxi_password }}"
+        esxi_username: "root"
+        esxi_password: "VMware1!VMware1!"
         state: present
         validate_certs: false
       loop: "{{ esxi_hosts }}"
 
-    - name: 3. Create Cluster and Enable vLCM using Reference Host
+    - name: 3. Create Cluster and Enable vLCM
       vmware.vmware.cluster:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
-        base_image_host: "{{ reference_host }}"
+        # Attempting the seeding using the 'image' parameter structure 
+        # which is more common in newer REST-integrated modules
+        type: "vclm"
+        base_host: "{{ reference_host }}" 
         state: present
         validate_certs: false
 
