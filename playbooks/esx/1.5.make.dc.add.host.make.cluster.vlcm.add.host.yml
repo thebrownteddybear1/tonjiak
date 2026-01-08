@@ -14,7 +14,6 @@
       - "192.168.50.12"
 
   tasks:
-    # Task 1 & 2 succeeded already, but we keep them for idempotency
     - name: 1. Create Datacenter
       community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
@@ -38,19 +37,19 @@
         validate_certs: false
       loop: "{{ esxi_hosts }}"
 
-    - name: 3. Create Cluster and Enable vLCM
-      vmware.vmware.cluster:
+    - name: 3. Create vLCM Cluster via REST API
+      vmware.vmware.cluster_rest:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter: "{{ dc_name }}"
-        cluster: "{{ cluster_name }}"
-        # Attempting the seeding using the 'image' parameter structure 
-        # which is more common in newer REST-integrated modules
-        type: "vclm"
-        base_host: "{{ reference_host }}" 
-        state: present
         validate_certs: false
+        state: present
+        datacenter: "{{ dc_name }}"
+        name: "{{ cluster_name }}"
+        # This specific structure enables vLCM and seeds it from your host
+        configuration:
+          lifecycle_managed: true
+        base_host: "{{ reference_host }}"
 
     - name: 4. Move Hosts into the Cluster
       community.vmware.vmware_host:
