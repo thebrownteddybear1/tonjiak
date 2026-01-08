@@ -23,18 +23,6 @@
         state: present
         validate_certs: false
 
-    - name: 2. Add Hosts to Datacenter folder
-      community.vmware.vmware_host:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        datacenter_name: "{{ dc_name }}"
-        folder: "/{{ dc_name }}/host"
-        esxi_hostname: "{{ item }}"
-        esxi_username: "root"
-        esxi_password: "VMware1!VMware1!"
-        state: present
-        validate_certs: false
-      loop: "{{ esxi_hosts }}"
+
 
 
