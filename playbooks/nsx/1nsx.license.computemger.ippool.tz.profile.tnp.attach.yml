@@ -33,7 +33,7 @@
           credential_type: "{{ item.credential_type }}"
           username: "{{ item.username }}"
           password: "{{ item.password }}"
-          thumbprint: "{{ item.thumbprint }}" # Required for Trust/Service Account
+          #thumbprint: "{{ item.thumbprint }}" # Required for Trust/Service Account
         state: present
       loop: "{{ compute_managers }}"
 
