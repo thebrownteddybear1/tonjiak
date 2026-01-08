@@ -30,10 +30,8 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter: "{{ dc_name }}"
-        # Folder is mandatory when adding hosts outside a cluster
-        folder: "/{{ dc_name }}/host" 
-        name: "{{ item }}"
+        datacenter_name: "{{ dc_name }}"
+        folder: "/{{ dc_name }}/host"
         esxi_hostname: "{{ item }}"
         esxi_username: "{{ esxi_user }}"
         esxi_password: "{{ esxi_password }}"
@@ -48,7 +46,6 @@
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
-        # Extracts the image from .11 to set the cluster lifecycle
         base_image_host: "{{ reference_host }}"
         state: present
         validate_certs: false
@@ -58,9 +55,9 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter: "{{ dc_name }}"
-        cluster: "{{ cluster_name }}"
-        name: "{{ item }}"
+        datacenter_name: "{{ dc_name }}"
+        cluster_name: "{{ cluster_name }}"
+        esxi_hostname: "{{ item }}"
         state: present
         validate_certs: false
       loop: "{{ esxi_hosts }}"
