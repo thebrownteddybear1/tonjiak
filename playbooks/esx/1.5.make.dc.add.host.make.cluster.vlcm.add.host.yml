@@ -1,0 +1,66 @@
+---
+- name: Setup vSphere Datacenter and vLCM Cluster
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_hostname: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    dc_name: "datacenter"
+    cluster_name: "cluster"
+    # The host used to seed the LifeCycle Manager Image
+    reference_host: "192.168.50.11"
+    esxi_hosts:
+      - "192.168.50.11"
+      - "192.168.50.12"
+    # Host login credentials
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!" 
+
+  tasks:
+    - name: 1. Create Datacenter
+      community.vmware.vmware_datacenter:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter_name: "{{ dc_name }}"
+        state: present
+        validate_certs: false
+
+    - name: 2. Add Hosts to Datacenter folder first
+      community.vmware.vmware_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ dc_name }}"
+        name: "{{ item }}"
+        esxi_hostname: "{{ item }}"
+        esxi_username: "{{ esxi_user }}"
+        esxi_password: "{{ esxi_password }}"
+        state: present
+        validate_certs: false
+      loop: "{{ esxi_hosts }}"
+
+    - name: 3. Create Cluster and Enable vLCM using Reference Host
+      vmware.vmware.cluster:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ dc_name }}"
+        cluster: "{{ cluster_name }}"
+        # This creates the cluster in 'Image Mode' using .11 as the template
+        base_image_host: "{{ reference_host }}"
+        state: present
+        validate_certs: false
+
+    - name: 4. Move Hosts into the Cluster
+      community.vmware.vmware_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ dc_name }}"
+        cluster: "{{ cluster_name }}"
+        name: "{{ item }}"
+        state: present
+        validate_certs: false
+      loop: "{{ esxi_hosts }}"
