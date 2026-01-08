@@ -4,101 +4,97 @@
 - hosts: 127.0.0.1
   connection: local
   become: yes
-  
+
   vars_files:
     - answerfile_attach_tnp_to_cluster_9x.yml
+
   tasks:
-    - name: Add license key to NSX-T Manager
+    - name: 1. Add license key to NSX-T Manager
       vmware.ansible_for_nsxt.nsxt_licenses:
-        hostname: "192.168.50.54" # Replace with your NSX-T Manager IP or FQDN
-        username: "admin" 
+        hostname: "192.168.50.54"
+        username: "admin"
         password: "VMware1!VMware1!"
-        validate_certs: False # Set to True if you have valid certificates and want validation
-        license_key: "9069J-LD81H-L88N1-LJX2V-KMZHV" # Replace with your actual NSX-T license key
+        validate_certs: false
+        license_key: "9069J-LD81H-L88N1-LJX2V-KMZHV"
         state: present
-    
-    - name: Register compute manager
+
+    - name: 2. Register compute manager with Trust and Service Account
       vmware.ansible_for_nsxt.nsxt_fabric_compute_managers:
-          hostname: "{{hostname}}"
-          username: "{{username}}"
-          password: "{{password}}"
-          validate_certs: False
-          display_name: "{{item.display_name}}"
-          server: "{{item.server}}"
-          origin_type: "{{item.origin_type}}"
-          # Mandatory for TKGS - this "Enables Trust"
-          set_as_oidc_provider: True
-          credential:
-            credential_type: "{{item.credential_type}}"
-            username: "{{item.username}}"
-            password: "{{item.password}}"
-            # thumbprint: "{{item.thumbprint}}"
-          state: present
-      with_items:
-        - "{{compute_managers}}"
-
-    - name: Create ip pool
-      vmware.ansible_for_nsxt.nsxt_policy_ip_pool:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
-        display_name: "{{item.display_name}}"
-        pool_static_subnets: "{{item.pool_static_subnets}}"
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        display_name: "{{ item.display_name }}"
+        server: "{{ item.server }}"
+        origin_type: "{{ item.origin_type }}"
+        set_as_oidc_provider: true     # Enables Trust for Tanzu
+        create_service_account: true   # Enables Service Account for vLCM
+        credential:
+          credential_type: "{{ item.credential_type }}"
+          username: "{{ item.username }}"
+          password: "{{ item.password }}"
+          thumbprint: "{{ item.thumbprint }}" # Required for Trust/Service Account
         state: present
-      with_items:
-        - "{{ip_pools}}"
+      loop: "{{ compute_managers }}"
 
-    - name: Create transport zone
+    - name: 3. Create IP pool
+      vmware.ansible_for_nsxt.nsxt_policy_ip_pool:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        display_name: "{{ item.display_name }}"
+        pool_static_subnets: "{{ item.pool_static_subnets }}"
+        state: present
+      loop: "{{ ip_pools }}"
+
+    - name: 4. Create transport zone
       vmware.ansible_for_nsxt.nsxt_transport_zones:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
         resource_type: "PolicyTransportZone"
-        display_name: "{{item.display_name}}"
+        display_name: "{{ item.display_name }}"
         description: "NSX configured Test Transport Zone"
-        tz_type: "{{item.tz_type}}"
-        state: "present"
-      with_items:
-        - "{{transportzones}}"
+        tz_type: "{{ item.tz_type }}"
+        state: present
+      loop: "{{ transportzones }}"
 
-    - name: Create uplink profile
+    - name: 5. Create uplink profile
       vmware.ansible_for_nsxt.nsxt_uplink_profiles:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
         resource_type: UplinkHostSwitchProfile
-        display_name: "{{item.display_name}}"
-        teaming: "{{item.teaming}}"
-        transport_vlan: "{{item.transport_vlan}}"
-        state: "present"
-      with_items:
-        - "{{uplink_profiles}}"
+        display_name: "{{ item.display_name }}"
+        teaming: "{{ item.teaming }}"
+        transport_vlan: "{{ item.transport_vlan }}"
+        state: present
+      loop: "{{ uplink_profiles }}"
 
-    - name: Create transport node profile
+    - name: 6. Create transport node profile
       vmware.ansible_for_nsxt.nsxt_transport_node_profiles:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
         resource_type: PolicyHostTransportNodeProfile
-        display_name: "{{item.display_name}}"
-        description: NSX configured Test Transport Node Profile
+        display_name: "{{ item.display_name }}"
+        description: "NSX configured Test Transport Node Profile"
         host_switch_spec:
           resource_type: StandardHostSwitchSpec
-          host_switches: "{{item.host_switches}}"
+          host_switches: "{{ item.host_switches }}"
         state: present
-      with_items:
-        - "{{transport_node_profiles}}"
+      loop: "{{ transport_node_profiles }}"
 
-    - name: Attach Transport node profile to cluster
+    - name: 7. Attach Transport node profile to cluster
       vmware.ansible_for_nsxt.nsxt_transport_node_collections:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: False
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
         display_name: "TNC1"
         resource_type: "TransportNodeCollection"
         description: "Transport Node Collections 1"
