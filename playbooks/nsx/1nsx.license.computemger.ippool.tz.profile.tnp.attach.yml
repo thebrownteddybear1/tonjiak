@@ -107,6 +107,8 @@
         password: "{{ password }}"
         validate_certs: false
         display_name: "TNC1"
+        resource_type: "TransportNodeCollection"
+        description: "Transport Node Collections 1"
         compute_manager_name: "vcsa52"
         cluster_name: "cluster"
         transport_node_profile_name: "TNP1"
