@@ -17,22 +17,22 @@
 
   tasks:
     - name: 1. Create Datacenter
-      vmware.vmware.datacenter:
+      community.vmware.vmware_datacenter:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        datacenter: "{{ dc_name }}"
+        datacenter_name: "{{ dc_name }}"
         state: present
         validate_certs: false
 
-    - name: 2. Add Hosts to Datacenter folder
-      vmware.vmware.host:
+    - name: 2. Add Hosts to Datacenter folder first
+      community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
-        # This resolves the 'folder' error. 'host' is the default root folder.
-        folder: "host" 
+        # Folder is mandatory when adding hosts outside a cluster
+        folder: "/{{ dc_name }}/host" 
         name: "{{ item }}"
         esxi_hostname: "{{ item }}"
         esxi_username: "{{ esxi_user }}"
@@ -48,12 +48,13 @@
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
+        # Extracts the image from .11 to set the cluster lifecycle
         base_image_host: "{{ reference_host }}"
         state: present
         validate_certs: false
 
     - name: 4. Move Hosts into the Cluster
-      vmware.vmware.host:
+      community.vmware.vmware_host:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
