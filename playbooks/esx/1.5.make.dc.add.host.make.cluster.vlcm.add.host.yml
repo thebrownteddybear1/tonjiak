@@ -8,31 +8,31 @@
     vcenter_password: "VMware1!VMware1!"
     dc_name: "datacenter"
     cluster_name: "cluster"
-    # The host used to seed the LifeCycle Manager Image
     reference_host: "192.168.50.11"
     esxi_hosts:
       - "192.168.50.11"
       - "192.168.50.12"
-    # Host login credentials
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!" 
 
   tasks:
     - name: 1. Create Datacenter
-      community.vmware.vmware_datacenter:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        datacenter_name: "{{ dc_name }}"
-        state: present
-        validate_certs: false
-
-    - name: 2. Add Hosts to Datacenter folder first
-      community.vmware.vmware_host:
+      vmware.vmware.datacenter:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
+        state: present
+        validate_certs: false
+
+    - name: 2. Add Hosts to Datacenter folder
+      vmware.vmware.host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter: "{{ dc_name }}"
+        # This resolves the 'folder' error. 'host' is the default root folder.
+        folder: "host" 
         name: "{{ item }}"
         esxi_hostname: "{{ item }}"
         esxi_username: "{{ esxi_user }}"
@@ -48,13 +48,12 @@
         password: "{{ vcenter_password }}"
         datacenter: "{{ dc_name }}"
         cluster: "{{ cluster_name }}"
-        # This creates the cluster in 'Image Mode' using .11 as the template
         base_image_host: "{{ reference_host }}"
         state: present
         validate_certs: false
 
     - name: 4. Move Hosts into the Cluster
-      community.vmware.vmware_host:
+      vmware.vmware.host:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
