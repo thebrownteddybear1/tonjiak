@@ -37,19 +37,33 @@
         validate_certs: false
       loop: "{{ esxi_hosts }}"
 
-    - name: 3. Create vLCM Cluster via REST API
-      vmware.vmware.cluster_rest:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
+    - name: 3a. Get API Session Token
+      uri:
+        url: "https://{{ vcenter_hostname }}/api/session"
+        method: POST
+        user: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
+        force_basic_auth: yes
+        status_code: 201
         validate_certs: false
-        state: present
-        datacenter: "{{ dc_name }}"
-        name: "{{ cluster_name }}"
-        # This specific structure enables vLCM and seeds it from your host
-        configuration:
-          lifecycle_managed: true
-        base_host: "{{ reference_host }}"
+      register: login
+
+    - name: 3b. Create vLCM Cluster seeded from host .11
+      uri:
+        url: "https://{{ vcenter_hostname }}/api/vcenter/cluster"
+        method: POST
+        headers:
+          vmware-api-session-id: "{{ login.json }}"
+        body_format: json
+        body:
+          name: "{{ cluster_name }}"
+          datacenter: "{{ dc_name }}"
+          # This enables Lifecycle Manager and sets the reference host
+          configuration:
+            lifecycle_managed: true
+          base_host: "{{ reference_host }}"
+        status_code: [201, 409] # 409 if it already exists
+        validate_certs: false
 
     - name: 4. Move Hosts into the Cluster
       community.vmware.vmware_host:
