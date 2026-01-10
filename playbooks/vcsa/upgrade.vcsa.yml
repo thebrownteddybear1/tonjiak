@@ -31,14 +31,16 @@
     - name: Perform Upgrade inside VCSA
       block:
         - name: Stage the software packages from ISO
-          raw: "software-packages stage --iso"
+          # Added --acceptEulas here to prevent hanging
+          raw: "software-packages stage --iso --acceptEulas"
           register: stage_out
-          # We use raw, so we must check the text output manually
-          failed_when: "'Staging complete' not in stage_out.stdout and 'already staged' not in stage_out.stdout"
+          failed_when: 
+            - "'Staging complete' not in stage_out.stdout"
+            - "'already staged' not in stage_out.stdout"
 
         - name: Install the staged updates
-          # This command starts the actual install process inside vCLI
-          raw: "software-packages install --staged --acceptEulas"
+          # Carrying --acceptEulas here as well
+          raw: "software-packages install --iso --acceptEulas"
           register: install_out
 
         - name: Show Install Output
@@ -51,7 +53,6 @@
 
       when: inventory_hostname == 'vcsa52'
       vars:
-        # Prevents SSH from hanging on key confirmation
         ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
     # -------------------------------------------------------------------------
@@ -62,6 +63,6 @@
         host: "192.168.50.52"
         port: 443
         delay: 300
-        timeout: 1200 # Upgraded VCSA 8.0 takes a while to boot services
+        timeout: 1200
       delegate_to: localhost
       when: inventory_hostname == 'vcsa52'
