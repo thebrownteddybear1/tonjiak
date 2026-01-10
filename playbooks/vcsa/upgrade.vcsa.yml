@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-  # -------------------------------------------------------------------------
+# -------------------------------------------------------------------------
     # STAGE 1: MOUNT ISO (Executed via ESXi Host)
     # -------------------------------------------------------------------------
     - name: Attach ISO to VCSA VM
@@ -16,12 +16,12 @@
         datacenter: "ha-datacenter"
         name: "vcsa52.corp.internal"
         cdrom:
-          - type: iso
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
             iso_path: "[lex2] iso/VMware-vCenter-Server-Appliance-8.0.3.00100-24091160-patch-FP.iso"
+            type: iso
             state: present
-            controller_type: sata    # Explicitly define type
-            controller_number: 0     # Explicitly define controller
-            unit_number: 0           # Explicitly define unit
       delegate_to: localhost
       when: inventory_hostname == 'vcsa52'
 
