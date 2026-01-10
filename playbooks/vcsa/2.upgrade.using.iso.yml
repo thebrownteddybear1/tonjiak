@@ -1,41 +1,27 @@
 ---
-- name: VCSA 8 Stage 2 Patching (ISO)
-  hosts: vcsa_nodes
+- name: VCSA 8 Fresh Stage and Upgrade (ISO)
+  hosts: vcsa52
   gather_facts: no
   vars:
-    # Use the root user for appliance shell commands
     ansible_user: root
 
   tasks:
-    - name: Stage patches from the mounted ISO
-      ansible.builtin.shell: |
-        /usr/lib/appliancesh/software-packages stage --iso --acceptEulas
-      register: stage_result
-      changed_when: "'Staging process completed successfully' in stage_result.stdout"
+    - name: Remove all staged patches before proceeding
+      ansible.builtin.raw: "software-packages unstage"
+      register: unstage_output
+      changed_when: "'Staged packages purged successfully' in unstage_output.stdout"
 
-    - name: Verify staged packages
-      ansible.builtin.shell: |
-        /usr/lib/appliancesh/software-packages list --staged
-      register: staged_list
-      failed_when: "'No packages staged' in staged_list.stdout"
+    - name: Stage patches from the mounted ISO
+      ansible.builtin.raw: "software-packages stage --iso --acceptEulas"
+      register: stage_result
+      # This task may take a few minutes depending on the ISO size
 
     - name: Install staged patches
-      ansible.builtin.shell: |
-        /usr/lib/appliancesh/software-packages install --staged
+      ansible.builtin.raw: "software-packages install --staged"
       register: install_result
-      async: 3600  # Allow up to 1 hour for the install process
-      poll: 30
-      changed_when: "'Packages upgraded successfully' in install_result.stdout"
+      # WARNING: This process can take 30-60 minutes. 
+      # Ensure your SSH timeout settings are sufficient.
 
     - name: Reboot VCSA to finalize upgrade
-      ansible.builtin.shell: |
-        /usr/lib/appliancesh/shutdown reboot -r "Ansible Patching Reboot"
-      async: 1
-      poll: 0
-      ignore_errors: true
+      ansible.builtin.raw: 'shutdown reboot -r "Ansible Patching Reboot"'
       when: "'Reboot is required' in install_result.stdout"
-
-    - name: Wait for VCSA to become responsive
-      ansible.builtin.wait_for_connection:
-        delay: 60
-        timeout: 900
