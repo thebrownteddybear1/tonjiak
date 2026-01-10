@@ -4,14 +4,9 @@
   gather_facts: false
 
   tasks:
-    - name: Ensure any previous session is cleared
-      raw: "software-packages unstage"
-      ignore_errors: true
-
-    - name: Install software directly from ISO
-      # We use 'shell.set --enabled True' then execute to ensure we are in a high-privilege context
-      # if the raw vCLI command is rejecting the auth.
-      raw: "software-packages install --iso --acceptEulas"
+    - name: Install software directly from ISO (Bypassing vCLI)
+      # We call bash -c to run the command in a full shell context
+      raw: "shell.set --enabled True && /bin/bash -c 'software-packages install --iso --acceptEulas'"
       register: install_out
       vars:
         ansible_ssh_extra_args: >
