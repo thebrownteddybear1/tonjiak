@@ -4,17 +4,17 @@
   gather_facts: false
 
   tasks:
-    - name: Clean up any previous failed sessions
-      raw: "software-packages unstage"
-      ignore_errors: true
-
     - name: Install software directly from ISO
-      # Using raw to bypass the vCLI restricted shell
+      # Using raw because the vcli does not support the Ansible Python subsystem
+      # This command will take a long time to return (30-60 minutes)
       raw: "software-packages install --iso --acceptEulas"
       register: install_out
-      # Crucial: Keep the SSH session alive for the 30-60 minute duration
       vars:
-        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=120'
+        # Prevents the SSH session from timing out while the VCSA installs
+        ansible_ssh_extra_args: >
+          -o StrictHostKeyChecking=no 
+          -o ServerAliveInterval=30 
+          -o ServerAliveCountMax=120
 
     - name: Show Installation Result
       debug:
