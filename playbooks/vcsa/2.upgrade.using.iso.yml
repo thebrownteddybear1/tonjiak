@@ -1,23 +1,27 @@
 ---
 - name: Stage 2 - Execute VCSA Upgrade
-  hosts: vcsa52
+  hosts: vcsa_nodes
   gather_facts: false
-  vars:
-    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
   tasks:
+    - name: Clean up any previous failed sessions
+      raw: "software-packages unstage"
+      ignore_errors: true
+
     - name: Install software directly from ISO
-      # This uses the credentials from hosts.ini (VMware1!VMware1!)
-      # Note: This task will run for 20-40 minutes.
+      # Using raw to bypass the vCLI restricted shell
       raw: "software-packages install --iso --acceptEulas"
       register: install_out
+      # Crucial: Keep the SSH session alive for the 30-60 minute duration
+      vars:
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o ServerAliveCountMax=120'
 
     - name: Show Installation Result
       debug:
         var: install_out.stdout_lines
 
     - name: Reboot the VCSA
-      raw: "shutdown reboot -r 'Post-upgrade reboot'"
+      raw: "shutdown reboot -r 'Ansible Post-upgrade reboot'"
       ignore_unreachable: true
 
     - name: Wait for VCSA to return online
