@@ -1,0 +1,37 @@
+---
+- name: Stage 2 - Execute VCSA Upgrade
+  hosts: vcsa52
+  gather_facts: false
+  vars:
+    ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+  tasks:
+    - name: Install software directly from ISO
+      # This uses the credentials from hosts.ini (VMware1!VMware1!)
+      # Note: This task will run for 20-40 minutes.
+      raw: "software-packages install --iso --acceptEulas"
+      register: install_out
+
+    - name: Show Installation Result
+      debug:
+        var: install_out.stdout_lines
+
+    - name: Reboot the VCSA
+      raw: "shutdown reboot -r 'Post-upgrade reboot'"
+      ignore_unreachable: true
+
+    - name: Wait for VCSA to return online
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 443
+        delay: 300
+        timeout: 1200
+      delegate_to: localhost
+
+    - name: Final Version Check
+      raw: "vpxd -v"
+      register: vpxd_version
+
+    - name: Display New Version
+      debug:
+        msg: "Upgrade Complete. {{ vpxd_version.stdout }}"

@@ -1,0 +1,26 @@
+---
+- name: Stage 1 - Mount Patch ISO to VCSA
+  hosts: vcsa52
+  gather_facts: false
+
+  tasks:
+    - name: Attach ISO via ESXi API
+      community.vmware.vmware_guest:
+        hostname: "192.168.50.108"
+        username: "root"
+        password: "VMware1!VMware1!VMware1!VMware1!"
+        validate_certs: false
+        datacenter: "ha-datacenter"
+        name: "vcsa52.corp.internal"
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[lex2] iso/VMware-vCenter-Server-Appliance-8.0.3.00100-24091160-patch-FP.iso"
+            type: iso
+            state: present
+      delegate_to: localhost
+
+    - name: Confirm ISO is attached
+      debug:
+        msg: "ISO attached successfully to vcsa52.corp.internal on ESXi 192.168.50.108"
