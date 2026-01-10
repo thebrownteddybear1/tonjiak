@@ -1,23 +1,41 @@
 ---
-- name: Stage 2 - Execute VCSA Upgrade
+- name: VCSA 8 Stage 2 Patching (ISO)
   hosts: vcsa_nodes
-  gather_facts: false
+  gather_facts: no
+  vars:
+    # Use the root user for appliance shell commands
+    ansible_user: root
 
   tasks:
-    - name: Install software directly from ISO
-      # Using the native vCLI command format
-      raw: "software-packages install --iso --acceptEulas"
-      register: install_out
-      vars:
-        ansible_ssh_extra_args: >
-          -o StrictHostKeyChecking=no 
-          -o ServerAliveInterval=30 
-          -o ServerAliveCountMax=120
+    - name: Stage patches from the mounted ISO
+      ansible.builtin.shell: |
+        /usr/lib/appliancesh/software-packages stage --iso --acceptEulas
+      register: stage_result
+      changed_when: "'Staging process completed successfully' in stage_result.stdout"
 
-    - name: Show Installation Result
-      debug:
-        var: install_out.stdout_lines
+    - name: Verify staged packages
+      ansible.builtin.shell: |
+        /usr/lib/appliancesh/software-packages list --staged
+      register: staged_list
+      failed_when: "'No packages staged' in staged_list.stdout"
 
-    - name: Reboot the VCSA
-      raw: "shutdown reboot -r 'Ansible Post-upgrade reboot'"
-      ignore_unreachable: true
+    - name: Install staged patches
+      ansible.builtin.shell: |
+        /usr/lib/appliancesh/software-packages install --staged
+      register: install_result
+      async: 3600  # Allow up to 1 hour for the install process
+      poll: 30
+      changed_when: "'Packages upgraded successfully' in install_result.stdout"
+
+    - name: Reboot VCSA to finalize upgrade
+      ansible.builtin.shell: |
+        /usr/lib/appliancesh/shutdown reboot -r "Ansible Patching Reboot"
+      async: 1
+      poll: 0
+      ignore_errors: true
+      when: "'Reboot is required' in install_result.stdout"
+
+    - name: Wait for VCSA to become responsive
+      ansible.builtin.wait_for_connection:
+        delay: 60
+        timeout: 900
