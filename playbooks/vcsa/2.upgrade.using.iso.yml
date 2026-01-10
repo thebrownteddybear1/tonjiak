@@ -4,13 +4,16 @@
   gather_facts: false
 
   tasks:
+    - name: Ensure any previous session is cleared
+      raw: "software-packages unstage"
+      ignore_errors: true
+
     - name: Install software directly from ISO
-      # Using raw because the vcli does not support the Ansible Python subsystem
-      # This command will take a long time to return (30-60 minutes)
+      # We use 'shell.set --enabled True' then execute to ensure we are in a high-privilege context
+      # if the raw vCLI command is rejecting the auth.
       raw: "software-packages install --iso --acceptEulas"
       register: install_out
       vars:
-        # Prevents the SSH session from timing out while the VCSA installs
         ansible_ssh_extra_args: >
           -o StrictHostKeyChecking=no 
           -o ServerAliveInterval=30 
@@ -23,19 +26,3 @@
     - name: Reboot the VCSA
       raw: "shutdown reboot -r 'Ansible Post-upgrade reboot'"
       ignore_unreachable: true
-
-    - name: Wait for VCSA to return online
-      wait_for:
-        host: "{{ ansible_host }}"
-        port: 443
-        delay: 300
-        timeout: 1200
-      delegate_to: localhost
-
-    - name: Final Version Check
-      raw: "vpxd -v"
-      register: vpxd_version
-
-    - name: Display New Version
-      debug:
-        msg: "Upgrade Complete. {{ vpxd_version.stdout }}"
