@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    # -------------------------------------------------------------------------
+  # -------------------------------------------------------------------------
     # STAGE 1: MOUNT ISO (Executed via ESXi Host)
     # -------------------------------------------------------------------------
     - name: Attach ISO to VCSA VM
@@ -19,8 +19,11 @@
           - type: iso
             iso_path: "[lex2] iso/VMware-vCenter-Server-Appliance-8.0.3.00100-24091160-patch-FP.iso"
             state: present
+            controller_type: sata    # Explicitly define type
+            controller_number: 0     # Explicitly define controller
+            unit_number: 0           # Explicitly define unit
       delegate_to: localhost
-      when: "'vcsa' in group_names"
+      when: inventory_hostname == 'vcsa52'
 
     # -------------------------------------------------------------------------
     # STAGE 2: UPGRADE VCSA (Executed via SSH on VCSA)
