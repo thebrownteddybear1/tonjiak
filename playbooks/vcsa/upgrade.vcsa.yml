@@ -5,15 +5,7 @@
 
   tasks:
     # -------------------------------------------------------------------------
-    # STAGE 0: FIX SHELL (New Fix for VCSA)
-    # -------------------------------------------------------------------------
-    - name: Set VCSA shell to Bash
-      raw: shell.set --enabled True && pipecfg --reset && usermod -s /bin/bash root
-      when: inventory_hostname == 'vcsa52'
-      ignore_errors: true
-
-    # -------------------------------------------------------------------------
-    # STAGE 1: MOUNT ISO (Executed via ESXi Host)
+    # STAGE 1: MOUNT ISO (Executed via ESXi API)
     # -------------------------------------------------------------------------
     - name: Attach ISO to VCSA VM
       community.vmware.vmware_guest:
@@ -34,32 +26,32 @@
       when: inventory_hostname == 'vcsa52'
 
     # -------------------------------------------------------------------------
-    # STAGE 2: UPGRADE VCSA
+    # STAGE 2: UPGRADE VCSA (Using RAW for vCLI)
     # -------------------------------------------------------------------------
     - name: Perform Upgrade inside VCSA
       block:
         - name: Stage the software packages from ISO
-          # Using 'shell' here now that we are in Bash
-          shell: "software-packages stage --iso"
+          raw: "software-packages stage --iso"
           register: stage_out
-          failed_when: 
-            - "'Staging complete' not in stage_out.stdout"
-            - "'already staged' not in stage_out.stdout"
+          # We use raw, so we must check the text output manually
+          failed_when: "'Staging complete' not in stage_out.stdout and 'already staged' not in stage_out.stdout"
 
         - name: Install the staged updates
-          shell: "software-packages install --staged --acceptEulas"
-          async: 3600
-          poll: 60
+          # This command starts the actual install process inside vCLI
+          raw: "software-packages install --staged --acceptEulas"
           register: install_out
 
+        - name: Show Install Output
+          debug:
+            var: install_out.stdout_lines
+
         - name: Reboot the VCSA Appliance
-          shell: "shutdown reboot -r 'Ansible triggered upgrade'"
-          async: 1
-          poll: 0
+          raw: "shutdown reboot -r 'Ansible triggered upgrade'"
           ignore_unreachable: true
 
       when: inventory_hostname == 'vcsa52'
       vars:
+        # Prevents SSH from hanging on key confirmation
         ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
 
     # -------------------------------------------------------------------------
@@ -70,6 +62,6 @@
         host: "192.168.50.52"
         port: 443
         delay: 300
-        timeout: 900
+        timeout: 1200 # Upgraded VCSA 8.0 takes a while to boot services
       delegate_to: localhost
       when: inventory_hostname == 'vcsa52'
