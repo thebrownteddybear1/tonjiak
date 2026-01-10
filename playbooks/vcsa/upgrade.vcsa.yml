@@ -26,16 +26,16 @@
       when: inventory_hostname == 'vcsa52'
 
     # -------------------------------------------------------------------------
-    # STAGE 2: UPGRADE (Direct SSH to VCSA 192.168.50.52)
+    # STAGE 2: UPGRADE (SSH to 192.168.50.52)
     # -------------------------------------------------------------------------
     - name: Perform Upgrade inside VCSA vCLI
       block:
         - name: Run Direct Install from ISO
-          # We use 'raw' because the VCSA shell doesn't support Ansible's Python modules
+          # 'raw' bypasses the VCSA's limited shell restrictions
           raw: "software-packages install --iso --acceptEulas"
           register: install_out
 
-        - name: Show Installation Progress/Result
+        - name: Show Installation Output
           debug:
             var: install_out.stdout_lines
 
@@ -50,7 +50,7 @@
     # -------------------------------------------------------------------------
     # STAGE 3: VERIFICATION
     # -------------------------------------------------------------------------
-    - name: Wait for VCSA to respond on HTTPS
+    - name: Wait for VCSA Web Services (Port 443)
       wait_for:
         host: "192.168.50.52"
         port: 443
@@ -60,11 +60,11 @@
       when: inventory_hostname == 'vcsa52'
 
     - name: Check Final Version
-      raw: "com.vmware.appliance.version1.get"
+      raw: "vpxd -v"
       register: version_check
       when: inventory_hostname == 'vcsa52'
 
-    - name: Display Build Info
+    - name: Display New Build Info
       debug:
-        var: version_check.stdout_lines
+        msg: "Upgrade Successful! New Version: {{ version_check.stdout }}"
       when: inventory_hostname == 'vcsa52'
