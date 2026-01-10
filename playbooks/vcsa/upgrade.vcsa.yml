@@ -1,0 +1,77 @@
+---
+- name: Complete VCSA Upgrade Process
+  hosts: all
+  gather_facts: false
+
+  tasks:
+    # -------------------------------------------------------------------------
+    # STAGE 1: MOUNT ISO (Executed via ESXi Host)
+    # -------------------------------------------------------------------------
+    - name: Attach ISO to VCSA VM
+      community.vmware.vmware_guest:
+        hostname: "192.168.50.108"
+        username: "root"
+        password: "VMware1!VMware1!VMware1!VMware1!"
+        validate_certs: false
+        datacenter: "ha-datacenter"
+        name: "vcsa52.corp.internal"
+        cdrom:
+          - type: iso
+            iso_path: "[lex2] iso/VMware-vCenter-Server-Appliance-8.0.3.00100-24091160-patch-FP.iso"
+            state: present
+      delegate_to: localhost
+      when: "'vcsa' in group_names"
+
+    # -------------------------------------------------------------------------
+    # STAGE 2: UPGRADE VCSA (Executed via SSH on VCSA)
+    # -------------------------------------------------------------------------
+    - name: Perform Upgrade inside VCSA
+      block:
+        - name: Stage the software packages from ISO
+          shell: "software-packages stage --iso"
+          register: stage_out
+          failed_when: 
+            - "'Staging complete' not in stage_out.stdout"
+            - "'already staged' not in stage_out.stdout"
+
+        - name: Install the staged updates (This takes time)
+          shell: "software-packages install --staged --acceptEulas"
+          async: 3600  # 1 hour timeout
+          poll: 60     # Check every 60 seconds
+          register: install_out
+
+        - name: Debug Installation Output
+          debug:
+            var: install_out.stdout_lines
+
+        - name: Reboot the VCSA Appliance
+          shell: "shutdown reboot -r 'Ansible triggered upgrade reboot'"
+          async: 1
+          poll: 0
+          ignore_unreachable: true
+
+      when: inventory_hostname == 'vcsa52'
+      vars:
+        ansible_ssh_extra_args: '-o StrictHostKeyChecking=no'
+
+    # -------------------------------------------------------------------------
+    # STAGE 3: VERIFICATION
+    # -------------------------------------------------------------------------
+    - name: Wait for VCSA to return and Web Services to start
+      wait_for:
+        host: "192.168.50.52"
+        port: 443
+        delay: 300   # Wait 5 mins before starting to check
+        timeout: 900 # Wait up to 15 mins total
+      delegate_to: localhost
+      when: inventory_hostname == 'vcsa52'
+
+    - name: Confirm Final Version
+      shell: "vpxd -v"
+      register: vpxd_version
+      when: inventory_hostname == 'vcsa52'
+
+    - name: Print New Version
+      debug:
+        msg: "VCSA is back up. Version: {{ vpxd_version.stdout }}"
+      when: inventory_hostname == 'vcsa52'
