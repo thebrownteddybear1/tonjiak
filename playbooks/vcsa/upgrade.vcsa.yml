@@ -5,9 +5,9 @@
 
   tasks:
     # -------------------------------------------------------------------------
-    # STAGE 1: MOUNT ISO (Executed via ESXi API)
+    # STAGE 1: MOUNT ISO (Via ESXi API)
     # -------------------------------------------------------------------------
-    - name: Attach ISO to VCSA VM
+    - name: Attach ISO to VCSA VM via ESXi Host
       community.vmware.vmware_guest:
         hostname: "192.168.50.108"
         username: "root"
@@ -26,29 +26,21 @@
       when: inventory_hostname == 'vcsa52'
 
     # -------------------------------------------------------------------------
-    # STAGE 2: UPGRADE VCSA (Using RAW for vCLI)
+    # STAGE 2: UPGRADE (Direct SSH to VCSA 192.168.50.52)
     # -------------------------------------------------------------------------
-    - name: Perform Upgrade inside VCSA
+    - name: Perform Upgrade inside VCSA vCLI
       block:
-        - name: Stage the software packages from ISO
-          # Added --acceptEulas here to prevent hanging
-          raw: "software-packages stage --iso --acceptEulas"
-          register: stage_out
-          failed_when: 
-            - "'Staging complete' not in stage_out.stdout"
-            - "'already staged' not in stage_out.stdout"
-
-        - name: Install the staged updates
-          # Carrying --acceptEulas here as well
+        - name: Run Direct Install from ISO
+          # We use 'raw' because the VCSA shell doesn't support Ansible's Python modules
           raw: "software-packages install --iso --acceptEulas"
           register: install_out
 
-        - name: Show Install Output
+        - name: Show Installation Progress/Result
           debug:
             var: install_out.stdout_lines
 
-        - name: Reboot the VCSA Appliance
-          raw: "shutdown reboot -r 'Ansible triggered upgrade'"
+        - name: Reboot the Appliance
+          raw: "shutdown reboot -r 'Post-upgrade reboot'"
           ignore_unreachable: true
 
       when: inventory_hostname == 'vcsa52'
@@ -58,11 +50,21 @@
     # -------------------------------------------------------------------------
     # STAGE 3: VERIFICATION
     # -------------------------------------------------------------------------
-    - name: Wait for VCSA to return
+    - name: Wait for VCSA to respond on HTTPS
       wait_for:
         host: "192.168.50.52"
         port: 443
         delay: 300
         timeout: 1200
       delegate_to: localhost
+      when: inventory_hostname == 'vcsa52'
+
+    - name: Check Final Version
+      raw: "com.vmware.appliance.version1.get"
+      register: version_check
+      when: inventory_hostname == 'vcsa52'
+
+    - name: Display Build Info
+      debug:
+        var: version_check.stdout_lines
       when: inventory_hostname == 'vcsa52'
