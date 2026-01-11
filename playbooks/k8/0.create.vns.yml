@@ -5,7 +5,7 @@
   gather_facts: false
   
   vars:
-    vcenter_host: "192.168.50.54"
+    vcenter_host: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     cluster_moid: "domain-c21"
