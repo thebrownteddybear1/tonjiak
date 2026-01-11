@@ -1,5 +1,5 @@
 ---
-- name: Recreate Supervisor Namespace 'vns' from Ground Zero
+- name: Create Supervisor Namespace 'vns'
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,8 +9,6 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
-    user_principal: "administrator@vsphere.local"
-    role_name: "editor"
   
   tasks:
     # ===== PHASE 1: AUTHENTICATION =====
@@ -68,47 +66,7 @@
         msg: "Storage policy 'storageclass' not found. Available policies: {{ storage_policies.json | map(attribute='name') | list }}"
       when: storage_policy_id is not defined
     
-    # ===== PHASE 3: DELETE EXISTING NAMESPACE =====
-    - name: Check if namespace '{{ namespace_name }}' exists
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: namespace_check
-      ignore_errors: true
-    
-    - name: Delete namespace if it exists
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: DELETE
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: [200, 204]
-      when: namespace_check.status == 200
-      register: delete_result
-    
-    - name: Wait for namespace deletion to complete
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 404  # We expect 404 when namespace is deleted
-      register: deletion_check
-      until: deletion_check.status == 404
-      retries: 30
-      delay: 10
-      when: namespace_check.status == 200
-    
-    - name: Display deletion status
-      debug:
-        msg: "{{ 'Namespace deleted successfully' if namespace_check.status == 200 else 'Namespace did not exist' }}"
-    
-    # ===== PHASE 4: CREATE NEW NAMESPACE =====
+    # ===== PHASE 3: CREATE NAMESPACE =====
     - name: Create Supervisor Namespace '{{ namespace_name }}'
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
@@ -140,10 +98,6 @@
       retries: 30
       delay: 5
     
-    - name: Debug - Show namespace structure
-      debug:
-        var: creation_check.json
-    
     - name: Wait for namespace to be READY
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
@@ -153,113 +107,15 @@
           vmware-api-session-id: "{{ session_result.json }}"
         status_code: 200
       register: namespace_status
-      until: (namespace_status.json.status | default('')) == "READY" or (namespace_status.json.config_status | default('')) == "READY"
-      retries: 0
+      until: (namespace_status.json.status | default('')) == "READY" or (namespace_status.json.config_status | default('')) == "READY" or (namespace_status.json.status | default('')) == "RUNNING"
+      retries: 60
       delay: 10
     
     - name: Display namespace creation status
       debug:
-        msg: "Namespace '{{ namespace_name }}' created successfully with status: {{ namespace_status.json.status | default(namespace_status.json.config_status) }}"
-    
-    # ===== PHASE 5: SET PERMISSIONS =====
-    - name: Get all roles
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/roles"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: all_roles
-    
-    - name: Find role '{{ role_name }}' ID
-      set_fact:
-        role_id: "{{ item.role }}"
-      loop: "{{ all_roles.json }}"
-      when: item.label == role_name
-    
-    - name: Debug - Show found role ID
-      debug:
-        msg: "Found role '{{ role_name }}' with ID: {{ role_id }}"
-      when: role_id is defined
-    
-    - name: Fail if role '{{ role_name }}' not found
-      fail:
-        msg: "Role '{{ role_name }}' not found. Available roles: {{ all_roles.json | map(attribute='label') | list }}"
-      when: role_id is not defined
-    
-    - name: Get current permissions for namespace
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: current_permissions
-      ignore_errors: true
-    
-    - name: Check if permission already exists
-      set_fact:
-        permission_exists: true
-      when: >
-        current_permissions.json is defined and 
-        user_principal in (current_permissions.json | map(attribute='principal') | list)
-    
-    - name: Add permission to namespace
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: POST
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          principal: "{{ user_principal }}"
-          role: "{{ role_id }}"
-        status_code: [200, 201, 204]
-      register: permission_result
-      when: permission_exists is not defined or permission_exists != true
-    
-    # ===== PHASE 6: FINAL VERIFICATION =====
-    - name: Final verification - Get namespace details
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: final_namespace
-    
-    - name: Final verification - Get namespace permissions
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: final_permissions
-    
-    - name: Display final summary
-      debug:
         msg: |
-          ===== NAMESPACE RECREATION COMPLETE =====
-          
-          Namespace: {{ namespace_name }}
-          Status: {{ final_namespace.json.status | default(final_namespace.json.config_status) }}
-          Cluster: {{ final_namespace.json.cluster }}
+          Namespace '{{ namespace_name }}' created successfully!
+          Status: {{ namespace_status.json.status | default(namespace_status.json.config_status) }}
+          Cluster: {{ namespace_status.json.cluster }}
           Storage Policy: {{ storage_policy_id }} (storageclass)
-          
-          Permissions:
-          {% if final_permissions.json is defined %}
-            {% for perm in final_permissions.json %}
-            - {{ perm.principal }} (Role: {{ perm.role }})
-            {% endfor %}
-          {% else %}
-            - No permissions found
-          {% endif %}
-          
-          =========================================
+          Storage Limit: Unlimited (limit: -1)
