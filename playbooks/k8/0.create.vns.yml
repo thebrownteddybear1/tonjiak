@@ -154,7 +154,7 @@
         status_code: 200
       register: namespace_status
       until: (namespace_status.json.status | default('')) == "READY" or (namespace_status.json.config_status | default('')) == "READY"
-      retries: 60
+      retries: 0
       delay: 10
     
     - name: Display namespace creation status
