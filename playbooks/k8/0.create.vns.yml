@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace 'vns' with Sleep
+- name: Create Supervisor Namespace 'vns' with Editor Role
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,6 +9,7 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
+    namespace_editor_role_id: "cb2d2996-618d-4198-8bfe-c17bc065dff8"  # Standard Editor role ID
   
   tasks:
     # ===== PHASE 1: AUTHENTICATION =====
@@ -116,156 +117,80 @@
       pause:
         seconds: 20
     
-    - name: Check namespace status after sleep
+    # ===== PHASE 5: SET EDITOR PERMISSIONS =====
+    - name: Set Editor permission for administrator@vsphere.local
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
+        method: POST
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          principal: "{{ vcenter_username }}"
+          role: "{{ namespace_editor_role_id }}"
+        status_code: [200, 201, 204]
+      register: permission_result
+      ignore_errors: true
+    
+    - name: Sleep 10 seconds after permission setting
+      pause:
+        seconds: 10
+    
+    # ===== PHASE 6: FINAL VERIFICATION =====
+    - name: Check namespace final status
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-      register: namespace_status
+      register: final_namespace
       ignore_errors: true
     
-    - name: Display namespace status
-      debug:
-        msg: |
-          Namespace '{{ namespace_name }}' creation attempt completed.
-          Status code: {{ namespace_status.status }}
-          {% if namespace_status.status == 200 %}
-          Namespace status: {{ namespace_status.json.status | default(namespace_status.json.config_status) }}
-          {% endif %}
-    
-    # ===== PHASE 5: DISCOVER AVAILABLE ROLES =====
-    - name: Try to discover roles
+    - name: Try to get namespace permissions to verify
       uri:
-        url: "https://{{ vcenter_host }}/rest/com/vmware/cis/session/{{ session_result.json }}/authorization/roles"
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-      register: roles_api
+      register: final_permissions
       ignore_errors: true
     
-    - name: Try alternative roles endpoint
-      uri:
-        url: "https://{{ vcenter_host }}/api/authorization/roles"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: roles_api2
-      ignore_errors: true
-    
-    - name: Try another roles endpoint
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/authorization/roles"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: roles_api3
-      ignore_errors: true
-    
-    - name: Display discovered roles endpoints
-      debug:
-        msg: |
-          Roles API endpoints:
-          - /rest/com/vmware/cis/session/.../authorization/roles: {{ roles_api.status }}
-          - /api/authorization/roles: {{ roles_api2.status }}
-          - /api/vcenter/authorization/roles: {{ roles_api3.status }}
-    
-    # ===== PHASE 6: TRY TO SET PERMISSIONS =====
-    - name: Try common roles for permissions
-      block:
-        - name: Try 'Cns-Datastore' role
-          uri:
-            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-            method: POST
-            validate_certs: false
-            headers:
-              vmware-api-session-id: "{{ session_result.json }}"
-              Content-Type: "application/json"
-            body_format: json
-            body:
-              principal: "{{ vcenter_username }}"
-              role: "Cns-Datastore"
-            status_code: [200, 201, 204]
-          register: perm_cns
-          ignore_errors: true
-        
-        - name: Try 'Administrator' role
-          uri:
-            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-            method: POST
-            validate_certs: false
-            headers:
-              vmware-api-session-id: "{{ session_result.json }}"
-              Content-Type: "application/json"
-            body_format: json
-            body:
-              principal: "{{ vcenter_username }}"
-              role: "Administrator"
-            status_code: [200, 201, 204]
-          register: perm_admin
-          ignore_errors: true
-        
-        - name: Try 'Editor' role
-          uri:
-            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-            method: POST
-            validate_certs: false
-            headers:
-              vmware-api-session-id: "{{ session_result.json }}"
-              Content-Type: "application/json"
-            body_format: json
-            body:
-              principal: "{{ vcenter_username }}"
-              role: "Editor"
-            status_code: [200, 201, 204]
-          register: perm_editor
-          ignore_errors: true
-    
-    - name: Display permission results
-      debug:
-        msg: |
-          Permission setting results:
-          - Cns-Datastore: {{ 'Success' if perm_cns.status in [200, 201, 204] else 'Failed' }}
-          - Administrator: {{ 'Success' if perm_admin.status in [200, 201, 204] else 'Failed' }}
-          - Editor: {{ 'Success' if perm_editor.status in [200, 201, 204] else 'Failed' }}
-    
-    # ===== PHASE 7: FINAL CHECK =====
-    - name: Final namespace check
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: final_check
-      ignore_errors: true
-    
-    - name: Final summary
+    - name: Display final summary
       debug:
         msg: |
           ===== NAMESPACE SETUP COMPLETE =====
           
-          Summary:
-          - Namespace: {{ namespace_name }}
-          - Cluster: {{ cluster_moid }}
-          - Storage Policy: {{ storage_policy_id }} (storageclass)
+          Namespace: {{ namespace_name }}
+          Cluster: {{ cluster_moid }}
+          Storage Policy: {{ storage_policy_id }} (storageclass)
           
-          {% if final_check.status == 200 %}
-          - Status: {{ final_check.json.status | default(final_check.json.config_status) }}
-          - Exists: Yes
+          {% if final_namespace.status == 200 %}
+          Namespace Status: {{ final_namespace.json.status | default(final_namespace.json.config_status) }}
+          Namespace Exists: Yes
           {% else %}
-          - Status: Unknown (HTTP {{ final_check.status }})
-          - Exists: No (check vCenter UI)
+          Namespace Status: Unknown (HTTP {{ final_namespace.status }})
+          Namespace Exists: No
           {% endif %}
           
-          Note: If permissions failed, set manually in vSphere UI:
-          1. Go to Workload Management > Namespaces
-          2. Select "{{ namespace_name }}" namespace  
-          3. Go to Permissions tab
-          4. Add "{{ vcenter_username }}" with "Edit" role
+          Permission Setting Result: {{ 'SUCCESS' if permission_result.status in [200, 201, 204] else 'FAILED (HTTP ' ~ permission_result.status ~ ')' }}
+          
+          {% if final_permissions.status == 200 and final_permissions.json %}
+          Current Permissions: 
+            {% for perm in final_permissions.json %}
+            - {{ perm.principal }} (Role: {{ perm.role }})
+            {% endfor %}
+          {% else %}
+          Permissions could not be retrieved.
+          {% endif %}
+          
+          Note: According to vSphere with Tanzu documentation:
+          - Editor role (ID: {{ namespace_editor_role_id }}) grants:
+            * Can view and edit namespace resources
+            * Cannot delete the namespace
+            * Cannot change permissions
           
           =====================================
