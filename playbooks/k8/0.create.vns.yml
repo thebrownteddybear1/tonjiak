@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace
+- name: Create Supervisor Namespace 'vns'
   hosts: localhost
   connection: local
   gather_facts: false
@@ -8,10 +8,7 @@
     vcenter_host: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
-    cluster_moid: "domain-c21"
-    namespace_name: "my-namespace"
-    storage_policy: "storage-policy-1"
-    storage_limit_gb: 10
+    namespace_name: "vns"
   
   tasks:
     - name: Get vCenter session token
@@ -24,9 +21,51 @@
         force_basic_auth: true
         status_code: 201
       register: session_result
-
+      no_log: true
     
-    - name: Create Supervisor Namespace
+    - name: Find cluster 'cluster' MOID
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/cluster"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
+      register: clusters
+    
+    - name: Set cluster MOID for 'cluster'
+      set_fact:
+        cluster_moid: "{{ item.cluster }}"
+      loop: "{{ clusters.json }}"
+      when: item.name == "cluster"
+    
+    - name: Fail if cluster 'cluster' not found
+      fail:
+        msg: "Cluster 'cluster' not found"
+      when: cluster_moid is not defined
+    
+    - name: Find storage policy 'storageclass' ID
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/storage/policies"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
+      register: storage_policies
+    
+    - name: Set storage policy ID for 'storageclass'
+      set_fact:
+        storage_policy_id: "{{ item.policy }}"
+      loop: "{{ storage_policies.json }}"
+      when: item.name == "storageclass"
+    
+    - name: Fail if storage policy 'storageclass' not found
+      fail:
+        msg: "Storage policy 'storageclass' not found"
+      when: storage_policy_id is not defined
+    
+    - name: Create Supervisor Namespace 'vns' with unlimited storage
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
         method: POST
@@ -39,10 +78,11 @@
           cluster: "{{ cluster_moid }}"
           namespace: "{{ namespace_name }}"
           storage_specs:
-            - policy: "{{ storage_policy }}"
-              limit: "{{ storage_limit_gb * 1024 }}"
+            - policy: "{{ storage_policy_id }}"
+              limit: -1  # -1 means unlimited storage
         status_code: 201
       register: namespace_result
+      no_log: true
     
     - name: Wait for namespace to be ready
       uri:
@@ -54,9 +94,9 @@
         status_code: 200
       register: namespace_status
       until: namespace_status.json.status == "READY"
-      retries: 30
+      retries: 60
       delay: 10
     
-    - name: Display namespace info
+    - name: Display result
       debug:
-        msg: "Namespace {{ namespace_name }} created successfully with status {{ namespace_status.json.status }}"
+        msg: "Namespace '{{ namespace_name }}' created successfully with status: {{ namespace_status.json.status }}"
