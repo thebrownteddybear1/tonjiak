@@ -1,5 +1,5 @@
 ---
-- name: Recreate Supervisor Namespace 'vns' with Permissions
+- name: Create Supervisor Namespace 'vns' with Retry
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,10 +9,10 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
-    user_principal: "administrator@vsphere.local"
+    max_retries: 2
+    retry_delay: 10
   
   tasks:
-    # ===== PHASE 1: AUTHENTICATION =====
     - name: Get vCenter session token
       uri:
         url: "https://{{ vcenter_host }}/api/session"
@@ -24,7 +24,6 @@
         status_code: 201
       register: session_result
     
-    # ===== PHASE 2: GET REQUIRED IDs =====
     - name: Find cluster 'cluster' MOID
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/cluster"
@@ -40,11 +39,6 @@
         cluster_moid: "{{ item.cluster }}"
       loop: "{{ clusters.json }}"
       when: item.name == "cluster"
-    
-    - name: Fail if cluster 'cluster' not found
-      fail:
-        msg: "Cluster 'cluster' not found. Available clusters: {{ clusters.json | map(attribute='name') | list }}"
-      when: cluster_moid is not defined
     
     - name: Find storage policy 'storageclass' ID
       uri:
@@ -62,13 +56,8 @@
       loop: "{{ storage_policies.json }}"
       when: item.name == "storageclass"
     
-    - name: Fail if storage policy 'storageclass' not found
-      fail:
-        msg: "Storage policy 'storageclass' not found. Available policies: {{ storage_policies.json | map(attribute='name') | list }}"
-      when: storage_policy_id is not defined
-    
-    # ===== PHASE 3: DELETE EXISTING NAMESPACE =====
-    - name: Check if namespace '{{ namespace_name }}' exists
+    # ===== DELETE NAMESPACE IF EXISTS =====
+    - name: Check if namespace exists
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
@@ -78,7 +67,7 @@
       register: namespace_check
       ignore_errors: true
     
-    - name: Delete namespace if it exists
+    - name: Delete namespace if exists
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: DELETE
@@ -89,7 +78,7 @@
       when: namespace_check.status == 200
       register: delete_result
     
-    - name: Wait for namespace deletion to complete
+    - name: Wait for namespace deletion
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
@@ -100,144 +89,166 @@
       register: deletion_check
       until: deletion_check.status == 404
       retries: 30
-      delay: 10
+      delay: 2
       when: namespace_check.status == 200
     
-    - name: Display deletion status
-      debug:
-        msg: "{{ 'Namespace deleted successfully' if namespace_check.status == 200 else 'Namespace did not exist' }}"
-    
-    # ===== PHASE 4: CREATE NEW NAMESPACE =====
-    - name: Create Supervisor Namespace '{{ namespace_name }}'
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
-        method: POST
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          cluster: "{{ cluster_moid }}"
-          namespace: "{{ namespace_name }}"
-          storage_specs:
-            - policy: "{{ storage_policy_id }}"
-              limit: -1
-        status_code: [200, 201, 204]
-      register: create_result
-    
-    - name: Wait for namespace to be created
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: creation_check
-      until: creation_check.status == 200
-      retries: 30
-      delay: 5
-    
-    - name: Wait for namespace to be READY
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
-      register: namespace_status
-      until: (namespace_status.json.status | default('')) == "READY" or (namespace_status.json.config_status | default('')) == "READY" or (namespace_status.json.status | default('')) == "RUNNING"
-      retries: 60
-      delay: 10
-    
-    - name: Display namespace creation status
-      debug:
-        msg: "Namespace '{{ namespace_name }}' created successfully with status: {{ namespace_status.json.status | default(namespace_status.json.config_status) }}"
-    
-    # ===== PHASE 5: DISCOVER ROLE API ENDPOINTS =====
-    - name: Try to find roles API endpoint
-      uri:
-        url: "https://{{ vcenter_host }}/rest/vcenter/roles"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-          Accept: "application/json"
-      register: roles_api_rest
-      ignore_errors: true
-    
-    - name: Try alternative roles API endpoint
-      uri:
-        url: "https://{{ vcenter_host }}/api/authorization/roles"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: roles_api_auth
-      ignore_errors: true
-    
-    - name: Try permissions API directly on namespace
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: namespace_permissions
-      ignore_errors: true
-    
-    - name: Display discovered API endpoints
-      debug:
-        msg: |
-          Roles API (REST): {{ roles_api_rest.status }}
-          Roles API (Auth): {{ roles_api_auth.status }}
-          Namespace Permissions: {{ namespace_permissions.status }}
-    
-    # ===== PHASE 6: SET PERMISSIONS USING DIRECT ROLE ID =====
-    - name: Try to set permission with common role IDs
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: POST
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          principal: "{{ user_principal }}"
-          role: "{{ item }}"
-        status_code: [200, 201, 204]
-      register: permission_result
-      loop:
-        - "Cns-Datastore"  # Common vSphere role
-        - "Editor"  # Common role name
-        - "edit"  # Lowercase variant
-        - "admin"  # Admin role
-      ignore_errors: true
+    # ===== CREATE NAMESPACE WITH RETRY =====
+    - name: Create namespace with retry
+      block:
+        - name: Attempt {{ ansible_loop.index }} - Create namespace
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
+            method: POST
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+              Content-Type: "application/json"
+            body_format: json
+            body:
+              cluster: "{{ cluster_moid }}"
+              namespace: "{{ namespace_name }}"
+              storage_specs:
+                - policy: "{{ storage_policy_id }}"
+                  limit: -1
+            status_code: [200, 201, 204]
+          register: create_result
+        
+        - name: Wait for namespace to exist
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+            method: GET
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+            status_code: 200
+          register: creation_check
+          until: creation_check.status == 200
+          retries: 10
+          delay: 3
+        
+        - name: Wait for namespace to be ready
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+            method: GET
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+            status_code: 200
+          register: namespace_status
+          until: (namespace_status.json.status | default('')) in ["READY", "RUNNING"]
+          retries: 30
+          delay: 5
+      
+      rescue:
+        - name: Retry failed, attempt {{ ansible_loop.index }} of {{ max_retries }}
+          debug:
+            msg: "Namespace creation attempt {{ ansible_loop.index }} failed, retrying in {{ retry_delay }} seconds..."
+        
+        - name: Wait before retry
+          pause:
+            seconds: "{{ retry_delay }}"
+        
+        - name: Re-check session (renew if needed)
+          uri:
+            url: "https://{{ vcenter_host }}/api/session"
+            method: POST
+            validate_certs: false
+            user: "{{ vcenter_username }}"
+            password: "{{ vcenter_password }}"
+            force_basic_auth: true
+            status_code: 201
+          register: new_session
+          when: ansible_loop.index == 2
+        
+        - name: Update session token for final retry
+          set_fact:
+            session_result: "{{ new_session }}"
+          when: 
+            - ansible_loop.index == 2
+            - new_session is defined
+        
+        - name: Re-raise error to continue retry loop
+          fail:
+            msg: "Retrying namespace creation..."
+      
+      loop: "{{ range(1, max_retries + 1) | list }}"
       loop_control:
-        label: "{{ item }}"
+        loop_var: attempt_number
+        index_var: ansible_loop.index
+      retries: "{{ max_retries }}"
+      delay: "{{ retry_delay }}"
+      register: namespace_creation
     
-    # ===== PHASE 7: ALTERNATIVE - USING UI COMPATIBLE METHOD =====
-    - name: Set permission using UI-compatible method (simulate UI action)
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: POST
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          principal: "{{ user_principal }}"
-          role: "Cns-Datastore"  # Most common role for storage access
-        status_code: [200, 201, 204]
-      register: permission_final
-      ignore_errors: true
+    - name: Display success message
+      debug:
+        msg: "Namespace '{{ namespace_name }}' created successfully after {{ namespace_creation.attempts }} attempt(s)"
     
-    # ===== PHASE 8: VERIFY NAMESPACE STATUS =====
-    - name: Final namespace check
+    # ===== SET PERMISSIONS WITH RETRY =====
+    - name: Set permissions with retry
+      block:
+        - name: Attempt {{ ansible_loop.index }} - Set permissions
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
+            method: POST
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+              Content-Type: "application/json"
+            body_format: json
+            body:
+              principal: "{{ vcenter_username }}"
+              role: "Cns-Datastore"
+            status_code: [200, 201, 204]
+          register: permission_result
+        
+        - name: Verify permissions were set
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
+            method: GET
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+            status_code: 200
+          register: verify_permissions
+          when: permission_result.status in [200, 201, 204]
+      
+      rescue:
+        - name: Permission setting attempt {{ ansible_loop.index }} failed
+          debug:
+            msg: "Permission setting failed, trying alternative role..."
+        
+        - name: Try with alternative role
+          uri:
+            url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
+            method: POST
+            validate_certs: false
+            headers:
+              vmware-api-session-id: "{{ session_result.json }}"
+              Content-Type: "application/json"
+            body_format: json
+            body:
+              principal: "{{ vcenter_username }}"
+              role: "Administrator"
+            status_code: [200, 201, 204]
+          register: alt_permission_result
+          ignore_errors: true
+        
+        - name: Re-raise error if both attempts failed
+          fail:
+            msg: "Failed to set permissions after trying both roles"
+          when: alt_permission_result.status not in [200, 201, 204]
+      
+      loop: "{{ range(1, 3) | list }}"
+      loop_control:
+        loop_var: perm_attempt
+        index_var: perm_loop_index
+      retries: 1
+      delay: 2
+      register: permission_setting
+      when: namespace_creation is succeeded
+    
+    # ===== FINAL VERIFICATION =====
+    - name: Get final namespace status
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
@@ -245,41 +256,16 @@
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
         status_code: 200
-      register: final_namespace
-    
-    - name: Try to get namespace permissions to verify
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: final_permissions
-      ignore_errors: true
+      register: final_status
+      when: namespace_creation is succeeded
     
     - name: Display final summary
       debug:
         msg: |
-          ===== NAMESPACE RECREATION SUMMARY =====
-          
+          ===== FINAL STATUS =====
           Namespace: {{ namespace_name }}
-          Status: {{ final_namespace.json.status | default(final_namespace.json.config_status) }}
-          Cluster: {{ final_namespace.json.cluster }}
-          Storage Policy: {{ storage_policy_id }} (storageclass)
-          Storage Limit: Unlimited
-          
-          Permission Attempts:
-          {% if permission_result is defined and permission_result.results is defined %}
-            {% for result in permission_result.results %}
-            - Role "{{ result.item }}": {{ "Success" if result.status in [200, 201, 204] else "Failed" }}
-            {% endfor %}
-          {% endif %}
-          
-          Final Permission Status:
-          {% if final_permissions.status == 200 %}
-            Permissions: {{ final_permissions.json | to_nice_json }}
-          {% else %}
-            Could not retrieve permissions. Check vSphere UI for manual permission assignment.
-          {% endif %}
-          
-          ==========================================
+          Status: {{ final_status.json.status | default('UNKNOWN') }}
+          Storage Policy: storageclass
+          Creation Attempts: {{ namespace_creation.attempts | default(1) }}
+          Permissions Set: {{ permission_setting is succeeded | default(false) | ternary('Yes', 'No') }}
+          =========================
