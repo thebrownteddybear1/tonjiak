@@ -24,7 +24,7 @@
         force_basic_auth: true
         status_code: 201
       register: session_result
-      no_log: true
+
     
     - name: Create Supervisor Namespace
       uri:
