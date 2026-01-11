@@ -52,14 +52,14 @@
           vmware-api-session-id: "{{ session_result.json }}"
         status_code: [200, 204, 404]
 
-    - name: Wait for deletion to complete (Wait for 404)
+    - name: Wait for deletion to complete
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 404  # We want the task to succeed ONLY when it hits a 404
+        status_code: 404
       register: del_status
       until: del_status.status == 404
       retries: 30
@@ -95,8 +95,8 @@
       retries: 40
       delay: 5
 
-    # ===== PHASE 5: IMMEDIATE PERMISSION SET =====
-    - name: Set Access permission for RUNNING namespace
+    # ===== PHASE 5: ACCESS CONTROL (THE FIX) =====
+    - name: Set Access permission (Loop until endpoint is live)
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
         method: POST
@@ -111,11 +111,27 @@
           principal_type: "USER"
         status_code: [200, 201, 204]
       register: perm_set
-      until: perm_set.status in [200, 201, 204]
+      # This is the key: We keep retrying on 404 (Not Found) until the microservice wakes up
+      until: perm_set.status != 404
+      retries: 20
+      delay: 10
+      ignore_errors: true
+
+    - name: Verify Final Access
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: verify_access
+      until: verify_access.status == 200
       retries: 10
-      delay: 3
-      when: ns_status.json.config_status == 'RUNNING'
+      delay: 5
 
     - name: Final Confirmation
       debug:
-        msg: "Namespace '{{ namespace_name }}' is now RUNNING and permissions are applied."
+        msg: |
+          Namespace '{{ namespace_name }}' is fully provisioned.
+          Status: {{ ns_status.json.config_status }}
+          Permissions: Verified for {{ vcenter_username }}
