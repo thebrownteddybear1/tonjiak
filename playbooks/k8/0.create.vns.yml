@@ -24,7 +24,6 @@
         force_basic_auth: true
         status_code: 201
       register: session_result
-      no_log: false
     
     # ===== PHASE 2: GET REQUIRED IDs =====
     - name: Find cluster 'cluster' MOID
@@ -90,7 +89,6 @@
         status_code: 200
       when: namespace_check.status == 200
       register: delete_result
-      no_log: false
     
     - name: Wait for namespace deletion to complete
       uri:
@@ -126,8 +124,6 @@
             - policy: "{{ storage_policy_id }}"
               limit: -1
       register: create_result
-      no_log: false
-      ignore_errors: true
     
     - name: Wait for namespace to be created
       uri:
@@ -216,7 +212,6 @@
           principal: "{{ user_principal }}"
           role: "{{ role_id }}"
       register: permission_result
-      no_log: false
       when: permission_exists is not defined or permission_exists != true
     
     # ===== PHASE 6: FINAL VERIFICATION =====
