@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace with vSphere Tanzu Roles
+- name: Create Supervisor Namespace 'vns' with Editor Role
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,18 +9,116 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
-    
-    # Try these vSphere with Tanzu role IDs in order
-    tanzu_role_ids:
-      - "cb2d2996-618d-4198-8bfe-c17bc065dff8"  # Editor (most common)
-      - "role-id-1"  # Replace with actual IDs from your environment
-      - "role-id-2"  # Replace with actual IDs from your environment
+    namespace_editor_role_id: "cb2d2996-618d-4198-8bfe-c17bc065dff8"  # Standard Editor role ID
   
   tasks:
-    # ... [Authentication and namespace creation tasks same as above] ...
+    # ===== PHASE 1: AUTHENTICATION =====
+    - name: Get vCenter session token
+      uri:
+        url: "https://{{ vcenter_host }}/api/session"
+        method: POST
+        validate_certs: false
+        user: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        force_basic_auth: true
+        status_code: 201
+      register: session_result
     
-    # ===== SET PERMISSIONS WITH MULTIPLE ROLE IDS =====
-    - name: Try vSphere Tanzu role IDs for permissions
+    # ===== PHASE 2: GET REQUIRED IDs =====
+    - name: Find cluster 'cluster' MOID
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/cluster"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
+      register: clusters
+    
+    - name: Set cluster MOID for 'cluster'
+      set_fact:
+        cluster_moid: "{{ item.cluster }}"
+      loop: "{{ clusters.json }}"
+      when: item.name == "cluster"
+    
+    - name: Fail if cluster 'cluster' not found
+      fail:
+        msg: "Cluster 'cluster' not found. Available clusters: {{ clusters.json | map(attribute='name') | list }}"
+      when: cluster_moid is not defined
+    
+    - name: Find storage policy 'storageclass' ID
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/storage/policies"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
+      register: storage_policies
+    
+    - name: Set storage policy ID for 'storageclass'
+      set_fact:
+        storage_policy_id: "{{ item.policy }}"
+      loop: "{{ storage_policies.json }}"
+      when: item.name == "storageclass"
+    
+    - name: Fail if storage policy 'storageclass' not found
+      fail:
+        msg: "Storage policy 'storageclass' not found. Available policies: {{ storage_policies.json | map(attribute='name') | list }}"
+      when: storage_policy_id is not defined
+    
+    # ===== PHASE 3: DELETE EXISTING NAMESPACE =====
+    - name: Check if namespace '{{ namespace_name }}' exists
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: namespace_check
+      ignore_errors: true
+    
+    - name: Delete namespace if it exists
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: DELETE
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: [200, 204]
+      when: namespace_check.status == 200
+      register: delete_result
+    
+    - name: Sleep 20 seconds after deletion
+      pause:
+        seconds: 20
+      when: namespace_check.status == 200
+    
+    # ===== PHASE 4: CREATE NEW NAMESPACE =====
+    - name: Create Supervisor Namespace '{{ namespace_name }}'
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
+        method: POST
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          cluster: "{{ cluster_moid }}"
+          namespace: "{{ namespace_name }}"
+          storage_specs:
+            - policy: "{{ storage_policy_id }}"
+              limit: -1
+        status_code: [200, 201, 204]
+      register: create_result
+    
+    - name: Sleep 20 seconds after creation
+      pause:
+        seconds: 20
+    
+    # ===== PHASE 5: SET EDITOR PERMISSIONS =====
+    - name: Set Editor permission for administrator@vsphere.local
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
         method: POST
@@ -31,18 +129,68 @@
         body_format: json
         body:
           principal: "{{ vcenter_username }}"
-          role: "{{ item }}"
+          role: "{{ namespace_editor_role_id }}"
         status_code: [200, 201, 204]
-      register: permission_attempts
-      loop: "{{ tanzu_role_ids }}"
+      register: permission_result
       ignore_errors: true
-      loop_control:
-        label: "Role ID attempt"
     
-    - name: Display which role ID worked
+    - name: Sleep 10 seconds after permission setting
+      pause:
+        seconds: 10
+    
+    # ===== PHASE 6: FINAL VERIFICATION =====
+    - name: Check namespace final status
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: final_namespace
+      ignore_errors: true
+    
+    - name: Try to get namespace permissions to verify
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: final_permissions
+      ignore_errors: true
+    
+    - name: Display final summary
       debug:
         msg: |
-          Permission setting attempts:
-          {% for attempt in permission_attempts.results %}
-          - Role ID {{ attempt.item }}: {{ 'SUCCESS' if attempt.status in [200, 201, 204] else 'FAILED' }}
-          {% endfor %}
+          ===== NAMESPACE SETUP COMPLETE =====
+          
+          Namespace: {{ namespace_name }}
+          Cluster: {{ cluster_moid }}
+          Storage Policy: {{ storage_policy_id }} (storageclass)
+          
+          {% if final_namespace.status == 200 %}
+          Namespace Status: {{ final_namespace.json.status | default(final_namespace.json.config_status) }}
+          Namespace Exists: Yes
+          {% else %}
+          Namespace Status: Unknown (HTTP {{ final_namespace.status }})
+          Namespace Exists: No
+          {% endif %}
+          
+          Permission Setting Result: {{ 'SUCCESS' if permission_result.status in [200, 201, 204] else 'FAILED (HTTP ' ~ permission_result.status ~ ')' }}
+          
+          {% if final_permissions.status == 200 and final_permissions.json %}
+          Current Permissions: 
+            {% for perm in final_permissions.json %}
+            - {{ perm.principal }} (Role: {{ perm.role }})
+            {% endfor %}
+          {% else %}
+          Permissions could not be retrieved.
+          {% endif %}
+          
+          Note: According to vSphere with Tanzu documentation:
+          - Editor role (ID: {{ namespace_editor_role_id }}) grants:
+            * Can view and edit namespace resources
+            * Cannot delete the namespace
+            * Cannot change permissions
+          
+          =====================================
