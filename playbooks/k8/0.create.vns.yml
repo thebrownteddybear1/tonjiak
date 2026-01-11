@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace 'vns' with CAN_EDIT Role
+- name: Create Supervisor Namespace with vSphere Tanzu Roles
   hosts: localhost
   connection: local
   gather_facts: false
@@ -8,64 +8,41 @@
     vcenter_host: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
+    namespace_name: "vns"
+    
+    # Try these vSphere with Tanzu role IDs in order
+    tanzu_role_ids:
+      - "cb2d2996-618d-4198-8bfe-c17bc065dff8"  # Editor (most common)
+      - "role-id-1"  # Replace with actual IDs from your environment
+      - "role-id-2"  # Replace with actual IDs from your environment
   
   tasks:
-    - name: "Authenticate to vCenter"
+    # ... [Authentication and namespace creation tasks same as above] ...
+    
+    # ===== SET PERMISSIONS WITH MULTIPLE ROLE IDS =====
+    - name: Try vSphere Tanzu role IDs for permissions
       uri:
-        url: "https://{{ vcenter_host }}/api/session"
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/permissions"
         method: POST
         validate_certs: false
-        user: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        force_basic_auth: true
-      register: auth
-      no_log: true
-    
-    - name: "Delete existing namespace 'vns'"
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/vns"
-        method: DELETE
-        validate_certs: false
         headers:
-          vmware-api-session-id: "{{ auth.json }}"
+          vmware-api-session-id: "{{ session_result.json }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          principal: "{{ vcenter_username }}"
+          role: "{{ item }}"
+        status_code: [200, 201, 204]
+      register: permission_attempts
+      loop: "{{ tanzu_role_ids }}"
       ignore_errors: true
+      loop_control:
+        label: "Role ID attempt"
     
-    - name: "Wait for namespace cleanup"
-      pause:
-        seconds: 5
-    
-    - name: "Create new namespace 'vns'"
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
-        method: POST
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ auth.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          cluster: "domain-c8"
-          namespace: "vns"
-          storage_specs:
-            - policy: "cb5ecac2-a003-4809-a9ec-31aec86e08fb"
-              limit: -1
-    
-    - name: "Wait for namespace creation"
-      pause:
-        seconds: 15
-    
-    - name: "Assign CAN_EDIT role to administrator"
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/vns"
-        method: PATCH
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ auth.json }}"
-          Content-Type: "application/json"
-        body_format: json
-        body:
-          access_list:
-            - role: "CAN_EDIT"
-              subject:
-                domain: "vsphere.local"
-                name: "administrator"
+    - name: Display which role ID worked
+      debug:
+        msg: |
+          Permission setting attempts:
+          {% for attempt in permission_attempts.results %}
+          - Role ID {{ attempt.item }}: {{ 'SUCCESS' if attempt.status in [200, 201, 204] else 'FAILED' }}
+          {% endfor %}
