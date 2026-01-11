@@ -9,7 +9,6 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
-    # standard role strings: EDIT, VIEW, OWNER
     namespace_role: "EDIT"
 
   tasks:
@@ -37,9 +36,7 @@
 
     - name: Set cluster MOID
       set_fact:
-        cluster_moid: "{{ item.cluster }}"
-      loop: "{{ clusters.json }}"
-      when: item.name == "cluster"
+        cluster_moid: "{{ (clusters.json | selectattr('name', 'equalto', 'cluster') | list | first).cluster }}"
 
     - name: Find storage policy ID
       uri:
@@ -52,11 +49,9 @@
 
     - name: Set storage policy ID
       set_fact:
-        storage_policy_id: "{{ item.policy }}"
-      loop: "{{ storage_policies.json }}"
-      when: item.name == "storageclass"
+        storage_policy_id: "{{ (storage_policies.json | selectattr('name', 'equalto', 'storageclass') | list | first).policy }}"
 
-    # ===== PHASE 3: CLEANUP =====
+    # ===== PHASE 3: CLEANUP & WAIT =====
     - name: Check if namespace exists
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
@@ -77,9 +72,18 @@
         status_code: [200, 204]
       when: namespace_check.status == 200
 
-    - name: Wait for deletion to clear
-      pause:
-        seconds: 15
+    - name: Wait for namespace to be COMPLETELY removed
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: delete_check
+      until: delete_check.status == 404
+      retries: 30
+      delay: 10
+      ignore_errors: true
       when: namespace_check.status == 200
 
     # ===== PHASE 4: CREATE =====
@@ -100,7 +104,6 @@
               limit: -1
         status_code: [200, 201, 204]
 
-    # NEW: Wait until namespace is actually recognized by the API
     - name: Wait for Namespace to be READY
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
@@ -109,8 +112,8 @@
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
       register: wait_check
-      until: wait_check.status == 200
-      retries: 10
+      until: wait_check.status == 200 and wait_check.json.config_status == 'RUNNING'
+      retries: 20
       delay: 5
 
     # ===== PHASE 5: ACCESS CONTROL =====
@@ -130,16 +133,6 @@
         status_code: [200, 201, 204]
       register: permission_result
 
-    # ===== PHASE 6: SUMMARY =====
-    - name: Final Access Verification
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: final_access
-
-    - name: Display Summary
+    - name: Final Summary
       debug:
-        msg: "Namespace {{ namespace_name }} is ready with access granted to {{ vcenter_username }}."
+        msg: "Namespace {{ namespace_name }} recreated and permissions set successfully."
