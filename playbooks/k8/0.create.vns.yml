@@ -52,16 +52,17 @@
           vmware-api-session-id: "{{ session_result.json }}"
         status_code: [200, 204, 404]
 
-    - name: Wait for deletion to complete
+    - name: Wait for deletion to complete (Wait for 404)
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 404  # We want the task to succeed ONLY when it hits a 404
       register: del_status
       until: del_status.status == 404
-      retries: 20
+      retries: 30
       delay: 5
 
     # ===== PHASE 4: CREATE & READY CHECK =====
@@ -91,7 +92,7 @@
           vmware-api-session-id: "{{ session_result.json }}"
       register: ns_status
       until: "ns_status.json.config_status == 'RUNNING'"
-      retries: 30
+      retries: 40
       delay: 5
 
     # ===== PHASE 5: IMMEDIATE PERMISSION SET =====
@@ -109,15 +110,12 @@
           role: "{{ namespace_role }}"
           principal_type: "USER"
         status_code: [200, 201, 204]
-      # Logic: Attempt to set as soon as the previous task confirms 'RUNNING'
-      # We still retry here briefly because the /access sub-API can take 1-2 seconds 
-      # to initialize even after the main object is RUNNING.
       register: perm_set
       until: perm_set.status in [200, 201, 204]
-      retries: 5
-      delay: 2
+      retries: 10
+      delay: 3
       when: ns_status.json.config_status == 'RUNNING'
 
     - name: Final Confirmation
       debug:
-        msg: "Namespace '{{ namespace_name }}' is RUNNING. Permissions applied for {{ vcenter_username }}."
+        msg: "Namespace '{{ namespace_name }}' is now RUNNING and permissions are applied."
