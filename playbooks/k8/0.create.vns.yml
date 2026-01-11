@@ -86,7 +86,7 @@
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-        status_code: 200
+        status_code: [200, 204]
       when: namespace_check.status == 200
       register: delete_result
     
@@ -123,9 +123,10 @@
           storage_specs:
             - policy: "{{ storage_policy_id }}"
               limit: -1
+        status_code: [200, 201, 204]
       register: create_result
     
-    - name: Wait for namespace to be created
+    - name: Wait for namespace to be created (check that GET returns 200)
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
@@ -137,6 +138,10 @@
       retries: 30
       delay: 5
     
+    - name: Debug - Show namespace structure
+      debug:
+        var: creation_check.json
+    
     - name: Wait for namespace to be READY
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
@@ -146,13 +151,13 @@
           vmware-api-session-id: "{{ session_result.json }}"
         status_code: 200
       register: namespace_status
-      until: namespace_status.json.status == "READY"
+      until: (namespace_status.json.status | default('')) == "READY" or (namespace_status.json.config_status | default('')) == "READY"
       retries: 60
       delay: 10
     
     - name: Display namespace creation status
       debug:
-        msg: "Namespace '{{ namespace_name }}' created successfully with status: {{ namespace_status.json.status }}"
+        msg: "Namespace '{{ namespace_name }}' created successfully with status: {{ namespace_status.json.status | default(namespace_status.json.config_status) }}"
     
     # ===== PHASE 5: SET PERMISSIONS =====
     - name: Get all roles
@@ -211,6 +216,7 @@
         body:
           principal: "{{ user_principal }}"
           role: "{{ role_id }}"
+        status_code: [200, 201, 204]
       register: permission_result
       when: permission_exists is not defined or permission_exists != true
     
@@ -241,7 +247,7 @@
           ===== NAMESPACE RECREATION COMPLETE =====
           
           Namespace: {{ namespace_name }}
-          Status: {{ final_namespace.json.status }}
+          Status: {{ final_namespace.json.status | default(final_namespace.json.config_status) }}
           Cluster: {{ final_namespace.json.cluster }}
           Storage Policy: {{ storage_policy_id }} (storageclass)
           
