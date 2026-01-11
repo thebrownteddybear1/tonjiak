@@ -24,69 +24,47 @@
         status_code: 201
       register: session_result
 
-    # ===== PHASE 2: GET REQUIRED IDs =====
-    - name: Find cluster 'cluster' MOID
+    # ===== PHASE 2: RESOURCE LOOKUP =====
+    - name: Find cluster and storage policy IDs
       uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/cluster"
+        url: "https://{{ vcenter_host }}/api/vcenter/{{ item }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-      register: clusters
+      loop:
+        - "cluster"
+        - "storage/policies"
+      register: resources
 
-    - name: Set cluster MOID
+    - name: Set facts for IDs
       set_fact:
-        cluster_moid: "{{ (clusters.json | selectattr('name', 'equalto', 'cluster') | list | first).cluster }}"
-
-    - name: Find storage policy ID
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/storage/policies"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: storage_policies
-
-    - name: Set storage policy ID
-      set_fact:
-        storage_policy_id: "{{ (storage_policies.json | selectattr('name', 'equalto', 'storageclass') | list | first).policy }}"
+        cluster_moid: "{{ (resources.results[0].json | selectattr('name', 'equalto', 'cluster') | list | first).cluster }}"
+        storage_policy_id: "{{ (resources.results[1].json | selectattr('name', 'equalto', 'storageclass') | list | first).policy }}"
 
     # ===== PHASE 3: CLEANUP =====
-    - name: Check if namespace exists
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: namespace_check
-      ignore_errors: true
-
-    - name: Delete namespace if it exists
+    - name: Delete existing namespace if present
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: DELETE
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-        status_code: [200, 204]
-      when: namespace_check.status == 200
+        status_code: [200, 204, 404]
 
-    - name: Wait for namespace to be COMPLETELY removed
+    - name: Wait for deletion to complete
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-      register: delete_check
-      until: delete_check.status == 404
-      retries: 30
-      delay: 10
-      ignore_errors: true
-      when: namespace_check.status == 200
+      register: del_status
+      until: del_status.status == 404
+      retries: 20
+      delay: 5
 
-    # ===== PHASE 4: CREATE =====
+    # ===== PHASE 4: CREATE & READY CHECK =====
     - name: Create Supervisor Namespace
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
@@ -104,20 +82,20 @@
               limit: -1
         status_code: [200, 201, 204]
 
-    - name: Wait for Namespace to be RUNNING
+    - name: Wait for Namespace to reach RUNNING state
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
-      register: wait_check
-      until: "wait_check.status == 200 and wait_check.json.config_status == 'RUNNING'"
+      register: ns_status
+      until: "ns_status.json.config_status == 'RUNNING'"
       retries: 30
-      delay: 10
+      delay: 5
 
-    # ===== PHASE 5: ACCESS CONTROL (WITH RETRY LOOP) =====
-    - name: Set Access permission
+    # ===== PHASE 5: IMMEDIATE PERMISSION SET =====
+    - name: Set Access permission for RUNNING namespace
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
         method: POST
@@ -131,11 +109,15 @@
           role: "{{ namespace_role }}"
           principal_type: "USER"
         status_code: [200, 201, 204]
-      register: permission_result
-      until: permission_result.status in [200, 201, 204]
-      retries: 15
-      delay: 10
+      # Logic: Attempt to set as soon as the previous task confirms 'RUNNING'
+      # We still retry here briefly because the /access sub-API can take 1-2 seconds 
+      # to initialize even after the main object is RUNNING.
+      register: perm_set
+      until: perm_set.status in [200, 201, 204]
+      retries: 5
+      delay: 2
+      when: ns_status.json.config_status == 'RUNNING'
 
-    - name: Final Summary
+    - name: Final Confirmation
       debug:
-        msg: "Namespace {{ namespace_name }} setup is finished. Access confirmed for {{ vcenter_username }}."
+        msg: "Namespace '{{ namespace_name }}' is RUNNING. Permissions applied for {{ vcenter_username }}."
