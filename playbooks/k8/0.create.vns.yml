@@ -8,89 +8,59 @@
     vcenter_host: "192.168.50.52"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
-    namespace_name: "vns"
   
   tasks:
-    # Get session
-    - uri:
+    - name: "Authenticate to vCenter"
+      uri:
         url: "https://{{ vcenter_host }}/api/session"
         method: POST
         validate_certs: false
         user: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         force_basic_auth: true
-        status_code: 201
       register: auth
       no_log: true
     
-    - set_fact:
-        token: "{{ auth.json }}"
-      no_log: true
-    
-    # Get cluster ID
-    - uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/cluster"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ token }}"
-        status_code: 200
-      register: clusters
-    
-    - set_fact:
-        cluster_id: "{{ clusters.json | json_query(\"[?name=='cluster'].cluster\") | first }}"
-    
-    # Get storage policy ID
-    - uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/storage/policies"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ token }}"
-        status_code: 200
-      register: policies
-    
-    - set_fact:
-        policy_id: "{{ policies.json | json_query(\"[?name=='storageclass'].policy\") | first }}"
-    
-    # Delete namespace
-    - uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+    - name: "Delete existing namespace 'vns'"
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/vns"
         method: DELETE
         validate_certs: false
         headers:
-          vmware-api-session-id: "{{ token }}"
-      ignore_errors: yes
+          vmware-api-session-id: "{{ auth.json }}"
+      ignore_errors: true
     
-    - pause:
-        seconds: 20
+    - name: "Wait for namespace cleanup"
+      pause:
+        seconds: 5
     
-    # Create namespace
-    - uri:
+    - name: "Create new namespace 'vns'"
+      uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
         method: POST
         validate_certs: false
         headers:
-          vmware-api-session-id: "{{ token }}"
+          vmware-api-session-id: "{{ auth.json }}"
           Content-Type: "application/json"
         body_format: json
         body:
-          cluster: "{{ cluster_id }}"
-          namespace: "{{ namespace_name }}"
+          cluster: "domain-c8"
+          namespace: "vns"
           storage_specs:
-            - policy: "{{ policy_id }}"
+            - policy: "cb5ecac2-a003-4809-a9ec-31aec86e08fb"
               limit: -1
     
-    - pause:
-        seconds: 20
+    - name: "Wait for namespace creation"
+      pause:
+        seconds: 15
     
-    # Set CAN_EDIT permission
-    - uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+    - name: "Assign CAN_EDIT role to administrator"
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/vns"
         method: PATCH
         validate_certs: false
         headers:
-          vmware-api-session-id: "{{ token }}"
+          vmware-api-session-id: "{{ auth.json }}"
           Content-Type: "application/json"
         body_format: json
         body:
