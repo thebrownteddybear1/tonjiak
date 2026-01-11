@@ -97,6 +97,7 @@
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 404  # We expect 404 when namespace is deleted
       register: deletion_check
       until: deletion_check.status == 404
       retries: 30
@@ -126,13 +127,14 @@
         status_code: [200, 201, 204]
       register: create_result
     
-    - name: Wait for namespace to be created (check that GET returns 200)
+    - name: Wait for namespace to be created
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
         method: GET
         validate_certs: false
         headers:
           vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
       register: creation_check
       until: creation_check.status == 200
       retries: 30
