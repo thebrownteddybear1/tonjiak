@@ -117,7 +117,7 @@
               limit: -1
         status_code: 201
       register: create_result
-      no_log: true
+
     
     - name: Wait for namespace to be ready
       uri:
