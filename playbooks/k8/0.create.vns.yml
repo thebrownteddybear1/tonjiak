@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace 'vns'
+- name: Delete and Recreate Supervisor Namespace 'vns'
   hosts: localhost
   connection: local
   gather_facts: false
@@ -44,7 +44,7 @@
         msg: "Cluster 'cluster' not found"
       when: cluster_moid is not defined
     
-    - name: Find storage policy 'storageclass' ID
+    - name: Get all storage policies
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/storage/policies"
         method: GET
@@ -54,7 +54,7 @@
         status_code: 200
       register: storage_policies
     
-    - name: Set storage policy ID for 'storageclass'
+    - name: Find storage policy 'storageclass' ID
       set_fact:
         storage_policy_id: "{{ item.policy }}"
       loop: "{{ storage_policies.json }}"
@@ -65,7 +65,42 @@
         msg: "Storage policy 'storageclass' not found"
       when: storage_policy_id is not defined
     
-    - name: Create Supervisor Namespace 'vns' with unlimited storage
+    - name: Check if namespace 'vns' exists
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: namespace_check
+      ignore_errors: true
+    
+    - name: Delete namespace 'vns' if it exists
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: DELETE
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: 200
+      when: namespace_check.status == 200
+      register: delete_result
+      no_log: true
+    
+    - name: Wait for namespace to be deleted
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: delete_check
+      until: delete_check.status == 404
+      retries: 30
+      delay: 5
+      when: namespace_check.status == 200
+    
+    - name: Create Supervisor Namespace 'vns'
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances"
         method: POST
@@ -79,10 +114,10 @@
           namespace: "{{ namespace_name }}"
           storage_specs:
             - policy: "{{ storage_policy_id }}"
-              limit: -1  # -1 means unlimited storage
+              limit: -1
         status_code: 201
-      register: namespace_result
- 
+      register: create_result
+      no_log: true
     
     - name: Wait for namespace to be ready
       uri:
