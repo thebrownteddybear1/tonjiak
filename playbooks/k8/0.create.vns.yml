@@ -1,5 +1,5 @@
 ---
-- name: Create Supervisor Namespace 'vns' with Editor Role
+- name: Create Supervisor Namespace 'vns' with VM Class and Editor Role
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,6 +10,7 @@
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
     namespace_role: "EDIT"
+    vm_class_name: "best-effort-small"
 
   tasks:
     # ===== PHASE 1: AUTHENTICATION =====
@@ -39,6 +40,8 @@
 
     - name: Set facts for IDs
       set_fact:
+        # Note: These filters assume your cluster is named 'cluster' and policy named 'storageclass' 
+        # as per your original logic.
         cluster_moid: "{{ (resources.results[0].json | selectattr('name', 'equalto', 'cluster') | list | first).cluster }}"
         storage_policy_id: "{{ (resources.results[1].json | selectattr('name', 'equalto', 'storageclass') | list | first).policy }}"
 
@@ -95,8 +98,22 @@
       retries: 40
       delay: 5
 
-    # ===== PHASE 5: ACCESS CONTROL (THE FIX) =====
-    - name: Set Access permission (Loop until endpoint is live)
+    # ===== PHASE 5: ASSIGN VM CLASS =====
+    - name: Assign VM Class '{{ vm_class_name }}' to Namespace
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/vm-classes/{{ vm_class_name }}"
+        method: PUT
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+        status_code: [200, 204]
+      register: vm_class_assign
+      until: vm_class_assign.status in [200, 204]
+      retries: 10
+      delay: 5
+
+    # ===== PHASE 6: ACCESS CONTROL =====
+    - name: Set Access permission
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
         method: POST
@@ -111,7 +128,6 @@
           principal_type: "USER"
         status_code: [200, 201, 204]
       register: perm_set
-      # This is the key: We keep retrying on 404 (Not Found) until the microservice wakes up
       until: perm_set.status != 404
       retries: 20
       delay: 10
@@ -134,4 +150,5 @@
         msg: |
           Namespace '{{ namespace_name }}' is fully provisioned.
           Status: {{ ns_status.json.config_status }}
+          VM Class: {{ vm_class_name }} assigned successfully.
           Permissions: Verified for {{ vcenter_username }}
