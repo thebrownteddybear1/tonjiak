@@ -1,0 +1,54 @@
+#cluster-with-trusted-private-reg-cert.yaml
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: edpnonlivevkc
+  namespace: edpnonlivevns
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: ["198.52.100.0/12"]
+    pods:
+      cidrBlocks: ["192.101.2.0/16"]
+    serviceDomain: "cluster.local"
+  topology:
+    class: tanzukubernetescluster
+    version: v1.30.1---vmware.1-fips-tkg.5
+    controlPlane:
+      replicas: 1
+      metadata:
+        annotations:
+          run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+    workers:
+      machineDeployments:
+        - class: node-pool
+          name: node-pool-01
+          replicas: 2
+          metadata:
+            annotations:
+              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+            labels:
+              node-type: worker
+          variables:
+            overrides:
+            - name: vmClass
+            #  value: guaranteed-4xlarge
+              value: best-effort-4xlarge
+             # value: best-effort-2xlarge
+              #value: w4cpunr128gbr
+          #    value: best-effort-xlarge
+
+    variables:
+      - name: vmClass
+        value: best-effort-4xlarge
+      #  value: best-effort-small
+        #value: guaranteed-large
+        #value: c2cpunr16gbr
+      - name: storageClass
+        value: k8edpscr5
+      - name: defaultStorageClass
+        value: k8edpscr5
+      - name: trust
+        value:
+          additionalTrustedCAs:
+          - name: additional-ca-1

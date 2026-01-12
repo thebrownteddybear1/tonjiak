@@ -1,0 +1,13 @@
+apiVersion: crd.antrea.io/v1alpha2
+kind: ExternalIPPool
+metadata:
+  name: external-ip-pool
+  namespace: application-1
+spec:
+  ipRanges:
+    - start: 10.244.23.210
+      end: 10.244.23.211
+    - cidr: 10.244.23.0/24
+  nodeSelector: {}
+    #    matchLabels:
+    #  network-role: egress-gateway

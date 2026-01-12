@@ -1,0 +1,23 @@
+#get it from 
+curl -sL https://raw.githubusercontent.com/Ealenn/Echo-Server/master/docs/examples/echo.kube.yaml > echo.kube.yaml
+remember to label namespce
+remmber to annotate for ingress
+
+piVersion: v1
+kind: Service
+metadata:
+  name: echoserver
+  namespace: echoserver
+  annotations:
+        nodeportlocal.antrea.io/enabled: "true"
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  type: ClusterIP
+  selector:
+    app: echoserver
+
+
+label --overwrite ns --all  pod-security.kubernetes.io/enforce=privileged pod-security.kubernetes.io/warn=baseline$^

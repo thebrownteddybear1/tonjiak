@@ -1,0 +1,24 @@
+apiVersion: crd.antrea.io/v1alpha2
+kind: ExternalIPPool
+metadata:
+  name: external-ip-pool
+spec:
+  ipRanges:
+  - start: 10.105.3.101  # 10.10.0.11-10.10.0.20 can be used as Egress IPs
+    end: 10.105.3.101
+  nodeSelector: {}     # All Nodes can be Egress Nodes
+
+---
+apiVersion: crd.antrea.io/v1alpha2
+kind: Egress
+metadata:
+  name: egress-edpnonlive
+spec:
+  appliedTo:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: avgo
+#    podSelector:
+#      matchLabels:
+#        app: web
+  externalIPPool: external-ip-pool

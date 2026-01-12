@@ -1,0 +1,13 @@
+kubectl create ns avgo
+
+kubectl create secret generic regcred \
+    --from-file=.dockerconfigjson=/root/.docker/config.json \
+    --type=kubernetes.io/dockerconfigjson \
+    --namespace=avgo
+#kubectl apply -f 1.createpod.nginx
+kubectl apply -f 2.createpod.avgo
+#kubectl apply -f 3.createpod.busybox
+kubectl get po -n avgo
+kubectl get po -n avgo
+kubectl get po -n avgo
+kubectl get po -n avgo

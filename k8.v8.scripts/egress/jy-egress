@@ -1,0 +1,15 @@
+apiVersion: crd.antrea.io/v1alpha2
+kind: Egress
+metadata:
+  name: egress-1
+  namespace: application-1
+spec:
+  appliedTo:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: application-1
+    podSelector:
+      matchLabels:
+        app: nginx-c-pod
+        app: simple-pod
+  externalIPPool: external-ip-pool

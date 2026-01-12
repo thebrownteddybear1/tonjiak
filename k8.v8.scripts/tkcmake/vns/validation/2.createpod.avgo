@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: avgo
+  namespace: avgo
+spec:
+  containers:
+  - name: avgo
+    image: edp2harbor.psa.com.sg/avgo/avgo:latest
+    tty: true
+  imagePullSecrets:
+  - name: regcred
+
+

@@ -1,0 +1,173 @@
+
+
+
+# ==========================doesn't work ultimateluy, coz coz can't find chart or somehting in the worker noedes, so DUN USE THIS PART
+#helm registy login
+helm registry login -u admin h188.leaf10.branch
+
+# show charts
+helm show chart oci://projects.packages.broadcom.com/ako/helm-charts/ako --version 1.12.2
+# pull
+helm pull oci://projects.packages.broadcom.com/ako/helm-charts/ako --version 1.13.1
+# push
+helm push ako-1.13.1.tgz oci://h188.leaf10.branch/ako
+
+# validate chart is there
+helm show chart oci://h188.leaf10.branch/ako/ako
+#i nstall
+# added insecure
+helm install --generate-name oci://h188.leaf10.branch/ako/ako --version 1.13.1 -f ./values.yaml  --set ControllerSettings.controllerHost=192.168.50.121 --set avicredentials.username=admin2 --set avicredentials.password=VMware1! --set AKOSettings.primaryInstance=true --namespace=avi-system  --kube-insecure-skip-tls-verify
+------------------------
+
+# USE THIS PART INSTEAD
+
+# Login to k8 cluster
+# create values.yaml
+helm show values oci://projects.packages.broadcom.com/ako/helm-charts/ako --version 1.13.1 > values.yaml
+# create ns
+kubectl create ns avi-system
+# label privleged
+kubectl  label --overwrite ns --all  pod-security.kubernetes.io/enforce=privileged pod-security.kubernetes.io/warn=baseline
+
+
+# Installing AKO Offline Using Helm
+https://techdocs.broadcom.com/us/en/vmware-security-load-balancing/avi-load-balancer/avi-kubernetes-operator/1-13/avi-kubernetes-operator-guide-1-13/overview/install-avi-kubernetes-operator.html#GUID-EA718EAD-6C9C-4DC5-876C-FE49C6AC4462-en_id-5c61bd13-bff4-4232-ac1e-69853886c974
+
+DOWNLOAD AKO * specific version from support.broadcom.com
+=================
+the link to download ako doesn't work
+use the below:
+support.broadcom.com
+login sso
+my downloads
+search "avi"
+select avi kubernetes operator
+download the tgz version
+
+# install_docs.txt *modified found when you extract from support.broadcom.com
+
+Prerequisites for install:
+* A private container registry to upload the AKO docker image
+* helm > 3.0 CLI installed.
+
+Steps for install/upgrade:
+* Untar the combined tar file to get the ako installation directory with the helm and docker images.
+
+  tar -zxvf ako-1.12.1.tar.gz
+    ako/
+    ako/install_docs.txt
+    ako/ako-1.12.1-docker.tar.gz
+    ako/ako-1.12.1-helm.tgz
+    ako/ako-1.12.1-gateway-api.tar.gz
+
+# Untar the ako helm package. This will create subdirectory "ako/ako" which contains helm charts for AKO
+
+  ls ako/
+    Chart.yaml crds templates values.yaml
+* Change working directory to this path
+
+  cd ako/
+
+* Load the docker image in one of your machines
+
+  sudo docker load < ako-1.12.1-docker.tar.gz
+
+* Load the AKO Gateway API image in one of your machines
+
+  sudo docker load < ako-1.12.1-gateway-api.tar.gz
+
+# tag the docker images
+Usage:  docker tag SOURCE_IMAGE[:TAG] TARGET_IMAGE[:TAG]
+
+docker images
+REPOSITORY                                                                     TAG       IMAGE ID       CREATED         SIZE
+avi-alb-ako-docker-prod-local.usw1.packages.broadcom.com/ako/ako-gateway-api   1.13.1    647737ed6381   2 months ago    124MB
+avi-alb-ako-docker-prod-local.usw1.packages.broadcom.com/ako/ako               1.13.1    5feea94a3264   2 months ago    125MB
+
+# retag the images using docker
+----------
+# in this case the repository is the image : tag is the 1.13.1
+# 1.13.1
+docker tag avi-alb-ako-docker-prod-local.usw1.packages.broadcom.com/ako/ako-gateway-api:1.13.1 harborsvc.leaf10.branch/ako/ako-gateway-api:1.13.1
+
+docker tag avi-alb-ako-docker-prod-local.usw1.packages.broadcom.com/ako/ako:1.13.1 harborsvc.leaf10.branch/ako/ako:1.13.1
+
+# 1.12.1
+docker tag projects.registry.vmware.com/ako/ako:1.12.1 harborsvc.leaf10.branch/ako/ako:1.12.1
+
+docker tag projects.registry.vmware.com/ako/ako-gateway-api:1.12.1 harborsvc.
+leaf10.branch/ako/ako-gateway-api:1.12.1
+
+# login to private regisry
+docker login harborsvc.leaf10.branch -u admin -p VMware1!
+
+# push to private registry 
+docker push harborsvc.leaf10.branch/ako/ako-gateway-api:1.13.1
+docker push harborsvc.leaf10.branch/ako/ako:1.13.1
+
+
+# Untar the ako helm package. This create a local direcotry for the helm chars
+tar -xvf ako-1.13.1-helm.tgz
+
+# Update the helm values.yaml with required AKO configurations(Controller IP/credentials, docker registry information etc)
+
+# Create namespace avi-system on the Openshift/Kubernetes cluster
+
+  kubectl create namespace avi-system
+# label your namespaces to allow writing
+
+kubectl  label --overwrite ns --all  pod-security.kubernetes.io/enforce=privileged pod-security.kubernetes.io/warn=baseline
+
+# edit the values.yaml file
+# change directory to 1 level above it so you can reference it when you do helm install e.g. helm install ./<ako where the chart live>
+
+
+## helm examples
+# Generate a name
+helm install bar/baz --generate-name
+
+# Install from an unpacked chart dir
+helm install foo /path/to/baz
+
+# eg.
+helm install ./ako --generate-name --namespace=avi-system 
+
+# install from unpacked chart dir 
+# In values.yaml we point to repository harborsvc.leaf10.branch/ako/ako
+# We have docker tag and push it to the repo harborsvc.leaf10.branch/ako/ako
+# Now, we want touse the unpacked local chart in ./ako directory, useing the values file -f 1.13.1.values.yaml and the --version 1.13.1 and --namespce avi-system
+
+helm install --generate-name ./ako -f 1.13.1.values.yaml --version 1.13.1 --namespace avi-system
+
+# --generate-name = generate a name
+# ./ako = use the chart in this dir
+# -f 1.13.1.values.yaml  = use this values file
+# --version 1.13.1 = use this version
+# --namespace avi-system = in this k8 namespace
+
+
+# Validate,
+kubectl describe po -n avi-system ako-0
+# to see what's happening inside the pod
+kubectl logs -n avi-system ako-0
+
+# yanto's original way of doing.
+helm install --generate-name oci://harborsvc.leaf10.branch/ako/ako --version 1.13.1 -f ako/values.yaml  --set ControllerSettings.controllerHost=192.168.50.121 --set avicredentials.username=admin2 --set avicredentials.password=VMware1! --set AKOSettings.primaryInstance=true --namespace=avi-system  --kube-insecure-skip-tls-verify
+
+helm install --generate-name oci://harborsvc.leaf10.branch/ako/ako --version 1.13.1 -f ./values.yaml  --set ControllerSettings.controllerHost=192.168.50.121 --set avicredentials.username=admin2 --set avicredentials.password=VMware1! --set AKOSettings.primaryInstance=true --namespace=avi-system  --kube-insecure-skip-tls-verify
+
+helm install --generate-name oci://harborsvc.leaf10.branch/ako/ako --version 1.13.1 -f ./1.13.1.values.yaml  --set ControllerSettings.controllerHost=192.168.50.121 --set avicredentials.username=admin2 --set avicredentials.password=VMware1! --set AKOSettings.primaryInstance=true --namespace=avi-system  --kube-insecure-skip-tls-verify
+
+# to uninstall using helm
+# list what is installed
+helm list -n avi-system
+
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART           APP VERSION
+ako-1745483364  avi-system      1               2025-04-24 08:29:25.209412813 +0000 UTC deployed        ako-1.13.1      1.13.1
+
+# uninstall what is listed
+helm uninstall -n avi-system ako-1745483364
+release "ako-1745483364" uninstalled
+
+
+

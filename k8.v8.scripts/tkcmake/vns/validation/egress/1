@@ -1,0 +1,11 @@
+apiVersion: crd.antrea.io/v1alpha2
+kind: ExternalIPPool
+metadata:
+  name: external-ip-pool
+  namespace: avgo
+spec:
+  ipRanges:
+  - start: 10.89.16.101  # 10.10.0.11-10.10.0.20 can be used as Egress IPs
+    end: 10.89.16.101
+  nodeSelector: {}     # All Nodes can be Egress Nodes
+

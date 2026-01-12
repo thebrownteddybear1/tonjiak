@@ -1,0 +1,27 @@
+resources:
+- deployment.yaml
+- service.yaml
+- ingress.yaml
+
+commonLabels:
+  app: echoserver
+
+namePrefix:
+  validation-
+nameSuffix:
+  -live
+
+patches:
+- target:
+    kind: Ingress
+    name: echoserver
+  path: ingress-patch.json
+  
+- target:
+    kind: Egress
+    name: echoserver
+  path: egress-patch.json
+
+
+#kubectl kustomize ./ will generate the yaml
+#kubectl apply -k will also apply this

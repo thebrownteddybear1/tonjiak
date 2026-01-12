@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-test-2
+  namespace: application-test-1
+spec:
+  selector:
+    matchLabels:
+      app: application-test-pod-2
+  replicas: 3 
+  template:
+    metadata:
+      labels:
+        app: application-test-pod-2
+    spec:
+      containers:
+      - name: nginx
+        image: edp2harbor.psa.com.sg/nginx/nginx:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-test-2
+  namespace: application-test-1
+  annotations:
+    nodeportlocal.antrea.io/enabled: "true"
+spec:
+  ports:
+    - name: web
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: application-test-pod-2
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-test-2
+  namespace: application-test-1
+  labels:
+    app: ingress-test-2
+spec:
+  ingressClassName: avi-lb
+  rules:
+  - host: ingress-test-2.psa.com.sg
+    http:
+      paths: 
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service-test-2
+            port:
+              number: 80
+

@@ -1,0 +1,46 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: edplivevkc
+  namespace: edplivevns
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: ["10.96.0.0/12"]
+    pods:
+      cidrBlocks: ["192.168.0.0/16"]
+    serviceDomain: "cluster.local"
+  topology:
+    class: builtin-generic-v3.3.0
+    version: v1.30.1---vmware.1-fips-tkg.5
+    controlPlane:
+      replicas: 3
+      metadata:
+        annotations:
+          run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+    workers:
+      machineDeployments:
+        - class: node-pool
+          name: node-pool-1
+          replicas: 8
+          variables:
+            overrides:
+            - name: vmClass
+              value: guaranteed-4xlarge
+          metadata:
+            annotations:
+              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+    variables:
+      - name: vmClass
+        value: guaranteed-5cpu-20gb
+      - name: storageClass
+        value: vsan-esa-default-policy-raid5 
+      - name: osConfiguration
+        value:
+          trust:
+            additionalTrustedCAs:
+              - caCert:
+                  secretRef:
+                    key: additional-ca-1
+                    #name: <YOUR CLUSTER NAME>-user-trusted-ca-secret
+                    name: edpdatarobot-user-trusted-ca-secret
