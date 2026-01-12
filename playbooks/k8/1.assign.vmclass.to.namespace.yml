@@ -17,7 +17,7 @@
   tasks:
     # ===== PHASE 1: LOGIN =====
     - name: Authenticate with vCenter
-      vmware.vmware.vmware_rest.cis_session:
+      vmware.vmware_rest.cis_session:
         vcenter_hostname: "{{ vcenter_host }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
