@@ -86,3 +86,35 @@
               limit: -1
         status_code: [200, 201, 204]
 
+    # Small delay to ensure the namespace is indexed in the API before modifying access
+    - name: Wait for namespace to settle
+      pause:
+        seconds: 2
+
+    # ===== PHASE 5: PERMISSIONS =====
+    - name: Assign EDIT role to administrator@vsphere.local
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access/vsphere.local/administrator?type=USER"
+        method: POST
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          role: "{{ namespace_role }}"
+        status_code: [200, 201, 204]
+
+    # ===== PHASE 6: VERIFICATION =====
+    - name: Verify permissions assigned
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session_result.json }}"
+      register: access_info
+
+    - name: Final Output
+      debug:
+        msg: "Namespace '{{ namespace_name }}' created and permissions assigned to: {{ access_info.json }}"
