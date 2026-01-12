@@ -1,90 +1,63 @@
 ---
-- name: Assign a specific VM class by name to a vSphere namespace
+- name: Assign VM Classes to Supervisor Namespace
   hosts: localhost
   connection: local
   gather_facts: false
+
   vars:
-    target_vm_class_name: "best-effort-xsmall"
-    target_namespace_name: "vns"
-  # vars_files is commented out since all variables are now hardcoded in this playbook or derived
-  # - vars/vcenter_config.yml 
+    vcenter_host: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    namespace_name: "vns"
+    # Add as many classes as you need to this list
+    vm_classes:
+      - "best-effort-small"
+      - "best-effort-medium"
 
   tasks:
-    # --- Hardcoded Variables (Replace with vars_files if preferred for security) ---
-    - name: Set Connection Variables (Insecure, use Ansible Vault for production)
-      ansible.builtin.set_fact:
-        vcenter_hostname: "192.168.50.52"
-        vcenter_username: "administrator@vsphere.local"
-        vcenter_password: "VMware1!VMware1!"
-    # -----------------------------------------------------------------------------
-
-    - name: Get API session token
+    # ===== PHASE 1: LOGIN =====
+    - name: Authenticate with vCenter
       vmware.vmware_rest.cis_session:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        state: present
-      register: session_output
-      
-    # --- Find VM Class ID ---
-    - name: Retrieve all available VM classes
-      ansible.builtin.uri:
-        url: "https://{{ vcenter_hostname }}/api/vcenter/namespace-management/virtual-machine-classes"
-        method: GET
-        validate_certs: false
-        headers:
-          Vmware-Api-Session-Id: "{{ session_output.session_id }}"
-        status_code: 200
-      register: vm_classes_list
-      
-    - name: Extract the specific ID for "{{ target_vm_class_name }}"
-      ansible.builtin.set_fact:
-        vm_class_id_to_assign: >-
-          {{ vm_classes_list.json.results | json_query("[?name=='" + target_vm_class_name + "'].id") | first }}
-      
-    - name: Assert VM Class ID was found
-      ansible.builtin.assert:
-        that: vm_class_id_to_assign is defined and vm_class_id_to_assign is not none
-        fail_msg: "VM Class '{{ target_vm_class_name }}' not found in vCenter."
+        vcenter_hostname: "{{ vcenter_host }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: false
+      register: session
 
-    # --- Find Namespace ID ---
-    # NOTE: You need the correct API endpoint to list namespaces. The exact endpoint may vary by vSphere sub-version.
-    - name: Retrieve all available Namespaces (Assuming this is the correct list endpoint)
-      ansible.builtin.uri:
-        url: "https://{{ vcenter_hostname }}/api/vcenter/namespaces/instances"
-        method: GET
-        validate_certs: false
-        headers:
-          Vmware-Api-Session-Id: "{{ session_output.session_id }}"
-        status_code: 200
-      register: namespaces_list
-
-    - name: Extract the specific ID for namespace "{{ target_namespace_name }}"
-      ansible.builtin.set_fact:
-        namespace_id_target: >-
-          {{ namespaces_list.json.results | json_query("[?namespace_name=='" + target_namespace_name + "'].id") | first }}
-    
-    - name: Assert Namespace ID was found
-      ansible.builtin.assert:
-        that: namespace_id_target is defined and namespace_id_target is not none
-        fail_msg: "Namespace '{{ target_namespace_name }}' not found in vCenter."
-
-    # --- Assign Class to Namespace ---
-    - name: Assign the VM class ID to the namespace using a PATCH request
-      ansible.builtin.uri:
-        url: "https://{{ vcenter_hostname }}/api/vcenter/namespaces/instances/{{ namespace_id_target }}"
+    # ===== PHASE 2: ASSIGN VM CLASSES =====
+    # We use the PATCH method as requested to update the namespace software configuration
+    - name: Patch Namespace with VM Classes
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespace-management/software/namespaces/{{ namespace_name }}"
         method: PATCH
         validate_certs: false
         headers:
-          Content-Type: application/json
-          Vmware-Api-Session-Id: "{{ session_output.session_id }}"
+          vmware-api-session-id: "{{ session.session_key }}"
+          Content-Type: "application/json"
         body_format: json
         body:
-          vm_classes:
-            - "{{ vm_class_id_to_assign }}" 
-        status_code: 204
-      register: assign_task_result
-      
-    - name: Display final status
-      ansible.builtin.debug:
-        msg: "VM Class '{{ target_vm_class_name }}' successfully assigned to namespace '{{ target_namespace_name }}' (ID: {{ namespace_id_target }})."
+          vm_classes: "{{ vm_classes }}"
+        status_code: [200, 204]
+      register: patch_result
+
+    # ===== PHASE 3: VERIFY =====
+    - name: Get Namespace details to verify classes
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespace-management/software/namespaces/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ session.session_key }}"
+      register: ns_details
+
+    - name: Final Confirmation
+      debug:
+        msg: 
+          - "Namespace: {{ namespace_name }}"
+          - "Assigned Classes: {{ ns_details.json.vm_classes }}"
+
+    # ===== PHASE 4: LOGOUT =====
+    - name: Close Session
+      vmware.vmware_rest.cis_session:
+        state: absent
+      when: session.session_key is defined
