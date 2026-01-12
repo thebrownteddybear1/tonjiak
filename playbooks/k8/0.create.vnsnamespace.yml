@@ -104,17 +104,3 @@
         body:
           role: "{{ namespace_role }}"
         status_code: [200, 201, 204]
-
-    # ===== PHASE 6: VERIFICATION =====
-    - name: Verify permissions assigned
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}/access"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ session_result.json }}"
-      register: access_info
-
-    - name: Final Output
-      debug:
-        msg: "Namespace '{{ namespace_name }}' created and permissions assigned to: {{ access_info.json }}"
