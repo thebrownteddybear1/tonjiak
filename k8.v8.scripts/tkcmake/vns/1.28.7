@@ -1,49 +1,45 @@
-#cluster-with-trusted-private-reg-cert.yaml
-apiVersion: cluster.x-k8s.io/v1beta1
-kind: Cluster
+apiVersion: run.tanzu.vmware.com/v1alpha3
+kind: TanzuKubernetesCluster
 metadata:
-  name: vns-1.28.7
-  namespace: vns
+  name: tkc-ubuntu-gpu
+  namespace: tkg-cluster-ns
+  annotations:
+    run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
 spec:
-  clusterNetwork:
-    services:
-      cidrBlocks: ["198.52.100.0/12"]
-    pods:
-      cidrBlocks: ["192.101.2.0/16"]
-    serviceDomain: "cluster.local"
-  topology:
-    class: tanzukubernetescluster
-    version: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
-    controlPlane:
-      replicas: 3
-      metadata:
-        annotations:
-          run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
-    workers:
-      machineDeployments:
-        - class: node-pool
-          name: node-pool-01
-          replicas: 8
-          metadata:
-            annotations:
-              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
-            labels:
-              node-type: "worker" 
-          variables:
-            overrides:
-            - name: vmClass
-             # value: guaranteed-4xlarge
-              value: best-effort-xsmall
-              #value: w4cpunr128gbr
-          #    value: best-effort-xlarge
-
-    variables:
-      - name: vmClass
-        value: best-effort-xsmall
-        #value: best-effort-small
-        #value: guaranteed-large
-        #value: c2cpunr16gbr
-      - name: storageClass
-        value: storageclass
-      - name: defaultStorageClass
-        value: storageclass
+   topology:
+     controlPlane:
+       replicas: 1
+       storageClass: storageclass
+       vmClass: best-effort-xsmall
+       tkr:
+         reference:
+           name: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
+     nodePools:
+     - name: nodepool-a100-primary
+       replicas: 1
+       storageClass: storageclass
+       vmClass: best-effort-xsmall
+       tkr:
+         reference:
+           name: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
+       volumes:
+       - name: containerd
+         mountPath: /var/lib/containerd
+         capacity:
+           storage: 70Gi
+       - name: kubelet
+         mountPath: /var/lib/kubelet
+         capacity:
+           storage: 70Gi
+ 
+   settings:
+     storage:
+       defaultClass: storageclass
+     network:
+       cni:
+        name: antrea
+       services:
+        cidrBlocks: ["198.51.100.0/12"]
+       pods:
+        cidrBlocks: ["192.0.2.0/16"]
+       serviceDomain: cluster.local
