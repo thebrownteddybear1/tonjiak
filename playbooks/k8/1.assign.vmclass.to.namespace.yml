@@ -1,5 +1,5 @@
 ---
-- name: Assign VM Classes to Supervisor Namespace
+- name: Assign VM Classes
   hosts: localhost
   connection: local
   gather_facts: false
@@ -9,13 +9,10 @@
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1!VMware1!"
     namespace_name: "vns"
-    vm_classes:
-      - "best-effort-small"
-      - "best-effort-medium"
+    vm_classes: ["best-effort-small", "best-effort-medium"]
 
   tasks:
-    # ===== PHASE 1: LOGIN (Native URI) =====
-    - name: Authenticate with vCenter
+    - name: Login
       uri:
         url: "https://{{ vcenter_host }}/api/session"
         method: POST
@@ -24,46 +21,29 @@
         user: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         status_code: 201
-      register: login_response
+      register: login
 
-    # ===== PHASE 2: ASSIGN VM CLASSES (PATCH) =====
-    - name: Patch Namespace with VM Classes
+    # Check if we can find 'vns' in the basic instances list first
+    - name: Verify Namespace exists
+      uri:
+        url: "https://{{ vcenter_host }}/api/vcenter/namespaces/instances/{{ namespace_name }}"
+        method: GET
+        validate_certs: false
+        headers:
+          vmware-api-session-id: "{{ login.json }}"
+      register: check_ns
+      failed_when: check_ns.status != 200
+
+    - name: Patch VM Classes
       uri:
         url: "https://{{ vcenter_host }}/api/vcenter/namespace-management/software/namespaces/{{ namespace_name }}"
         method: PATCH
         validate_certs: false
         headers:
-          vmware-api-session-id: "{{ login_response.json }}"
+          vmware-api-session-id: "{{ login.json }}"
           Content-Type: "application/json"
         body_format: json
         body:
           vm_classes: "{{ vm_classes }}"
         status_code: [200, 204]
-      register: patch_result
-
-    # ===== PHASE 3: VERIFY =====
-    - name: Get Namespace details to verify classes
-      uri:
-        url: "https://{{ vcenter_host }}/api/vcenter/namespace-management/software/namespaces/{{ namespace_name }}"
-        method: GET
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ login_response.json }}"
-      register: ns_details
-
-    - name: Final Confirmation
-      debug:
-        msg: 
-          - "Namespace: {{ namespace_name }}"
-          - "Assigned Classes: {{ ns_details.json.vm_classes }}"
-
-    # ===== PHASE 4: LOGOUT =====
-    - name: Close Session
-      uri:
-        url: "https://{{ vcenter_host }}/api/session"
-        method: DELETE
-        validate_certs: false
-        headers:
-          vmware-api-session-id: "{{ login_response.json }}"
-        status_code: 204
-      when: login_response.json is defined
+      # If this still fails 404, we will know the namespace exists but the software path is wrong
