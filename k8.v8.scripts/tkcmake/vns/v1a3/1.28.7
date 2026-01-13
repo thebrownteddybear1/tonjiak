@@ -1,45 +1,23 @@
 apiVersion: run.tanzu.vmware.com/v1alpha3
 kind: TanzuKubernetesCluster
 metadata:
-  name: vns-1287
+  name: "287"
   namespace: vns
-  annotations:
-    run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
 spec:
-   topology:
-     controlPlane:
-       replicas: 1
-       storageClass: storageclass
-       vmClass: best-effort-xsmall
-       tkr:
-         reference:
-           name: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
-     nodePools:
-     - name: nodepool-a100-primary
-       replicas: 1
-       storageClass: storageclass
-       vmClass: best-effort-xsmall
-       tkr:
-         reference:
-           name: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
-       volumes:
-       - name: containerd
-         mountPath: /var/lib/containerd
-         capacity:
-           storage: 70Gi
-       - name: kubelet
-         mountPath: /var/lib/kubelet
-         capacity:
-           storage: 70Gi
- 
-   settings:
-     storage:
-       defaultClass: storageclass
-     network:
-       cni:
-        name: antrea
-       services:
-        cidrBlocks: ["198.51.100.0/12"]
-       pods:
-        cidrBlocks: ["192.0.2.0/16"]
-       serviceDomain: cluster.local
+  topology:
+    controlPlane:
+      replicas: 1
+      vmClass: best-effort-xsmall
+      storageClass: storageclass
+      tkr:  
+        reference:
+          # This name MUST match your "kubectl get tkr" NAME column exactly
+          name: v1.28.7---vmware.1-fips.1-tkg.1
+    nodePools:
+      - name: node-pool-1
+        replicas: 1
+        vmClass: best-effort-xsmall
+        storageClass: storageclass
+        tkr:
+          reference:
+            name: v1.28.7---vmware.1-fips.1-tkg.1
