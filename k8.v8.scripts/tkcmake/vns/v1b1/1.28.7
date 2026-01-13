@@ -11,10 +11,10 @@ spec:
       cidrBlocks: ["192.168.0.0/24"]
     serviceDomain: "cluster.local"
   topology:
-    classRef:
-      # This is the global TKG ClusterClass
-      name: tanzukubernetescluster
-    version: v1.28.7---vmware.1-fips.1-tkg.1 
+    # Use 'class' directly for v1beta1
+    class: tanzukubernetescluster
+    # Your updated Photon-based version string
+    version: v1.28.7---vmware.1-fips.1-tkg.1
     controlPlane:
       replicas: 1
     workers:
@@ -26,4 +26,6 @@ spec:
       - name: vmClass
         value: best-effort-xsmall
       - name: storageClass
+        value: storageclass
+      - name: defaultStorageClass
         value: storageclass
