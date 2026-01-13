@@ -3,9 +3,6 @@ kind: Cluster
 metadata:
   name: cluster-default
   namespace: vns
-  annotations:
-    # This tells the resolver to look for Ubuntu instead of the default Photon
-    run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
 spec:
   clusterNetwork:
     services:
@@ -14,8 +11,10 @@ spec:
       cidrBlocks: ["192.168.0.0/24"]
     serviceDomain: "cluster.local"
   topology:
-    class: tanzukubernetescluster
-    version: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
+    classRef:
+      # This is the global TKG ClusterClass
+      name: tanzukubernetescluster
+    version: v1.28.7---vmware.1-fips.1-tkg.1 
     controlPlane:
       replicas: 1
     workers:
