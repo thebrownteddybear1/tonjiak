@@ -1,7 +1,9 @@
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
 metadata:
-  name: cluster-default
+  # Name of your cluster
+  name: vns-cluster-capi
+  # Must match the Supervisor Namespace you created
   namespace: vns
 spec:
   clusterNetwork:
@@ -11,9 +13,10 @@ spec:
       cidrBlocks: ["192.168.0.0/24"]
     serviceDomain: "cluster.local"
   topology:
-    classRef:
-      # This is the global TKG ClusterClass
-      name: tanzukubernetescluster
+    # Use the versioned ClusterClass provided by your Supervisor
+    # Check 'kubectl get clusterclass -A' to verify this name
+    class: tanzukubernetescluster
+    # Must match an available TanzuKubernetesRelease (TKR)
     version: v1.28.7---vmware.1-fips.1-tkg.1.ubuntu
     controlPlane:
       replicas: 1
@@ -26,4 +29,6 @@ spec:
       - name: vmClass
         value: best-effort-xsmall
       - name: storageClass
+        value: storageclass
+      - name: defaultStorageClass
         value: storageclass
