@@ -1,0 +1,43 @@
+apiVersion: run.tanzu.vmware.com/v1alpha3
+kind: TanzuKubernetesCluster
+metadata:
+  name: vns-1294
+  namespace: vns
+spec:
+   topology:
+     controlPlane:
+       replicas: 1
+       storageClass: storageclass
+       vmClass: best-effort-xsmall
+       tkr:
+         reference:
+           name: v1.29.4---vmware.3-fips.1-tkg.1
+     nodePools:
+     - name: nodepool-a100-primary
+       replicas: 1
+       storageClass: storageclass
+       vmClass: best-effort-xsmall
+       tkr:
+         reference:
+           name: v1.29.4---vmware.3-fips.1-tkg.1
+       volumes:
+       - name: containerd
+         mountPath: /var/lib/containerd
+         capacity:
+           storage: 70Gi
+       - name: kubelet
+         mountPath: /var/lib/kubelet
+         capacity:
+           storage: 70Gi
+ 
+   settings:
+     storage:
+       defaultClass: storageclass
+     network:
+       cni:
+        name: antrea
+       services:
+        cidrBlocks: ["198.51.100.0/12"]
+       pods:
+        cidrBlocks: ["192.0.2.0/16"]
+       serviceDomain: cluster.local
