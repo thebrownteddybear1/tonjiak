@@ -1,3 +1,11 @@
+#kubectl get tkr v1.28.7---vmware.1-fips.1-tkg.1 --show-labels, 
+if there is a label  run.tanzu.vmware.com/legacy-tkr=
+it means it's meant for vsphere 7, tkr.tanzu.vmware.com/standard= is for the utkr that v1beta1 needs
+v1.28.7---vmware.1-fips.1-tkg.1   v1.28.7+vmware.1-fips.1-tkg.1   True    True         3d20h     os-arch=amd64,os-name=photon,os-type=linux,os-version=5.0,run.tanzu.vmware.com/legacy-tkr=,tkr.tanzu.vmware.com/standard=,v1.28.7---vmware.1-fips.1-tkg.1=,v1.28.7---vmware.1-fips.1-tkg=,v1.28.7---vmware.1-fips.1=,v1.28.7---vmware.1-fips=,v1.28.7---vmware.1=,v1.28.7---vmware=,v1.28.7=,v1.28=,v1=
+root@0daf403e9ae0:~/tonjiak/k8.v8.scripts/tkcmake/vns/v1b1# kubectl get tkr v1.28.7---vmware.1-fips.1-tkg.1 --show-labels | grep standard
+
+
+
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
 metadata:
