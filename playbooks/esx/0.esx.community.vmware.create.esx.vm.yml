@@ -14,9 +14,10 @@
     vm_folder: "/ha-datacenter/vm"
     
     vm_list:
-      - vm_name: "esx11"
-      - vm_name: "esx12"
-    
+      #- vm_name: "esx11"
+      #- vm_name: "esx12"
+      - vm_name: "esx13"
+      - vm_name: "esx14"
   tasks:
     - name: Create VMs with hardware virtualization enabled
       community.vmware.vmware_guest:
@@ -60,8 +61,8 @@
           - controller_type: ide
             controller_number: 0
             unit_number: 0
-#            iso_path: "[lex2] /iso/VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
-            iso_path: "[lex2] /iso/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"            
+            iso_path: "[lex2] /iso/VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
+#            iso_path: "[lex2] /iso/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"            
             type: iso
             state: present
       loop: "{{ vm_list }}"
