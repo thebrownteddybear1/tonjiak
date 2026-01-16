@@ -1,0 +1,59 @@
+---
+- name: Setup NTP and Services on ESXi Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    ntp_server: "192.168.50.53"
+    
+    esxi_hosts:
+      - 192.168.50.13
+      - 192.168.50.14
+
+  tasks:
+    - name: Set NTP Server Address
+      community.vmware.vmware_host_ntp:
+        hostname: "{{ item }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        ntp_servers:
+          - "{{ ntp_server }}"
+        state: present
+      loop: "{{ esxi_hosts }}"
+
+    - name: Configure NTP Service Policy and State
+      community.vmware.vmware_host_service:
+        hostname: "{{ item }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        service_name: ntpd
+        state: started
+        service_policy: on
+      loop: "{{ esxi_hosts }}"
+
+    - name: Configure SSH (TSM-SSH) Policy and State
+      community.vmware.vmware_host_service:
+        hostname: "{{ item }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        service_name: TSM-SSH
+        state: started
+        service_policy: on
+      loop: "{{ esxi_hosts }}"
+
+    - name: Configure ESXi Shell (TSM) Policy and State
+      community.vmware.vmware_host_service:
+        hostname: "{{ item }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        service_name: TSM
+        state: started
+        service_policy: on
+      loop: "{{ esxi_hosts }}"
