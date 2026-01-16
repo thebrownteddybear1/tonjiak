@@ -17,6 +17,7 @@
     - name: Set NTP Server Address
       community.vmware.vmware_host_ntp:
         hostname: "{{ item }}"
+        esxi_hostname: "{{ item }}"  # Required field added here
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
@@ -28,6 +29,7 @@
     - name: Configure NTP Service (Start/Stop with host)
       community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
+        esxi_hostname: "{{ item }}"  # Required field added here
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
@@ -39,6 +41,7 @@
     - name: Configure SSH Service (Start/Stop with host)
       community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
+        esxi_hostname: "{{ item }}"  # Required field added here
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
@@ -50,6 +53,7 @@
     - name: Configure ESXi Shell Service (Start/Stop with host)
       community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
+        esxi_hostname: "{{ item }}"  # Required field added here
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
