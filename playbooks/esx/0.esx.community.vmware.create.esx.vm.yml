@@ -32,7 +32,7 @@
         
         # This is the native way according to your python source code
         hardware:
-          memory_mb: 81920
+          memory_mb: 9216
           num_cpus: 56
           scsi: paravirtual
           nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
