@@ -25,8 +25,8 @@
         state: present
       loop: "{{ esxi_hosts }}"
 
-    - name: Configure NTP Service Policy and State
-      community.vmware.vmware_host_service:
+    - name: Configure NTP Service (Start/Stop with host)
+      community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
@@ -36,8 +36,8 @@
         service_policy: on
       loop: "{{ esxi_hosts }}"
 
-    - name: Configure SSH (TSM-SSH) Policy and State
-      community.vmware.vmware_host_service:
+    - name: Configure SSH Service (Start/Stop with host)
+      community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
@@ -47,8 +47,8 @@
         service_policy: on
       loop: "{{ esxi_hosts }}"
 
-    - name: Configure ESXi Shell (TSM) Policy and State
-      community.vmware.vmware_host_service:
+    - name: Configure ESXi Shell Service (Start/Stop with host)
+      community.vmware.vmware_host_service_manager:
         hostname: "{{ item }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
