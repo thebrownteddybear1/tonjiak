@@ -39,7 +39,7 @@
         vlan_ids: "53"
         
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "TZ1"
+        transport_zone_display_name: "nsx.vlan-tz.security.bebcbdf8-afd2-4d36-ab01-d87489d1f29f.vcf-mgt-cl01-vds02"
         admin_state: "UP"
         state: present
 
