@@ -19,7 +19,7 @@
         vlan_ids: "11,53
         
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "TZ1"
+        transport_zone_display_name: "VCF-Created-Overlay-Zone"
         admin_state: "UP"
         state: present
 
@@ -36,7 +36,7 @@
         display_name: "segment-uplink-vlan11"
         description: "Policy segment with VLANs 11"
 
-        vlan_ids: "11"
+        vlan_ids: "53"
         
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "TZ1"
