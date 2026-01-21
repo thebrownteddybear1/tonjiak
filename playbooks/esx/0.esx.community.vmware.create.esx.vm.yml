@@ -18,6 +18,12 @@
       - vm_name: "esx12"
       - vm_name: "esx13"
       - vm_name: "esx14"
+    vm_list2:
+      - vm_name: "esx15"
+      - vm_name: "esx16"
+      - vm_name: "esx17"
+      - vm_name: "esx18"
+      
   tasks:
     - name: Create VMs with hardware virtualization enabled
       community.vmware.vmware_guest:
@@ -32,7 +38,7 @@
         
         # This is the native way according to your python source code
         hardware:
-          memory_mb: 9216
+          memory_mb: 81920
           num_cpus: 56
           scsi: paravirtual
           nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
@@ -45,7 +51,7 @@
         disk:
           - size_gb: 40
             type: thin
-            datastore: "lex"
+            datastore: "nvme1"
         
         networks:
           - name: "nestedtrunk"
@@ -67,7 +73,56 @@
             state: present
       loop: "{{ vm_list }}"
       register: vm_creation_results
-      
+
+    - name: Create VMs with hardware virtualization enabled
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        # This is the native way according to your python source code
+        hardware:
+          memory_mb: 81920
+          num_cpus: 56
+          scsi: paravirtual
+          nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
+        
+        # If you want to be extra safe, you can also use advanced_settings
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+
+        disk:
+          - size_gb: 40
+            type: thin
+            datastore: "nvme2"
+        
+        networks:
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+        
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[lex] /iso/VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
+#            iso_path: "[lex] /iso/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"            
+            type: iso
+            state: present
+      loop: "{{ vm_list2 }}"
+      register: vm_creation_results
+            
     - name: Show VM creation results
       debug:
         msg: "VM '{{ item.item.vm_name }}' created: {{ 'Success' if item.changed else 'Already exists' }}"
