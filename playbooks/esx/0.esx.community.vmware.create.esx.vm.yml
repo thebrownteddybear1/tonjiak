@@ -8,7 +8,7 @@
   vars:
     esxi_host: "192.168.50.108"
     esxi_user: "root"
-    esxi_password: "VMware1!VMware1!VMware1!VMware1!"
+    esxi_password: "VMware1!VMware1!"
     
     # On standalone ESXi, the folder path must include the datacenter
     vm_folder: "/ha-datacenter/vm"
