@@ -137,3 +137,12 @@
         name: "{{ item.vm_name }}"
         state: "powered-on"
       loop: "{{ vm_list }}"
+    - name: Power on all VMs
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        state: "powered-on"
+      loop: "{{ vm_list2 }}"
