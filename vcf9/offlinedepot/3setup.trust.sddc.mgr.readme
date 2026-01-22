@@ -16,21 +16,25 @@ Obtain the trusted certificates key by issuing the following command:
 copy rootCA.pem  to sddc manager vcf9 install  into the /home/vcf
 you can only scp it there as vcf user
 ################################################################################################################yy
-#############step 1 : get the key
+#############step 1 : get the key 
+***************NO NEED TO DO.. I MODIFIED 
 cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key
 Sample Output:
 q_0EZjUI7Z^B7V@2A+ ----> Key Store Password
 
-################################################################################################################yy
 Issue a command similar to the following to import the certificate into the SDDC Manager trust store
 ############step 2
 #keytool -importcert -alias <aliasname> -file <certificate file> -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass <Key from Step # 4>
 
-##################################################
+#do this
+===============================
 keytool -delete -alias depot -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+===============================
+===============================
 keytool -importcert -alias depot -file /home/vcf/rootCA.pem -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+===============================
 
-##################################################
+
 <Note:  if the above fails run the command without the storepass and paste the key from step #4 once prompted:>
 
 keytool -importcert -alias <aliasname> -file <certificate file> -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store
@@ -40,8 +44,10 @@ Issue a command similar to the following to import the certificate into the java
 #############step 3
 #keytool -importcert -alias <aliasname> -file <certificate file> -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
-
+===============================
 #delete the key, add same key (this is java, note the path.. alternatives.
+===============================
+#do this
 keytool -delete -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 keytool -importcert -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
@@ -55,6 +61,8 @@ Replace <certificate file> with the full/absolute path to the certificate file t
 Issue a command similar to the following to verify that the new trusted certificate has been added to the SDDC Manager trust store:
 keytool -list -v -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store -storepass <Key from Step # 4>
 Issue the following command to restart the SDDC Manager services:
+
+############# 
 /opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
 To delete a stale certificate in trust store : (Please reach out to Broadcom support if you are not sure)
 
