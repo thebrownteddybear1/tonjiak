@@ -10,6 +10,11 @@ Use a file transfer utility to copy the trusted certificate file to the /tmp dir
 SSH to the SDDC Manager VM as the VCF user and then issue the su - command to switch to the root user.
 Obtain the trusted certificates key by issuing the following command:
 
+
+
+###step 0##
+copy rootCA.pem  to sddc manager vcf9 install  into the /home/vcf
+you can only scp it there as vcf user
 ################################################################################################################yy
 #############step 1 : get the key
 cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key
