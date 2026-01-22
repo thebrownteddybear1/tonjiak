@@ -48,7 +48,10 @@ Issue a command similar to the following to import the certificate into the java
 #delete the key, add same key (this is java, note the path.. alternatives.
 ===============================
 #do this
-keytool -delete -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+### probably no need to do as delete in the above
+#keytool -delete -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+
+
 keytool -importcert -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
 
