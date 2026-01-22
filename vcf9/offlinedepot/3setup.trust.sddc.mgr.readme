@@ -11,6 +11,24 @@ SSH to the SDDC Manager VM as the VCF user and then issue the su - command to sw
 Obtain the trusted certificates key by issuing the following command:
 
 
+ssh sddcmgr
+
+openssl s_client -connect depot.corp.internal:9443
+
+copy the retreived cert int a file
+
+keytool -delete -alias depot -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+
+keytool -importcert -alias depot -file /home/vcf/server.crt -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+
+
+keytool -delete -alias depot -file /home/vcf/server.crt -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+
+keytool -importcert -alias depot -file /home/vcf/server.crt -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+
+/opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
+
+
 
 ###step 0##
 copy rootCA.pem  to sddc manager vcf9 install  into the /home/vcf
@@ -49,14 +67,15 @@ Issue a command similar to the following to import the certificate into the java
 ===============================
 #do this
 ### probably no need to do as delete in the above
-#keytool -delete -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+#keytool -delete -alias depot -file /home/vcf/server.crt -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
 
 keytool -importcert -alias depot -file /home/vcf/rootCA.pem -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+#RESTART THE SERVICE
 
+/opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
 
-
-
+===========================================
 Notes:
 Type yes when prompted to trust the certificate.
 Enter alias name, for the <aliasname> value(Can be any name given to identify which component the certificate belongs to).
