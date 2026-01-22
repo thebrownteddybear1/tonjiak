@@ -17,14 +17,18 @@ SDDC Manager has two keystores:
 
 Command to view the list of certificates in the SDDC Manager keystores:
 
-keytool -list -v -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass <trust store key>
+keytool -list -v -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
 
 keytool -list -v -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
-Command to view a single certificate and its details:
 
-keytool -list -v -alias <aliasname> -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass <trust store key>
 
-keytool -list -v -alias <aliasname> -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+keytool -list -v -alias depot -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+
+keytool -list -v -alias depot -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
+
+
+
+
 Command to add a cert to the SDDC Manager keystores:
 
 keytool -importcert -alias <aliasname> -file <certificate file> -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass <trust store key>
