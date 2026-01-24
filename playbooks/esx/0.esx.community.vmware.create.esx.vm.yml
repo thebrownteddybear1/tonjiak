@@ -62,6 +62,10 @@
             device_type: vmxnet3
           - name: "nestedtrunk"
             device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
         
         cdrom:
           - controller_type: ide
@@ -103,6 +107,10 @@
             datastore: "nvme2"
         
         networks:
+          - name: "nestedtrunk"
+            device_type: vmxnet3
+          - name: "nestedtrunk"
+            device_type: vmxnet3
           - name: "nestedtrunk"
             device_type: vmxnet3
           - name: "nestedtrunk"
