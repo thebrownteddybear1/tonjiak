@@ -7,7 +7,7 @@
   vars:
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
-    ntp_server: "time.google.com"
+    ntp_server: "216.239.35.4"
     
     esxi_hosts:
       - 192.168.50.11
@@ -19,10 +19,21 @@
       - 192.168.50.17
       - 192.168.50.18
 
-      
-
   tasks:
-    - name: Set NTP Server Address
+    # TASK 1: Remove all current NTP servers
+    - name: Clear existing NTP configuration
+      community.vmware.vmware_host_ntp:
+        hostname: "{{ item }}"
+        esxi_hostname: "{{ item }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        state: absent
+      loop: "{{ esxi_hosts }}"
+      register: ntp_clear_result
+
+    # TASK 2: Set the new NTP server
+    - name: Set new NTP server
       community.vmware.vmware_host_ntp:
         hostname: "{{ item }}"
         esxi_hostname: "{{ item }}"
@@ -33,6 +44,7 @@
           - "{{ ntp_server }}"
         state: present
       loop: "{{ esxi_hosts }}"
+      register: ntp_set_result
 
     - name: Configure NTP Service (Start/Stop with host)
       community.vmware.vmware_host_service_manager:
@@ -42,7 +54,7 @@
         password: "{{ esxi_password }}"
         validate_certs: false
         service_name: ntpd
-        state: start             # Changed from 'started' to 'start'
+        state: start
         service_policy: on
       loop: "{{ esxi_hosts }}"
 
@@ -54,7 +66,7 @@
         password: "{{ esxi_password }}"
         validate_certs: false
         service_name: TSM-SSH
-        state: start             # Changed from 'started' to 'start'
+        state: start
         service_policy: on
       loop: "{{ esxi_hosts }}"
 
@@ -66,6 +78,6 @@
         password: "{{ esxi_password }}"
         validate_certs: false
         service_name: TSM
-        state: start             # Changed from 'started' to 'start'
+        state: start
         service_policy: on
       loop: "{{ esxi_hosts }}"
