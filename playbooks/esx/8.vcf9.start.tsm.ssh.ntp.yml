@@ -7,7 +7,7 @@
   vars:
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
-    ntp_server: "192.168.50.53"
+    ntp_server: "time.google.com"
     
     esxi_hosts:
       - 192.168.50.11
