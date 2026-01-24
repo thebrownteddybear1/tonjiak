@@ -27,6 +27,7 @@
         esxi_hostname: "{{ item }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
+        ntp_servers: "192.168.50.53"
         validate_certs: false
         state: absent
       loop: "{{ esxi_hosts }}"
