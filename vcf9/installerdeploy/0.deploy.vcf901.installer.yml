@@ -1,0 +1,40 @@
+---
+- name: Deploy VCF SDDC Manager Appliance
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  
+  tasks:
+    - name: Deploy OVA to ESXi host
+      ansible.builtin.shell: |
+        /root/ovftool/ovftool \
+          --name=sddc20.corp.internal \
+          --X:injectOvfEnv \
+          --sourceType=OVA \
+          --allowExtraConfig \
+          --datastore=nvme2 \
+          --net:"Network 1"="VM Network" \
+          --acceptAllEulas \
+          --skipManifestCheck \
+          --noSSLVerify \
+          --diskMode=thin \
+          --powerOn \
+          --ipProtocol=IPv4 \
+          --ipAllocationPolicy="fixedPolicy" \
+          --prop:ROOT_PASSWORD='VMware1!VMware1!' \
+          --prop:LOCAL_USER_PASSWORD='VMware1!VMware1!' \
+          --prop:VCF_PASSWORD='VMware1!VMware1!' \
+          --prop:BASIC_AUTH_PASSWORD='VMware1!VMware1!' \
+          --prop:BACKUP_PASSWORD='VMware1!VMware1!' \
+          --prop:vami.hostname=sddc20.corp.internal \
+          --prop:guestinfo.ntp=192.168.50.53 \
+          --prop:ip0=192.168.50.20 \
+          --prop:netmask0=255.255.255.0 \
+          --prop:gateway=192.168.50.53 \
+          --prop:DNS=192.168.50.53 \
+          --prop:domain=corp.internal \
+          --prop:searchpath=corp.internal \
+          Operations-Appliance-9.0.1.0.24960351.ova \
+          "vi://root:VMware1!VMware1!@192.168.50.108/"
+      args:
+        executable: /bin/bash
