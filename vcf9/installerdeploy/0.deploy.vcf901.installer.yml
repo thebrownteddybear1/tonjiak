@@ -1,61 +1,36 @@
 ---
-# Deploy VCF SDDC Manager from OVA to ESXi host
 - name: Deploy VCF SDDC Manager from OVA
-  hosts: localhost              # Run this playbook on the local Ansible control node
-  connection: local             # Execute commands locally, no SSH needed
-  gather_facts: no              # Skip gathering system information (faster execution)
-  
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
   tasks:
-    # Main task to deploy OVA using OVFTool
     - name: Deploy VCF OVA
-      ansible.builtin.shell: |  # Execute shell command with multi-line YAML block
+      ansible.builtin.shell: |
         /root/ovftool/ovftool \
-          # SECURITY & LICENSE FLAGS
-          --acceptAllEulas \           # Automatically accept VMware's End User License Agreements
-          --noSSLVerify \              # Skip SSL certificate validation (for self-signed ESXi certificates)
-          --skipManifestCheck \        # Skip OVF package integrity verification (faster, less secure)
-          
-          # OVF ENVIRONMENT & CONFIGURATION
-          --X:injectOvfEnv \           # Inject OVF environment properties into VM guest
-          --allowExtraConfig \         # Allow setting additional VM configuration parameters
-          --X:waitForIp \              # Wait for VM to obtain IP address before completing deployment
-          
-          # SOURCE & POWER MANAGEMENT
-          --sourceType=OVA \           # Specify source is an OVA file (OVA vs OVF format)
-          --powerOn \                  # Automatically power on VM after deployment
-          
-          # NETWORK & STORAGE CONFIGURATION
-          --net:"Network 1"="VM Network" \  # Map OVF network "Network 1" to ESXi network "VM Network"
-          --datastore="nvme2" \        # Specify target datastore for VM files
-          --diskMode=thin \            # Use thin provisioning for virtual disks
-          
-          # VM IDENTIFICATION
-          --name="sddc20.corp.internal" \  # Set VM name in vSphere inventory
-          
-          # VAMI NETWORK PROPERTIES (VMware Appliance Management Interface)
-          # Properties use format: vami.<property>.<instance>
-          # The "SDDC-Manager" instance comes from OVF's ProductSection with ovf:instance="SDDC-Manager"
-          # The "vami" class comes from OVF's ProductSection with ovf:class="vami"
-          --prop:vami.hostname="sddc20.corp.internal" \  # Hostname for appliance management
-          --prop:vami.ip0.SDDC-Manager="192.168.50.20" \  # IP address for SDDC-Manager instance
-          --prop:vami.netmask0.SDDC-Manager="255.255.255.0" \  # Subnet mask for SDDC-Manager instance
-          --prop:vami.gateway.SDDC-Manager="192.168.50.254" \  # Default gateway for SDDC-Manager instance
-          --prop:vami.domain.SDDC-Manager="corp.internal" \  # DNS domain for SDDC-Manager instance
-          --prop:vami.searchpath.SDDC-Manager="corp.internal" \  # DNS search domain for SDDC-Manager instance
-          --prop:vami.DNS.SDDC-Manager="192.168.50.54" \  # DNS servers for SDDC-Manager instance
-          
-          # PASSWORD PROPERTIES (from OVF's general ProductSection)
-          --prop:ROOT_PASSWORD="VMware1!VMware1!" \  # Root user password
-          --prop:LOCAL_USER_PASSWORD="VMware1!VMware1!" \  # Local admin user password
-          
-          # GUESTINFO PROPERTY (alternative configuration channel)
-          --prop:guestinfo.ntp="192.168.50.54" \  # NTP server configuration via guestinfo
-          
-          # SOURCE FILE
-          "VCF-SDDC-Manager-Appliance-9.0.1.0.24962180.ova" \  # OVA file to deploy
-          
-          # TARGET ESXi CONNECTION
-          # Format: vi://username:password@host/
+          --acceptAllEulas \
+          --noSSLVerify \
+          --skipManifestCheck \
+          --X:injectOvfEnv \
+          --allowExtraConfig \
+          --X:waitForIp \
+          --sourceType=OVA \
+          --powerOn \
+          --net:"Network 1"="VM Network" \
+          --datastore="nvme2" \
+          --diskMode=thin \
+          --name="sddc20.corp.internal" \
+          --prop:vami.hostname="sddc20.corp.internal" \
+          --prop:vami.ip0.SDDC-Manager="192.168.50.20" \
+          --prop:vami.netmask0.SDDC-Manager="255.255.255.0" \
+          --prop:vami.gateway.SDDC-Manager="192.168.50.254" \
+          --prop:vami.domain.SDDC-Manager="corp.internal" \
+          --prop:vami.searchpath.SDDC-Manager="corp.internal" \
+          --prop:vami.DNS.SDDC-Manager="192.168.50.54" \
+          --prop:ROOT_PASSWORD="VMware1!VMware1!" \
+          --prop:LOCAL_USER_PASSWORD="VMware1!VMware1!" \
+          --prop:guestinfo.ntp="192.168.50.54" \
+          "VCF-SDDC-Manager-Appliance-9.0.1.0.24962180.ova" \
           "vi://root:VMware1!VMware1!@192.168.50.108/"
       args:
-        executable: /bin/bash  # Specify bash as the shell for command execution
+        executable: /bin/bash
