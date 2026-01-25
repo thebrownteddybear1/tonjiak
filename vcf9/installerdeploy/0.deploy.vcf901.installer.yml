@@ -27,11 +27,11 @@
           --prop:BASIC_AUTH_PASSWORD='VMware1!VMware1!' \
           --prop:BACKUP_PASSWORD='VMware1!VMware1!' \
           --prop:vami.hostname=sddc20.corp.internal \
-          --prop:guestinfo.ntp=192.168.50.53 \
+          --prop:guestinfo.ntp=192.168.50.54 \
           --prop:ip0=192.168.50.20 \
           --prop:netmask0=255.255.255.0 \
-          --prop:gateway=192.168.50.53 \
-          --prop:DNS=192.168.50.53 \
+          --prop:gateway=192.168.50.254 \
+          --prop:DNS=192.168.50.54 \
           --prop:domain=corp.internal \
           --prop:searchpath=corp.internal \
           VCF-SDDC-Manager-Appliance-9.0.1.0.24962180.ova \
