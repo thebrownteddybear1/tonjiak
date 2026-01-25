@@ -1,0 +1,3 @@
+they have changd the https://192.168.50.54:9443/PROD/metadata/productVersionCatalog/v1/productVersionCatalog.json
+in the same path, download the delta file and replace the "productVersionCatalog.json" and it's ".sig" file
+disconnect the configured offline depot and connect again.
