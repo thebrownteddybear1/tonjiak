@@ -54,9 +54,9 @@
             datastore: "datastore1"
         
         networks:
-          - name: "nestedtrunk1g0"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk1g0"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
           - name: "nestedtrunk10g"
             device_type: vmxnet3
@@ -107,9 +107,9 @@
             datastore: "datastore1"
         
         networks:
-          - name: "nestedtrunk1g0"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk1g0"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
           - name: "nestedtrunk10g"
             device_type: vmxnet3
