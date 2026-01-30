@@ -54,17 +54,17 @@
             datastore: "nvme1"
         
         networks:
-          - name: "nestedtrunk"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
         
         cdrom:
@@ -107,17 +107,17 @@
             datastore: "nvme2"
         
         networks:
-          - name: "nestedtrunk"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk1g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
-          - name: "nestedtrunk"
+          - name: "nestedtrunk10g"
             device_type: vmxnet3
         
         cdrom:
