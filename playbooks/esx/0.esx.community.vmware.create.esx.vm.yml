@@ -51,7 +51,7 @@
         disk:
           - size_gb: 40
             type: thin
-            datastore: "nvme1"
+            datastore: "datastore1"
         
         networks:
           - name: "nestedtrunk1g"
@@ -104,7 +104,7 @@
         disk:
           - size_gb: 40
             type: thin
-            datastore: "nvme2"
+            datastore: "datastore1"
         
         networks:
           - name: "nestedtrunk1g"
