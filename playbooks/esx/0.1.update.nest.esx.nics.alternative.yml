@@ -38,10 +38,10 @@
         # This is the native way according to your python source code
         hardware:
           memory_mb: 131072 
-          num_cpus: 56
+          num_cpus: 112
           scsi: paravirtual
           nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
-          cpu_reservation: 24000     # <-- Reserve 24,000 MHz (24 cores)
+          #cpu_reservation: 24000     # <-- Reserve 24,000 MHz (24 cores)
         # If you want to be extra safe, you can also use advanced_settings
         advanced_settings:
           - key: "vhv.enable"
