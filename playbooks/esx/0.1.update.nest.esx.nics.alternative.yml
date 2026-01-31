@@ -14,14 +14,14 @@
     vm_folder: "/ha-datacenter/vm"
 
     vm_list:
-      - vm_name: "esx11"
-      - vm_name: "esx12"
-      - vm_name: "esx13"
-      - vm_name: "esx14"
-      - vm_name: "esx15"
-      - vm_name: "esx16"
-      - vm_name: "esx17"
-      - vm_name: "esx18"
+      - vm_name: "192.168.50.11"
+      - vm_name: "192.168.50.12"
+      - vm_name: "192.168.50.13"
+      - vm_name: "192.168.50.14"
+      - vm_name: "192.168.50.15"
+      - vm_name: "192.168.50.16"
+      - vm_name: "192.168.50.17"
+      - vm_name: "192.168.50.18"
 
   tasks:
     - name: Create VMs with hardware virtualization enabled
@@ -37,11 +37,12 @@
 
         # This is the native way according to your python source code
         hardware:
-          memory_mb: 81920
+          memory_mb: 131072 
           num_cpus: 56
           scsi: paravirtual
           nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
-
+          cpu_reservation: 24000     # <-- Reserve 24,000 MHz (24 cores)
+          cpu_reservation_lock: true # <-- Locks the reservation
         # If you want to be extra safe, you can also use advanced_settings
         advanced_settings:
           - key: "vhv.enable"
