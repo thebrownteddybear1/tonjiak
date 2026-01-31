@@ -25,7 +25,6 @@
       - vm_name: "esx18"
 
   tasks:
-
     - name: Power on all VMs
       community.vmware.vmware_guest_powerstate:
         hostname: "{{ esxi_host }}"
