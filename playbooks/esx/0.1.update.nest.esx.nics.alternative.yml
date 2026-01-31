@@ -40,7 +40,7 @@
           num_cpus: 80
           scsi: paravirtual
           nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
-          #cpu_reservation: 24000     # <-- Reserve 24,000 MHz (24 cores)
+          cpu_reservation: 10000     # <-- Reserve 24,000 MHz (24 cores)
         # If you want to be extra safe, you can also use advanced_settings
         advanced_settings:
           - key: "vhv.enable"
