@@ -1,0 +1,82 @@
+---
+# Playbook to deploy multiple nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+
+    # On standalone ESXi, the folder path must include the datacenter
+    vm_folder: "/ha-datacenter/vm"
+
+    vm_list:
+      - vm_name: "esx11"
+      - vm_name: "esx12"
+      - vm_name: "esx13"
+      - vm_name: "esx14"
+      - vm_name: "esx15"
+      - vm_name: "esx16"
+      - vm_name: "esx17"
+      - vm_name: "esx18"
+
+  tasks:
+    - name: Create VMs with hardware virtualization enabled
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+
+        # This is the native way according to your python source code
+        hardware:
+          memory_mb: 81920
+          num_cpus: 56
+          scsi: paravirtual
+          nested_virt: true  # Enables VT-x/AMD-V for the guest ESXi
+
+        # If you want to be extra safe, you can also use advanced_settings
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+
+        disk:
+          - size_gb: 40
+            type: thin
+            datastore: "datastore1"
+
+        networks:
+          - name: "nestedtrunk1g"
+            device_type: vmxnet3
+          - name: "nestedtrunk1g"
+            device_type: vmxnet3
+          - name: "nestedtrunk1g"
+            device_type: vmxnet3
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /iso/VMware-VMvisor-Installer-9.0.1.0.24957456.x86_64.iso"
+#            iso_path: "[datastore1] /iso/VMware-VMvisor-Installer-8.0U2b-23305546.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ vm_list }}"
+      register: vm_creation_results
+
+    - name: Power on all VMs
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        state: "powered-on"
+      loop: "{{ vm_list }}"
