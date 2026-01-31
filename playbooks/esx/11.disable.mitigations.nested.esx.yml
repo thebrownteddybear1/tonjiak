@@ -1,27 +1,46 @@
 ---
 - name: Disable CPU Mitigations on Nested ESXi Hosts
-  hosts: all
+  hosts: localhost
+  connection: local
   gather_facts: false
 
   vars:
-    # Credentials for your nested ESXi hosts (192.168.50.11-18)
+    # List of target nested ESXi hosts
+    esxi_hosts:
+      - 192.168.50.11
+      - 192.168.50.12
+      - 192.168.50.13
+      - 192.168.50.14
+      - 192.168.50.15
+      - 192.168.50.16
+      - 192.168.50.17
+      - 192.168.50.18
+
+    # Credentials
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
 
   tasks:
-    - name: Disable available CPU mitigations
+    - name: Disable CPU mitigations on all nested ESXi hosts
       ansible.builtin.shell: |
+        sshpass -p '{{ esxi_password }}' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 {{ esxi_user }}@{{ item }} '
         esxcli system settings kernel set --setting="disableCFOH" --value="TRUE"
         esxcli system settings kernel set --setting="delayCFOH" --value="0"
         esxcli system settings kernel set --setting="hyperthreadingMitigationIntraVM" --value="FALSE"
         esxcli system settings kernel set --setting="hyperthreadingMitigation" --value="FALSE"
         esxcli system settings kernel set --setting="forceHyperthreadingMitigation" --value="FALSE"
+        '
       args:
-        executable: /bin/sh
+        executable: /bin/bash
+      loop: "{{ esxi_hosts }}"
+      delegate_to: localhost
+      ignore_errors: false
 
-    - name: Reboot ESXi hosts to apply kernel changes
+    - name: Reboot all nested ESXi hosts
       ansible.builtin.shell: |
-        reboot
-      async: 1
-      poll: 0
-      ignore_errors: true
+        sshpass -p '{{ esxi_password }}' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 {{ esxi_user }}@{{ item }} 'reboot'
+      args:
+        executable: /bin/bash
+      loop: "{{ esxi_hosts }}"
+      delegate_to: localhost
+      ignore_errors: true  # SSH will disconnect during reboot
