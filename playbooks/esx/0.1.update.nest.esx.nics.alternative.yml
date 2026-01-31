@@ -69,13 +69,3 @@
             state: present
       loop: "{{ vm_list }}"
       register: vm_creation_results
-
-    - name: Power on all VMs
-      community.vmware.vmware_guest_powerstate:
-        hostname: "{{ esxi_host }}"
-        username: "{{ esxi_user }}"
-        password: "{{ esxi_password }}"
-        validate_certs: false
-        name: "{{ item.vm_name }}"
-        state: "powered-on"
-      loop: "{{ vm_list }}"
