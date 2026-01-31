@@ -14,15 +14,14 @@
     vm_folder: "/ha-datacenter/vm"
 
     vm_list:
-      - vm_name: "192.168.50.11"
-      - vm_name: "192.168.50.12"
-      - vm_name: "192.168.50.13"
-      - vm_name: "192.168.50.14"
-      - vm_name: "192.168.50.15"
-      - vm_name: "192.168.50.16"
-      - vm_name: "192.168.50.17"
-      - vm_name: "192.168.50.18"
-
+      - vm_name: "esx11"
+      - vm_name: "esx12"
+      - vm_name: "esx13"
+      - vm_name: "esx14"
+      - vm_name: "esx15"
+      - vm_name: "esx16"
+      - vm_name: "esx17"
+      - vm_name: "esx18"
   tasks:
     - name: Create VMs with hardware virtualization enabled
       community.vmware.vmware_guest:
