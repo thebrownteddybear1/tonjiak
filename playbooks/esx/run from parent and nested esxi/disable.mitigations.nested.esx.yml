@@ -1,0 +1,65 @@
+---
+- name: Disable CPU Mitigations on Nested ESXi Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # Credentials for your nested ESXi hosts (192.168.50.11-18)
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    
+    # List of target nested ESXi hosts
+    target_hosts:
+      - 192.168.50.11
+      - 192.168.50.12
+      - 192.168.50.13
+      - 192.168.50.14
+      - 192.168.50.15
+      - 192.168.50.16
+      - 192.168.50.17
+      - 192.168.50.18
+
+  tasks:
+    - name: Disable available CPU mitigations
+      ansible.builtin.shell: |
+        # Disable Cache Flush on Halt (CFOH) and set its delay to minimum
+        esxcli system settings kernel set --setting="disableCFOH" --value="TRUE"
+        esxcli system settings kernel set --setting="delayCFOH" --value="0"
+        
+        # Disable Intra-VM hyperthreading mitigation (default is TRUE on nested host)
+        esxcli system settings kernel set --setting="hyperthreadingMitigationIntraVM" --value="FALSE"
+        
+        # Explicitly ensure other hyperthreading mitigations are off (they already are)
+        esxcli system settings kernel set --setting="hyperthreadingMitigation" --value="FALSE"
+        esxcli system settings kernel set --setting="forceHyperthreadingMitigation" --value="FALSE"
+      args:
+        executable: /bin/sh
+      loop: "{{ target_hosts }}"
+      loop_control:
+        label: "{{ item }}"  # Shows which host the task is running on in the output
+      # This task uses 'delegate_to' to run the shell command directly on each ESXi host via SSH
+      delegate_to: "{{ item }}"
+      # These environment vars are passed to the SSH connection for each host
+      environment:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+        # Ansible uses these to connect. You can also set them as extra vars (-e) when running the playbook.
+        ansible_user: "{{ esxi_user }}"
+        ansible_password: "{{ esxi_password }}"
+        ansible_shell_type: csh
+        ansible_ssh_common_args: "-o StrictHostKeyChecking=no -o ConnectTimeout=30"
+
+    - name: Reboot ESXi hosts to apply kernel changes
+      ansible.builtin.shell: |
+        reboot
+      async: 1  # Do not wait for the reboot to finish
+      poll: 0   # Do not check the status after starting
+      ignore_errors: true  # SSH connection will be lost during reboot, which is expected
+      loop: "{{ target_hosts }}"
+      loop_control:
+        label: "{{ item }}"
+      delegate_to: "{{ item }}"
+      environment:
+        ANSIBLE_HOST_KEY_CHECKING: "False"
+        ansible_user: "{{ esxi_user }}"
+        ansible_password: "{{ esxi_password }}"

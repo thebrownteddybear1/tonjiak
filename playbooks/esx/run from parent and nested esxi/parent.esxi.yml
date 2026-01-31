@@ -1,0 +1,9 @@
+ esxcli system settings kernel set --setting="disableCFOH" --value="TRUE"
+
+        # --- Optional: Set other settings if you wish to be explicit ---
+        # These are already FALSE by default on your host, but setting them again ensures the state.
+        esxcli system settings kernel set --setting="hyperthreadingMitigation" --value="FALSE"
+        esxcli system settings kernel set --setting="forceHyperthreadingMitigation" --value="FALSE"
+        esxcli system settings kernel set --setting="hyperthreadingMitigationIntraVM" --value="FALSE"
+
+        echo "Kernel settings updated. A host reboot is required for changes to take effect."
