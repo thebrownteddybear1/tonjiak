@@ -1,0 +1,46 @@
+---
+# Playbook to deploy multiple nested ESXi VMs
+- name: Deploy Multiple Nested ESXi VMs
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+
+    # On standalone ESXi, the folder path must include the datacenter
+    vm_folder: "/ha-datacenter/vm"
+
+    vm_list:
+      - vm_name: "esx11"
+      - vm_name: "esx12"
+      - vm_name: "esx13"
+      - vm_name: "esx14"
+    vm_list2:
+      - vm_name: "esx15"
+      - vm_name: "esx16"
+      - vm_name: "esx17"
+      - vm_name: "esx18"
+
+  tasks:
+
+    - name: Power off all VMs
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        state: "powered-off"
+      loop: "{{ vm_list }}"
+    - name: Power on all VMs
+      community.vmware.vmware_guest_powerstate:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.vm_name }}"
+        state: "powered-off"
+      loop: "{{ vm_list2 }}"
