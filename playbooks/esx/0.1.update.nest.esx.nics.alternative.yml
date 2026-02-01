@@ -50,7 +50,7 @@
           - size_gb: 40
             type: thin
             datastore: "datastore1"
-          - size_gb: 500gb
+          - size_gb: 500
             type: thin
             datastore: "nvme1"
           - size_gb: 1024
