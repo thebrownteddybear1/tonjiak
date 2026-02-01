@@ -1,3 +1,15 @@
 they have changd the https://192.168.50.54:9443/PROD/metadata/productVersionCatalog/v1/productVersionCatalog.json
 in the same path, download the delta file and replace the "productVersionCatalog.json" and it's ".sig" file
 disconnect the configured offline depot and connect again.
+
+wget http://build-squid.vcfd.broadcom.net/build/mts/release/bora-24966933/publish/PROD/metadata/productVersionCatalog/v1/productVersionCatalog-delta.json"
+wget "http://build-squid.vcfd.broadcom.net/build/mts/release/bora-24966933/publish/PROD/metadata/productVersionCatalog/v1/productVersionCatalog-delta.sig"
+
+
+cp productVersionCatalog-delta.json /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/productVersionCatalog/v1/productVersionCatalog.json   
+cp productVersionCatalog-delta.sig   /root/tonjiak/vcf9/offlinedepot/depot/vcf9.01/PROD/metadata/productVersionCatalog/v1/productVersionCatalog.sig 
+
+1. meaning, in the docker container
+2. vpn to broadcom
+3. wget those delta files
+4. copy and overwrite the productVersionCatalog.json  productVersionCatalog.sig
