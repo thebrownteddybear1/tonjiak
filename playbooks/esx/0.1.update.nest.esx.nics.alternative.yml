@@ -50,7 +50,12 @@
           - size_gb: 40
             type: thin
             datastore: "datastore1"
-
+          - size_gb: 500gb
+            type: thin
+            datastore: "nvme1"
+          - size_gb: 1024
+            type: thin
+            datastore: "datastore1"            
         networks:
           - name: "nestedtrunk1g"
             device_type: vmxnet3
