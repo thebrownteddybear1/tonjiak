@@ -19,7 +19,7 @@
       - { name: "esx19" }
 
   tasks:
-    - name: Create Workload ESXi VMs on Socket 1 (No CPU Reservation)
+    - name: Create Workload ESXi VMs with IOMMU Expose
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -35,18 +35,19 @@
           memory_mb: 57344       # 56GB
           num_cpu_cores_per_socket: 16
           nested_virt: true
-          mem_reservation: 57344 # Full RAM Lock for stability
-          # cpu_reservation is omitted to allow dynamic sharing
+          mem_reservation: 57344 # Full RAM Lock
 
         advanced_settings:
           - key: "vhv.enable"
             value: "True"
+          - key: "vvtd.enable"
+            value: "True"    # <-- EXPOSES IOMMU TO GUEST
           - key: "numa.nodeAffinity"
-            value: "1"            # Hard pinned to Physical Socket 1
+            value: "1"            
           - key: "sched.cpu.affinity"
-            value: "56-111"       # Locked to threads 56-111
+            value: "56-111"       
           - key: "numa.preferHT"
-            value: "true"
+            value: "True"
 
         disk:
           - { size_gb: 40, type: thin, datastore: "datastore1" }
