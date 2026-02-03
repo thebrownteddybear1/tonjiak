@@ -46,7 +46,7 @@
           - key: "sched.cpu.affinity"
             value: "56-111"       # Locked to threads 56-111
           - key: "numa.preferHT"
-            value: "True"
+            value: "true"
 
         disk:
           - { size_gb: 40, type: thin, datastore: "datastore1" }
