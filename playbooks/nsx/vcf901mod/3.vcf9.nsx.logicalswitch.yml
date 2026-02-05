@@ -16,7 +16,7 @@
         display_name: "seg-edge-htep"
         description: "htep = reuse same vlan as host. VLANs 11 and 54, 11 coz uplink vlan 11 gots out from here also"
 
-        vlan_ids: "11,54"
+        vlan_ids: "0,11,54"
         
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "nsx-vlan-transportzone"
