@@ -51,7 +51,7 @@
         password: "{{password}}"
         validate_certs: false
         display_name: "segment-mgt-vlan0"
-        description: "management segment with VLANs 0"
+        description: "management segment with VLANs 0, maybe for avi"
 
         vlan_ids: "0"
         
