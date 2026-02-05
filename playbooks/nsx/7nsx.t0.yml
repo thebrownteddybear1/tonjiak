@@ -5,7 +5,7 @@
   gather_facts: false
   
   vars:
-    nsxt_host: "192.168.50.54"
+    nsxt_host: "192.168.50.40"
     nsxt_user: "admin"
     nsxt_pass: "VMware1!VMware1!"
     
