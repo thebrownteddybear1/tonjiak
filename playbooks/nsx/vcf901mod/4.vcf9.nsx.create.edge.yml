@@ -48,7 +48,7 @@
               vc_password: "VMware1!VMware1!"
               data_networks:
                 - seg-edge-htep
-              management_network: "seg-edge-htep"
+              management_network: "segment-mgt-vlan0"
               compute: "cluster1"
               storage: "wlk-cluster1-ds-nfs1"
           node_settings:
