@@ -6,9 +6,9 @@
     username: "admin"
     password: "VMware1!VMware1!"
     validate_certs: false
-    
+
     edge_transport_nodes:
-      - display_name: edge1
+      - display_name: edge2edge2-cluster-1.corp.internal
         host_switches:
           - host_switch_profiles:
               - name: nsx-edge-single-nic-uplink-profile
@@ -17,7 +17,7 @@
             host_switch_mode: STANDARD
             pnics:
               - device_name: "fp-eth0"
-                uplink_name: "uplink-2"
+                uplink_name: "uplink-1"
             ip_assignment_spec:
               resource_type: StaticIpPoolSpec
               ip_pool_name: "wlkhtep"
@@ -38,7 +38,7 @@
               ipv4_assignment_enabled: true
               management_port_subnets:
                 - ip_addresses:
-                    - "192.168.50.46"
+                    - "192.168.50.47"
                   prefix_length: 24
               default_gateway_addresses:
                 - "192.168.50.254"
@@ -55,7 +55,7 @@
             allow_ssh_root_login: true
             enable_ssh: true
             hostname: "edge1.corp.internal"
-  
+
   tasks:
     - name: Create edge transport nodes (async)
       vmware.ansible_for_nsxt.nsxt_transport_nodes:
