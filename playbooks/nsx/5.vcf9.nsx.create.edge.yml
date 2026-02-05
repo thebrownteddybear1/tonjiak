@@ -8,7 +8,7 @@
     validate_certs: false
 
     edge_transport_nodes:
-      - display_name: edge2edge2-cluster-1.corp.internal
+      - display_name: edge2-cluster-1.corp.internal
         host_switches:
           - host_switch_profiles:
               - name: nsx-edge-single-nic-uplink-profile
