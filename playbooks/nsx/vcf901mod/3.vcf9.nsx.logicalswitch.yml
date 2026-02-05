@@ -16,7 +16,7 @@
         display_name: "seg-edge-htep"
         description: "htep = reuse same vlan as host. VLANs 11 and 54, 11 coz uplink vlan 11 gots out from here also"
 
-        vlan_ids: "0,11,54"
+        vlan_ids: "11,54"
         
         # Transport zone (must be VLAN-backed)
         transport_zone_display_name: "nsx-vlan-transportzone"
@@ -27,7 +27,7 @@
       ansible.builtin.pause:
         seconds: 10
 
-    - name: Create VLAN 11 for uplink
+    - name: Create VLAN 11 for uplink 
       vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{hostname}}"
         username: "{{username}}"
@@ -44,6 +44,21 @@
         state: present
 
 
+    - name: Create VLAN 0 for uplink 
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
+        hostname: "{{hostname}}"
+        username: "{{username}}"
+        password: "{{password}}"
+        validate_certs: false
+        display_name: "segment-uplink-vlan0"
+        description: "management segment with VLANs 0"
+
+        vlan_ids: "0"
+        
+        # Transport zone (must be VLAN-backed)
+        transport_zone_display_name: "nsx-vlan-transportzone"
+        admin_state: "UP"
+        state: present
 
 
       
