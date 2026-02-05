@@ -20,7 +20,7 @@
     
     # BGP configuration
     local_as: "65002"
-    neighbor_ip: "10.11.11.53"
+    neighbor_ip: "10.11.11.254"
     neighbor_as: "65001"
   
   tasks:
