@@ -50,7 +50,7 @@
         username: "{{username}}"
         password: "{{password}}"
         validate_certs: false
-        display_name: "segment-uplink-vlan0"
+        display_name: "segment-mgt-vlan0"
         description: "management segment with VLANs 0"
 
         vlan_ids: "0"
