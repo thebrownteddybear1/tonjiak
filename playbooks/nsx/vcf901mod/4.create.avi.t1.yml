@@ -1,0 +1,21 @@
+---
+- hosts: localhost
+  tasks:
+    - name: Create Avi Tier-1 Gateway
+      vmware.ansible_for_nsxt.nsxt_policy_tier1:
+        hostname: "192.168.50.40"
+        username: "admin"
+        password: "VMware1!VMware1!"
+        validate_certs: False
+        display_name: "test-tier22222"
+        state: present
+        tier0_display_name: "tier0-gateway" # Matching your environment
+        failover_mode: "PREEMPTIVE"
+        # Enabling specific advertisements for Avi Load Balancing
+        route_advertisement_types:
+          - 'TIER1_STATIC_ROUTES'
+          - 'TIER1_CONNECTED'
+          - 'TIER1_LB_VIP'      # Required for Avi Virtual IPs
+          - 'TIER1_LB_SNAT'     # Required for Avi Source NAT
+        disable_firewall: True
+        pool_allocation: "ROUTING"
