@@ -44,19 +44,19 @@
         state: present
 
 
-    - name: Create AVI mgt segment
-      vmware.ansible_for_nsxt.nsxt_policy_segment:
-        hostname: "{{hostname}}"
-        username: "{{username}}"
-        password: "{{password}}"
-        validate_certs: false
-        display_name: "segment-avi-mgt-overlay"
-        description: "management segment with VLANs 0, maybe for avi"
+    # - name: Create AVI mgt segment
+    #   vmware.ansible_for_nsxt.nsxt_policy_segment:
+    #     hostname: "{{hostname}}"
+    #     username: "{{username}}"
+    #     password: "{{password}}"
+    #     validate_certs: false
+    #     display_name: "segment-avi-mgt-overlay"
+    #     description: "management segment with VLANs 0, maybe for avi"
 
-        vlan_ids: "0"
-        transport_zone_display_name: "overlay-tz-wlknsxvip40"
-        admin_state: "UP"
-        state: present
+    #     vlan_ids: "0"
+    #     transport_zone_display_name: "overlay-tz-wlknsxvip40"
+    #     admin_state: "UP"
+    #     state: present
 
 
       

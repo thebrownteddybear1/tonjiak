@@ -11,7 +11,7 @@
     gateway_ip: "10.2.2.253/24"
 
   tasks:
-    - name: Connect Overlay Segment to Tier-1 Gateway
+    - name: create and Connect Overlay Segment to Tier-1 Gateway
       vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
