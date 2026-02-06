@@ -6,7 +6,7 @@
     username: "admin"
     password: "VMware1!VMware1!"
     t1_name: "AVI-T1"
-    segment_name: "segment-avi-mgt-overlay"
+    segment_name: "ContainerSwitchAvi-1"
     transport_zone: "overlay-tz-wlknsxvip40"
     gateway_ip: "10.2.2.253/24"
 
