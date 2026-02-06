@@ -1,0 +1,36 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  vars:
+    hostname: "192.168.50.40"
+    username: "admin"
+    password: "VMware1!VMware1!"
+    t1_name: "AVI-T1"
+    segment_name: "segment-avi-mgt-overlay"
+    transport_zone: "overlay-tz-wlknsxvip40"
+    gateway_ip: "10.2.2.253/24"
+
+  tasks:
+    - name: Connect Overlay Segment to Tier-1 Gateway
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
+        hostname: "{{ hostname }}"
+        username: "{{ username }}"
+        password: "{{ password }}"
+        validate_certs: false
+        state: present
+        display_name: "{{ segment_name }}"
+        description: "Attached to {{ t1_name }} for Avi Management"
+        
+        # Connection Logic
+        tier1_display_name: "{{ t1_name }}"
+        
+        # Subnet/Gateway Configuration
+        subnets:
+          - gateway_address: "{{ gateway_ip }}"
+        
+        # Network Fabric Settings
+        transport_zone_display_name: "{{ transport_zone }}"
+        vlan_ids: 
+          - "0"
+        admin_state: "UP"
+        replication_mode: "MTEP"
