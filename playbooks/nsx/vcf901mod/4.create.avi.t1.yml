@@ -1,21 +1,29 @@
 ---
 - hosts: localhost
   tasks:
-    - name: Create Avi Tier-1 Gateway
+    - name: Create AVI-T1 Gateway with Active-Standby and LB Small
       vmware.ansible_for_nsxt.nsxt_policy_tier1:
         hostname: "192.168.50.40"
         username: "admin"
         password: "VMware1!VMware1!"
         validate_certs: False
-        display_name: "test-tier22222"
         state: present
-        tier0_display_name: "tier0-gateway" # Matching your environment
+        # Updated Display Name
+        display_name: "AVI-T1"
+        tier0_display_name: "tier0-gateway"
+        
+        # HA Mode & Failover (PREEMPTIVE = Active-Standby)
         failover_mode: "PREEMPTIVE"
-        # Enabling specific advertisements for Avi Load Balancing
+        
+        # Edge Resource Reservation
+        pool_allocation: "LB_SMALL"
+        
+        # Route Advertisements for Avi Load Balancer
         route_advertisement_types:
           - 'TIER1_STATIC_ROUTES'
           - 'TIER1_CONNECTED'
-          - 'TIER1_LB_VIP'      # Required for Avi Virtual IPs
-          - 'TIER1_LB_SNAT'     # Required for Avi Source NAT
+          - 'TIER1_LB_VIP'
+          - 'TIER1_LB_SNAT'
+        
         disable_firewall: True
-        pool_allocation: "ROUTING"
+        enable_standby_relocation: False
