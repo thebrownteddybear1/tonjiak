@@ -1,0 +1,2 @@
+curl -k -u 'admin' -X DELETE "https://192.168.50.40/policy/api/v1/infra/alb-onboarding-workflow"
+
