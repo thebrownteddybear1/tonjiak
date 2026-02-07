@@ -1,0 +1,52 @@
+curl -k -u 'admin' --location --request PUT 'https://192.168.50.40/policy/api/v1/infra/alb-onboarding-workflow' \
+--header 'X-Allow-Overwrite: True' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"owned_by": "LCM",
+"cluster_ip": "192.168.50.42",
+"infra_admin_username" : "admin",
+"infra_admin_password" : "VMware1!VMware1!",
+"default_cert": false
+}'
+
+
+#######################################################
+###you can only register once it seems
+### so make it count
+root@dnsserver:~/docker.image/vcf9/avi# curl -k -u 'admin' --location --request PUT 'https://192.168.50.40/policy/api/v1/infra/alb-onboarding-workflow' \
+--header 'X-Allow-Overwrite: True' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"owned_by": "LCM",
+"cluster_ip": "192.168.50.42",
+"infra_admin_username" : "admin",
+"infra_admin_password" : "VMware1!VMware1!",
+"default_cert": false
+}'
+Enter host password for user 'admin':
+
+{
+  "httpStatus" : "BAD_REQUEST",
+  "error_code" : 500016,
+  "module_name" : "Policy",
+  "error_message" : "Enforcement point already exist, please de-register Avi Load Balancer Controller from NSX and try again."
+}
+root@dnsserver:~/docker.image/vcf9/avi#
+
+
+####################################################
+
+curl -k -u 'admin:NSX MANAGER PASSWORD' --location --request PUT 'https://<NSX MANAGER>/policy/api/v1/infra/alb-onboarding-workflow' \
+--header 'X-Allow-Overwrite: True' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+"owned_by": "LCM",
+"cluster_ip": "<AVI CONTROLLER IP>",
+"infra_admin_username" : "admin",
+"infra_admin_password" : "<AVI PASSWORD>",
+"default_cert": false
+}'
+
+
+################### to check what is the current enforcement
+curl -k -u 'admin' -X GET "https://192.168.50.40/policy/api/v1/infra/sites/default/enforcement-points"
