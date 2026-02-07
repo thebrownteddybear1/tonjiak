@@ -34,7 +34,7 @@ K8S_MGMT_PORTGROUP1='cluster1-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP2='cluster22-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP3='cluster33-vds-01-pg-mgmt'
 K8S_WKD0_PORTGROUP='Workload0-VDS-PG' # Not needed for NSX
-K8S_STORAGE_POLICY=' wk1sc'
+K8S_STORAGE_POLICY=' wk1sc2'
 
 ###############################################################
 # AVI specific variables
