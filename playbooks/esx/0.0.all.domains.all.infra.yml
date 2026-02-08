@@ -10,13 +10,13 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    # Infrastructure List (NO DISK SETTINGS TO AVOID ERRORS)
+    # Infrastructure List (Cleaned Integer Values)
     infra_vms:
       - { name: "nfsserver", cpu: 6, ram: 102400, res_mem: 81920, res_cpu: 10080, node: "1", aff: "56-111", latency: "high" }
       - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1638, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
       - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3276, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
 
-    # ESXi Host List (SET 40GB DISK)
+    # ESXi Host List
     esxi_hosts:
       - { name: "esx11", ram: 256000, res_mem: 204800, node: "0", aff: "0-55" }
       - { name: "esx12", ram: 256000, res_mem: 204800, node: "1", aff: "56-111" }
@@ -28,7 +28,7 @@
       - { name: "esx19", ram: 102400, res_mem: 81920, node: "1", aff: "56-111" }
 
   tasks:
-    - name: Update Infrastructure Resources (Bypass Disk Validation)
+    - name: Update Infrastructure Resources
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -38,24 +38,22 @@
         folder: "{{ vm_folder }}"
         state: present
         hardware:
-          num_cpus: "{{ item.cpu }}"
-          memory_mb: "{{ item.ram }}"
-          num_cpu_cores_per_socket: "{{ item.cpu }}"
+          num_cpus: "{{ item.cpu | int }}"
+          memory_mb: "{{ item.ram | int }}"
+          num_cpu_cores_per_socket: "{{ item.cpu | int }}"
+          mem_reservation: "{{ item.res_mem | int }}"
+          cpu_reservation: "{{ item.res_cpu | int }}"
           nested_virt: true
-          mem_reservation: "{{ item.res_mem }}"
-          cpu_reservation: "{{ item.res_cpu }}"
         advanced_settings:
           - key: "numa.nodeAffinity"
-            value: "{{ item.node }}"
+            value: "{{ item.node | string }}"
           - key: "sched.cpu.affinity"
-            value: "{{ item.aff }}"
+            value: "{{ item.aff | string }}"
           - key: "sched.cpu.latencySensitivity"
             value: "{{ item.latency | default('normal') }}"
-          - key: "vhv.enable"
-            value: "True"
       loop: "{{ infra_vms }}"
 
-    - name: Update ESXi Hosts (Resource + Enforce 40GB Disk)
+    - name: Update ESXi Hosts
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -66,16 +64,16 @@
         state: present
         hardware:
           num_cpus: 28
-          memory_mb: "{{ item.ram }}"
+          memory_mb: "{{ item.ram | int }}"
           num_cpu_cores_per_socket: 28
-          nested_virt: true
-          mem_reservation: "{{ item.res_mem }}"
+          mem_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: 47040
+          nested_virt: true
         advanced_settings:
           - key: "numa.nodeAffinity"
-            value: "{{ item.node }}"
+            value: "{{ item.node | string }}"
           - key: "sched.cpu.affinity"
-            value: "{{ item.aff }}"
+            value: "{{ item.aff | string }}"
           - key: "vhv.enable"
             value: "True"
         disk:
