@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Full Stack - Resource Reservations Fixed
+- name: Update VCF 9 Full Stack - Fixed Reservations
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,10 +10,10 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
+    # dns.ntp.offline.depot REMOVED to prevent self-modification errors
     infra_vms:
       - { name: "nfsserver", cpu: 6, ram: 102400, res_mem: 81920, res_cpu: 10080, node: "1", aff: "56-111", latency: "high" }
       - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1640, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
-      - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3280, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
 
     esxi_hosts:
       - { name: "esx11", ram: 256000, res_mem: 204800, node: "0", aff: "0-55" }
@@ -38,7 +38,7 @@
         hardware:
           num_cpus: "{{ item.cpu | int }}"
           memory_mb: "{{ item.ram | int }}"
-          # Corrected parameter name from mem_reservation to memory_reservation
+          # Correct parameter is memory_reservation
           memory_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: "{{ item.res_cpu | int }}"
         advanced_settings:
@@ -64,7 +64,6 @@
         hardware:
           num_cpus: 28
           memory_mb: "{{ item.ram | int }}"
-          # Corrected parameter name here as well
           memory_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: 47040
         advanced_settings:
@@ -74,5 +73,4 @@
             value: "{{ item.aff | string }}"
           - key: "vhv.enable"
             value: "True"
-        # Removed disk block temporarily to isolate the reservation error
       loop: "{{ esxi_hosts }}"
