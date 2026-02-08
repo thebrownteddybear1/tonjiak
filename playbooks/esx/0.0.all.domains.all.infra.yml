@@ -11,10 +11,8 @@
     vm_folder: "/ha-datacenter/vm"
 
     infra_vms:
-      # Infrastructure kept at original small sizes for efficiency
+      # vyos and dns.ntp.offline.depot REMOVED to prevent modification
       - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
- #     - { name: "vyos", cpu: 2, ram: 1436, res_mem: 1436, res_cpu: 4200, node: "0", aff: "0-55" }
- #     - { name: "dns.ntp.offline.depot", cpu: 2, ram: 2868, res_mem: 2868, res_cpu: 4200, node: "0", aff: "0-55" }
 
     esxi_mgmt:
       # Management: 28 vCPU / 170GB RAM (174080MB) / 20GHz CPU (20000MHz)
