@@ -1,0 +1,68 @@
+---
+- name: Deploy VCF 9 Workload Domain Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    vm_folder: "/ha-datacenter/vm"
+
+    workload_hosts:
+      - { name: "esx14" }
+      - { name: "esx15" }
+      - { name: "esx16" }
+      - { name: "esx17" }
+      - { name: "esx18" }
+      - { name: "esx19" }
+
+  tasks:
+    - name: Create Workload ESXi VMs on Socket 1 (No CPU Reservation)
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 16
+          memory_mb: 57344       # 56GB
+          num_cpu_cores_per_socket: 16
+          nested_virt: true
+          mem_reservation: 57344 # Full RAM Lock for stability
+          # cpu_reservation is omitted to allow dynamic sharing
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "numa.nodeAffinity"
+            value: "1"            # Hard pinned to Physical Socket 1
+          - key: "sched.cpu.affinity"
+            value: "56-111"       # Locked to threads 56-111
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+          - { size_gb: 500, type: thin, datastore: "nvme1" }
+          - { size_gb: 1024, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts }}"

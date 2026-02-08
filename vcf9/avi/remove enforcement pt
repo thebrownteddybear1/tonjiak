@@ -1,2 +1,3 @@
-curl -k -u 'admin' -X DELETE "https://192.168.50.40/policy/api/v1/infra/alb-onboarding-workflow"
-
+curl -k -u 'admin' -X DELETE \\
+"https://192.168.50.40/policy/api/v1/infra/sites/default/enforcement-points/alb-endpoint" \
+-H "X-Allow-Overwrite: true"
