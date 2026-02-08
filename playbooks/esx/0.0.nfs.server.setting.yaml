@@ -1,5 +1,5 @@
 ---
-- name: Configure NFS Server - Full Resource Lock
+- name: Configure NFS Server - PowerEdge R740xd Platinum 8176 Optimization
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,17 +10,17 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    # Settings for your NFS Server
     nfs_vm:
       name: "nfsserver"
       cpu: 6
       ram: 71680        # 70GB
-      res_cpu: 12600    # 100% of 6 cores (adjust if your CPU isn't 2.1GHz)
+      # 6 Cores * 2100MHz = 12600. This is 100% reservation for your CPU.
+      res_cpu: 12600    
       node: "1"
       aff: "56-111"
 
   tasks:
-    - name: Apply Full Reservations and Affinity
+    - name: Apply Platinum 8176 CPU and RAM Reservations
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -28,15 +28,16 @@
         validate_certs: false
         name: "{{ nfs_vm.name }}"
         folder: "{{ vm_folder }}"
-        state: present
+        state: present   # Keeps VM powered off
         hardware:
           num_cpus: "{{ nfs_vm.cpu | int }}"
           memory_mb: "{{ nfs_vm.ram | int }}"
-          # Based on your cat vmware_guest.py:
           mem_reservation: "{{ nfs_vm.ram | int }}"
           cpu_reservation: "{{ nfs_vm.res_cpu | int }}"
-          memory_reservation_lock: true
-          nested_virt: true
+          # The key to "Full Reserve" in your Python module:
+          memory_reservation_lock: true 
+          cpu_limit: "{{ nfs_vm.res_cpu | int }}"
+          mem_limit: "{{ nfs_vm.ram | int }}"
         advanced_settings:
           - key: "sched.cpu.latencySensitivity"
             value: "high"
