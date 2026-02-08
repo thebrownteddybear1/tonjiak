@@ -1,5 +1,5 @@
 ---
-- name: Force NFS Affinity via Advanced Config
+- name: Force NFS Resource Lock - Two Stage Apply
   hosts: localhost
   connection: local
   gather_facts: false
@@ -11,7 +11,7 @@
     vm_name: "nfsserver"
 
   tasks:
-    - name: Step 1 - Apply Strict Resource Reservations
+    - name: Stage 1 - Lock RAM and CPU Reservations
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -26,14 +26,18 @@
           cpu_reservation: 12600
           memory_reservation_lock: true
 
-    - name: Step 2 - Force Advanced VMX Parameters
-      community.vmware.vmware_guest_configuration:
+    - name: Stage 2 - Pin to Socket 1 (56-111)
+      community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
         name: "{{ vm_name }}"
-        config_params:
-          - {'key': 'sched.cpu.latencySensitivity', 'value': 'high'}
-          - {'key': 'numa.nodeAffinity', 'value': '1'}
-          - {'key': 'sched.cpu.affinity', 'value': '56-111'}
+        state: present
+        advanced_settings:
+          - key: "sched.cpu.affinity"
+            value: "56-111"
+          - key: "numa.nodeAffinity"
+            value: "1"
+          - key: "sched.cpu.latencySensitivity"
+            value: "high"
