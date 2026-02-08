@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Full Stack - Resource Reservations and Targeted Disks
+- name: Update VCF 9 Full Stack - Resource Reservations Fixed
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,13 +10,13 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    # Infrastructure List (Cleaned Integer Values)
+    # Infrastructure List (Adjusted to multiples of 4MB)
     infra_vms:
       - { name: "nfsserver", cpu: 6, ram: 102400, res_mem: 81920, res_cpu: 10080, node: "1", aff: "56-111", latency: "high" }
-      - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1638, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
-      - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3276, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
+      - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1640, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
+      - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3280, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
 
-    # ESXi Host List
+    # ESXi Host List (Already clean multiples of 1024)
     esxi_hosts:
       - { name: "esx11", ram: 256000, res_mem: 204800, node: "0", aff: "0-55" }
       - { name: "esx12", ram: 256000, res_mem: 204800, node: "1", aff: "56-111" }
@@ -40,10 +40,8 @@
         hardware:
           num_cpus: "{{ item.cpu | int }}"
           memory_mb: "{{ item.ram | int }}"
-          num_cpu_cores_per_socket: "{{ item.cpu | int }}"
           mem_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: "{{ item.res_cpu | int }}"
-          nested_virt: true
         advanced_settings:
           - key: "numa.nodeAffinity"
             value: "{{ item.node | string }}"
@@ -51,6 +49,8 @@
             value: "{{ item.aff | string }}"
           - key: "sched.cpu.latencySensitivity"
             value: "{{ item.latency | default('normal') }}"
+          - key: "vhv.enable"
+            value: "True"
       loop: "{{ infra_vms }}"
 
     - name: Update ESXi Hosts
@@ -65,10 +65,8 @@
         hardware:
           num_cpus: 28
           memory_mb: "{{ item.ram | int }}"
-          num_cpu_cores_per_socket: 28
           mem_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: 47040
-          nested_virt: true
         advanced_settings:
           - key: "numa.nodeAffinity"
             value: "{{ item.node | string }}"
