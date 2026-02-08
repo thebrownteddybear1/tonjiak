@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Infrastructure - 28 vCPU Nested / 20GHz Mgmt / 170GB RAM
+- name: Update VCF 9 Infrastructure - Optimized for vRA Deployment
   hosts: localhost
   connection: local
   gather_facts: false
@@ -11,25 +11,26 @@
     vm_folder: "/ha-datacenter/vm"
 
     infra_vms:
-      # vyos and dns.ntp.offline.depot REMOVED to prevent modification
+      # NFS remains high-priority to maintain that 45GB cache you have
       - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
 
     esxi_mgmt:
-      # Management: 28 vCPU / 170GB RAM (174080MB) / 20GHz CPU (20000MHz)
+      # Management: Keeping full reservations to ensure VCF 9 Bring-up success
       - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "0-55" }
       - { name: "esx12", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "1", aff: "56-111" }
 
     esxi_workload:
-      # Workload: 28 vCPU / 50GB RAM (51200MB) / 4GHz CPU (4000MHz)
-      - { name: "esx14", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
-      - { name: "esx15", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
-      - { name: "esx16", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
-      - { name: "esx17", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
-      - { name: "esx18", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
-      - { name: "esx19", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
+      # Workload: Reduced res_mem to 32GB (32768) to free up physical RAM for vRA
+      # CPU reservation removed (res_cpu: 0) to allow burstable vRA performance
+      - { name: "esx14", ram: 102400, res_mem: 32768, res_cpu: 0, node: "0", aff: "0-55" }
+      - { name: "esx15", ram: 102400, res_mem: 32768, res_cpu: 0, node: "1", aff: "56-111" }
+      - { name: "esx16", ram: 102400, res_mem: 32768, res_cpu: 0, node: "0", aff: "0-55" }
+      - { name: "esx17", ram: 102400, res_mem: 32768, res_cpu: 0, node: "1", aff: "56-111" }
+      - { name: "esx18", ram: 102400, res_mem: 32768, res_cpu: 0, node: "0", aff: "0-55" }
+      - { name: "esx19", ram: 102400, res_mem: 32768, res_cpu: 0, node: "1", aff: "56-111" }
 
   tasks:
-    - name: Update Infrastructure (High Latency)
+    - name: Update Infrastructure (NFS Server)
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -51,11 +52,9 @@
             value: "{{ item.aff | string }}"
           - key: "sched.cpu.latencySensitivity"
             value: "high"
-          - key: "vhv.enable"
-            value: "True"
-      loop: "{{ infra_vms }}"
+        loop: "{{ infra_vms }}"
 
-    - name: Update Nested ESXi Hosts (28 vCPUs)
+    - name: Update Nested ESXi Hosts (Management & Workload)
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -78,8 +77,4 @@
             value: "{{ item.aff | string }}"
           - key: "vhv.enable"
             value: "True"
-        disk:
-          - size_gb: 40
-            type: thin
-            datastore: datastore1
-      loop: "{{ esxi_mgmt + esxi_workload }}"
+        loop: "{{ esxi_mgmt + esxi_workload }}"
