@@ -11,7 +11,13 @@
     vm_folder: "/ha-datacenter/vm"
 
     infra_vms:
-      - { name: "nfsserver", cpu: 6, ram: 71680, node: "1", aff: "56-111" }
+      - name: "nfsserver"
+        cpu: 6
+        ram: 71680
+        # CALCULATE: 6 cores * [Your CPU MHz]. 12600 assumes 2.1GHz base.
+        res_cpu: 12600 
+        node: "1"
+        aff: "56-111"
 
   tasks:
     - name: Update Infrastructure (NFS Server) - Full Reservation
@@ -26,10 +32,9 @@
         hardware:
           num_cpus: "{{ item.cpu | int }}"
           memory_mb: "{{ item.ram | int }}"
-          # This locks the entire 70GB
           memory_reservation: "{{ item.ram | int }}"
-          # This locks 100% of the CPU frequency for all 6 cores
-          cpu_reservation_all_cores: true
+          memory_reservation_lock: true
+          cpu_reservation: "{{ item.res_cpu | int }}"
           nested_virt: true
         advanced_settings:
           - key: "sched.cpu.latencySensitivity"
