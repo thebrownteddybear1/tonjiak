@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Infrastructure - 20GHz Mgmt / 170GB RAM
+- name: Update VCF 9 Infrastructure - 28 vCPU Nested / 20GHz Mgmt / 170GB RAM
   hosts: localhost
   connection: local
   gather_facts: false
@@ -11,20 +11,21 @@
     vm_folder: "/ha-datacenter/vm"
 
     infra_vms:
+      # Infrastructure kept at original small sizes for efficiency
       - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
       - { name: "vyos", cpu: 2, ram: 1436, res_mem: 1436, res_cpu: 4200, node: "0", aff: "0-55" }
       - { name: "dns.ntp.offline.depot", cpu: 2, ram: 2868, res_mem: 2868, res_cpu: 4200, node: "0", aff: "0-55" }
 
     esxi_mgmt:
-      # Management: 170GB RAM (174080MB) & 20GHz CPU (20000MHz)
+      # Management: 28 vCPU / 170GB RAM (174080MB) / 20GHz CPU (20000MHz)
       - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "0-55" }
       - { name: "esx12", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "1", aff: "56-111" }
 
     esxi_workload:
-      # Workload: 50GB RAM (51200MB) & 4GHz CPU (4000MHz)
+      # Workload: 28 vCPU / 50GB RAM (51200MB) / 4GHz CPU (4000MHz)
       - { name: "esx14", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
       - { name: "esx15", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
-      - { name: "esx16", ram: 102400, res_mem: 51200, node: "0", aff: "0-55" }
+      - { name: "esx16", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
       - { name: "esx17", ram: 102400, res_mem: 51200, node: "1", aff: "56-111" }
       - { name: "esx18", ram: 102400, res_mem: 51200, node: "0", aff: "0-55" }
       - { name: "esx19", ram: 102400, res_mem: 51200, node: "1", aff: "56-111" }
@@ -44,6 +45,7 @@
           memory_mb: "{{ item.ram | int }}"
           memory_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: "{{ item.res_cpu | int }}"
+          nested_virt: true
         advanced_settings:
           - key: "numa.nodeAffinity"
             value: "{{ item.node | string }}"
@@ -55,7 +57,7 @@
             value: "True"
       loop: "{{ infra_vms }}"
 
-    - name: Update Nested ESXi Hosts (Mgmt & Workload)
+    - name: Update Nested ESXi Hosts (28 vCPUs)
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -70,6 +72,7 @@
           num_cpu_cores_per_socket: 28
           memory_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: "{{ item.res_cpu | int }}"
+          nested_virt: true
         advanced_settings:
           - key: "numa.nodeAffinity"
             value: "{{ item.node | string }}"
