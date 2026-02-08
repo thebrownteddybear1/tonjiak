@@ -1,5 +1,5 @@
 ---
-- name: Force NFS Resource Lock - Platinum 8176
+- name: Force NFS Affinity via Advanced Config
   hosts: localhost
   connection: local
   gather_facts: false
@@ -8,33 +8,32 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
-    
-    # 56-111 expressed as a comma list to force ESXi to accept it
-    cpu_list: "56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111"
+    vm_name: "nfsserver"
 
   tasks:
-    - name: Hard Set Reservations and Affinity
+    - name: Step 1 - Apply Strict Resource Reservations
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
-        name: "nfsserver"
+        name: "{{ vm_name }}"
         state: present
         hardware:
           num_cpus: 6
           memory_mb: 71680
-          # Reservations
           mem_reservation: 71680
           cpu_reservation: 12600
-          # Limits (Locks the resources)
-          mem_limit: 71680
-          cpu_limit: 12600
           memory_reservation_lock: true
-        advanced_settings:
-          - key: "sched.cpu.affinity"
-            value: "{{ cpu_list }}"
-          - key: "numa.nodeAffinity"
-            value: "1"
-          - key: "sched.cpu.latencySensitivity"
-            value: "high"
+
+    - name: Step 2 - Force Advanced VMX Parameters
+      community.vmware.vmware_guest_configuration:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ vm_name }}"
+        config_params:
+          - {'key': 'sched.cpu.latencySensitivity', 'value': 'high'}
+          - {'key': 'numa.nodeAffinity', 'value': '1'}
+          - {'key': 'sched.cpu.affinity', 'value': '56-111'}
