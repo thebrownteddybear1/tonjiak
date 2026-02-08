@@ -1,39 +1,34 @@
 ---
-- name: Deploy VCF 9 Full Stack - 80 Percent Reserved
+- name: Update VCF 9 Full Stack - Resource Reservations and Targeted Disks
   hosts: localhost
   connection: local
   gather_facts: false
-#this is 80% reservation for all vm cpu and ram
+
   vars:
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
-    
-    # ISO Paths
-    esxi_iso: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
-    ubuntu_iso: "[datastore1] /ubuntu-22.04.3-live-server-amd64.iso"
 
-    nested_inventory:
-      # --- INFRASTRUCTURE (80% of 2.1GHz per core / 80% RAM) ---
-      - { name: "nfsserver", cpu: 6, ram: 102400, res_mem: 81920, res_cpu: 10080, node: "1", aff: "56-111", guest: "ubuntu64Guest", extra_disk: 1843, iso: "{{ ubuntu_iso }}", latency: "high" }
-      - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1638, res_cpu: 3360, node: "0", aff: "0-55", guest: "ubuntu64Guest", iso: "{{ ubuntu_iso }}" }
-      - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3276, res_cpu: 3360, node: "0", aff: "0-55", guest: "ubuntu64Guest", iso: "{{ ubuntu_iso }}" }
-      
-      # --- MANAGEMENT DOMAIN (80% of 256GB / 80% of 28 Cores) ---
-      - { name: "esx11", cpu: 28, ram: 256000, res_mem: 204800, res_cpu: 47040, node: "0", aff: "0-55", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx12", cpu: 28, ram: 256000, res_mem: 204800, res_cpu: 47040, node: "1", aff: "56-111", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      
-      # --- WORKLOAD DOMAIN (80% of 100GB / 80% of 28 Cores) ---
-      - { name: "esx14", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "0", aff: "0-55", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx15", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "1", aff: "56-111", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx16", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "0", aff: "0-55", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx17", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "1", aff: "56-111", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx18", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "0", aff: "0-55", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
-      - { name: "esx19", cpu: 28, ram: 102400, res_mem: 81920, res_cpu: 47040, node: "1", aff: "56-111", guest: "vmkernel8Guest", iso: "{{ esxi_iso }}" }
+    # Infrastructure List (NO DISK SETTINGS TO AVOID ERRORS)
+    infra_vms:
+      - { name: "nfsserver", cpu: 6, ram: 102400, res_mem: 81920, res_cpu: 10080, node: "1", aff: "56-111", latency: "high" }
+      - { name: "vyos", cpu: 2, ram: 2048, res_mem: 1638, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
+      - { name: "dns.ntp.offline.depot", cpu: 2, ram: 4096, res_mem: 3276, res_cpu: 3360, node: "0", aff: "0-55", latency: "normal" }
+
+    # ESXi Host List (SET 40GB DISK)
+    esxi_hosts:
+      - { name: "esx11", ram: 256000, res_mem: 204800, node: "0", aff: "0-55" }
+      - { name: "esx12", ram: 256000, res_mem: 204800, node: "1", aff: "56-111" }
+      - { name: "esx14", ram: 102400, res_mem: 81920, node: "0", aff: "0-55" }
+      - { name: "esx15", ram: 102400, res_mem: 81920, node: "1", aff: "56-111" }
+      - { name: "esx16", ram: 102400, res_mem: 81920, node: "0", aff: "0-55" }
+      - { name: "esx17", ram: 102400, res_mem: 81920, node: "1", aff: "56-111" }
+      - { name: "esx18", ram: 102400, res_mem: 81920, node: "0", aff: "0-55" }
+      - { name: "esx19", ram: 102400, res_mem: 81920, node: "1", aff: "56-111" }
 
   tasks:
-    - name: Create Balanced VCF 9 Lab Fleet
+    - name: Update Infrastructure Resources (Bypass Disk Validation)
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -42,7 +37,6 @@
         name: "{{ item.name }}"
         folder: "{{ vm_folder }}"
         state: present
-        guest_id: "{{ item.guest }}"
         hardware:
           num_cpus: "{{ item.cpu }}"
           memory_mb: "{{ item.ram }}"
@@ -51,22 +45,41 @@
           mem_reservation: "{{ item.res_mem }}"
           cpu_reservation: "{{ item.res_cpu }}"
         advanced_settings:
-          - key: "vhv.enable"
-            value: "True"
           - key: "numa.nodeAffinity"
             value: "{{ item.node }}"
           - key: "sched.cpu.affinity"
             value: "{{ item.aff }}"
-          - key: "numa.preferHT"
-            value: "True"
           - key: "sched.cpu.latencySensitivity"
             value: "{{ item.latency | default('normal') }}"
+          - key: "vhv.enable"
+            value: "True"
+      loop: "{{ infra_vms }}"
+
+    - name: Update ESXi Hosts (Resource + Enforce 40GB Disk)
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        hardware:
+          num_cpus: 28
+          memory_mb: "{{ item.ram }}"
+          num_cpu_cores_per_socket: 28
+          nested_virt: true
+          mem_reservation: "{{ item.res_mem }}"
+          cpu_reservation: 47040
+        advanced_settings:
+          - key: "numa.nodeAffinity"
+            value: "{{ item.node }}"
+          - key: "sched.cpu.affinity"
+            value: "{{ item.aff }}"
+          - key: "vhv.enable"
+            value: "True"
         disk:
-          - { size_gb: 40, type: thin, datastore: "datastore1" }
-          - { size_gb: "{{ item.extra_disk | default(omit) }}", type: thin, datastore: "datastore1" }
-        networks:
-          - { name: "nestedtrunk1g2", device_type: vmxnet3 }
-          - { name: "nestedtrunk1g2", device_type: vmxnet3 }
-        cdrom:
-          - { controller_type: ide, iso_path: "{{ item.iso }}", type: iso, state: present }
-      loop: "{{ nested_inventory }}"
+          - size_gb: 40
+            type: thin
+            datastore: datastore1
+      loop: "{{ esxi_hosts }}"
