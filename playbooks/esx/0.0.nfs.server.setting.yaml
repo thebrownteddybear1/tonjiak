@@ -10,37 +10,37 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    infra_vms:
-      - name: "nfsserver"
-        cpu: 6
-        ram: 71680
-        # CALCULATE: 6 cores * [Your CPU MHz]. 12600 assumes 2.1GHz base.
-        res_cpu: 12600 
-        node: "1"
-        aff: "56-111"
+    # Settings for your NFS Server
+    nfs_vm:
+      name: "nfsserver"
+      cpu: 6
+      ram: 71680        # 70GB
+      res_cpu: 12600    # 100% of 6 cores (adjust if your CPU isn't 2.1GHz)
+      node: "1"
+      aff: "56-111"
 
   tasks:
-    - name: Update Infrastructure (NFS Server) - Full Reservation
+    - name: Apply Full Reservations and Affinity
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
-        name: "{{ item.name }}"
+        name: "{{ nfs_vm.name }}"
         folder: "{{ vm_folder }}"
         state: present
         hardware:
-          num_cpus: "{{ item.cpu | int }}"
-          memory_mb: "{{ item.ram | int }}"
-          memory_reservation: "{{ item.ram | int }}"
+          num_cpus: "{{ nfs_vm.cpu | int }}"
+          memory_mb: "{{ nfs_vm.ram | int }}"
+          # Based on your cat vmware_guest.py:
+          mem_reservation: "{{ nfs_vm.ram | int }}"
+          cpu_reservation: "{{ nfs_vm.res_cpu | int }}"
           memory_reservation_lock: true
-          cpu_reservation: "{{ item.res_cpu | int }}"
           nested_virt: true
         advanced_settings:
           - key: "sched.cpu.latencySensitivity"
             value: "high"
           - key: "sched.cpu.affinity"
-            value: "{{ item.aff | string }}"
+            value: "{{ nfs_vm.aff | string }}"
           - key: "numa.nodeAffinity"
-            value: "{{ item.node | string }}"
-      loop: "{{ infra_vms }}"
+            value: "{{ nfs_vm.node | string }}"
