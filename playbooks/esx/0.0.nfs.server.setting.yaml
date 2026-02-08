@@ -1,5 +1,5 @@
 ---
-- name: Configure NFS Server - PowerEdge R740xd Platinum 8176 Optimization
+- name: Force NFS Resource Lock - Platinum 8176
   hosts: localhost
   connection: local
   gather_facts: false
@@ -8,40 +8,33 @@
     esxi_host: "192.168.50.108"
     esxi_user: "root"
     esxi_password: "VMware1!VMware1!"
-    vm_folder: "/ha-datacenter/vm"
-
-    nfs_vm:
-      name: "nfsserver"
-      cpu: 6
-      ram: 71680        # 70GB
-      # 6 Cores * 2100MHz = 12600. This is 100% reservation for your CPU.
-      res_cpu: 12600    
-      node: "1"
-      aff: "56-111"
+    
+    # 56-111 expressed as a comma list to force ESXi to accept it
+    cpu_list: "56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111"
 
   tasks:
-    - name: Apply Platinum 8176 CPU and RAM Reservations
+    - name: Hard Set Reservations and Affinity
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
         validate_certs: false
-        name: "{{ nfs_vm.name }}"
-        folder: "{{ vm_folder }}"
-        state: present   # Keeps VM powered off
+        name: "nfsserver"
+        state: present
         hardware:
-          num_cpus: "{{ nfs_vm.cpu | int }}"
-          memory_mb: "{{ nfs_vm.ram | int }}"
-          mem_reservation: "{{ nfs_vm.ram | int }}"
-          cpu_reservation: "{{ nfs_vm.res_cpu | int }}"
-          # The key to "Full Reserve" in your Python module:
-          memory_reservation_lock: true 
-          cpu_limit: "{{ nfs_vm.res_cpu | int }}"
-          mem_limit: "{{ nfs_vm.ram | int }}"
+          num_cpus: 6
+          memory_mb: 71680
+          # Reservations
+          mem_reservation: 71680
+          cpu_reservation: 12600
+          # Limits (Locks the resources)
+          mem_limit: 71680
+          cpu_limit: 12600
+          memory_reservation_lock: true
         advanced_settings:
+          - key: "sched.cpu.affinity"
+            value: "{{ cpu_list }}"
+          - key: "numa.nodeAffinity"
+            value: "1"
           - key: "sched.cpu.latencySensitivity"
             value: "high"
-          - key: "sched.cpu.affinity"
-            value: "{{ nfs_vm.aff | string }}"
-          - key: "numa.nodeAffinity"
-            value: "{{ nfs_vm.node | string }}"
