@@ -11,17 +11,13 @@
     vm_folder: "/ha-datacenter/vm"
 
     infra_vms:
-      # NFS remains high-priority to maintain that 45GB cache you have
       - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
 
     esxi_mgmt:
-      # Management: Keeping full reservations to ensure VCF 9 Bring-up success
       - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "0-55" }
       - { name: "esx12", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "1", aff: "56-111" }
 
     esxi_workload:
-      # Workload: Reduced res_mem to 32GB (32768) to free up physical RAM for vRA
-      # CPU reservation removed (res_cpu: 0) to allow burstable vRA performance
       - { name: "esx14", ram: 102400, res_mem: 32768, res_cpu: 0, node: "0", aff: "0-55" }
       - { name: "esx15", ram: 102400, res_mem: 32768, res_cpu: 0, node: "1", aff: "56-111" }
       - { name: "esx16", ram: 102400, res_mem: 32768, res_cpu: 0, node: "0", aff: "0-55" }
@@ -52,7 +48,7 @@
             value: "{{ item.aff | string }}"
           - key: "sched.cpu.latencySensitivity"
             value: "high"
-        loop: "{{ infra_vms }}"
+      loop: "{{ infra_vms }}"
 
     - name: Update Nested ESXi Hosts (Management & Workload)
       community.vmware.vmware_guest:
@@ -77,4 +73,4 @@
             value: "{{ item.aff | string }}"
           - key: "vhv.enable"
             value: "True"
-        loop: "{{ esxi_mgmt + esxi_workload }}"
+      loop: "{{ esxi_mgmt + esxi_workload }}"
