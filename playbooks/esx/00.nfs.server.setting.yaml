@@ -10,15 +10,14 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    # NFS Server Specific Settings
     nfs_vm:
       name: "nfsserver"
       cpu: 6
-      ram: 71680        # 70GB in MB
-      res_mem: 71680    # Full RAM Reservation
-      res_cpu: 12600    # ~12.6GHz Reservation
-      node: "1"         # NUMA Node 1
-      aff: "56-111"     # Socket 1 Threads
+      ram: 71680        
+      res_mem: 71680    
+      res_cpu: 12600    
+      node: "1"         
+      aff: "56-111"     
 
   tasks:
     - name: Apply Resource Reservations and Latency Settings
@@ -52,4 +51,5 @@
         validate_certs: false
         name: "{{ nfs_vm.name }}"
         state: powered-on
-      when: nfs_config.changed or nfs_config.instance.hw_power_status == "poweredOff":
+      # FIXED: Removed the trailing colon from the end of the when line
+      when: nfs_config.changed or (nfs_config.instance is defined and nfs_config.instance.hw_power_status == 'poweredOff')
