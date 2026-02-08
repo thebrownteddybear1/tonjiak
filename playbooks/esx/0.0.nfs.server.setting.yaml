@@ -1,5 +1,5 @@
 ---
-- name: Configure NFS Server - Optimized for vRA Storage
+- name: Configure NFS Server - Full Resource Lock
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,12 +10,11 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
 
-    # Using the exact same list/loop structure that worked for your ESXi hosts
     infra_vms:
-      - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
+      - { name: "nfsserver", cpu: 6, ram: 71680, node: "1", aff: "56-111" }
 
   tasks:
-    - name: Update Infrastructure (NFS Server)
+    - name: Update Infrastructure (NFS Server) - Full Reservation
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -27,14 +26,16 @@
         hardware:
           num_cpus: "{{ item.cpu | int }}"
           memory_mb: "{{ item.ram | int }}"
-          memory_reservation: "{{ item.res_mem | int }}"
-          cpu_reservation: "{{ item.res_cpu | int }}"
+          # This locks the entire 70GB
+          memory_reservation: "{{ item.ram | int }}"
+          # This locks 100% of the CPU frequency for all 6 cores
+          cpu_reservation_all_cores: true
           nested_virt: true
         advanced_settings:
-          - key: "numa.nodeAffinity"
-            value: "{{ item.node | string }}"
-          - key: "sched.cpu.affinity"
-            value: "{{ item.aff | string }}"
           - key: "sched.cpu.latencySensitivity"
             value: "high"
+          - key: "sched.cpu.affinity"
+            value: "{{ item.aff | string }}"
+          - key: "numa.nodeAffinity"
+            value: "{{ item.node | string }}"
       loop: "{{ infra_vms }}"
