@@ -1,0 +1,40 @@
+---
+- name: Configure NFS Server - Optimized for vRA Storage
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    vm_folder: "/ha-datacenter/vm"
+
+    # Using the exact same list/loop structure that worked for your ESXi hosts
+    infra_vms:
+      - { name: "nfsserver", cpu: 6, ram: 71680, res_mem: 71680, res_cpu: 12600, node: "1", aff: "56-111" }
+
+  tasks:
+    - name: Update Infrastructure (NFS Server)
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        hardware:
+          num_cpus: "{{ item.cpu | int }}"
+          memory_mb: "{{ item.ram | int }}"
+          memory_reservation: "{{ item.res_mem | int }}"
+          cpu_reservation: "{{ item.res_cpu | int }}"
+          nested_virt: true
+        advanced_settings:
+          - key: "numa.nodeAffinity"
+            value: "{{ item.node | string }}"
+          - key: "sched.cpu.affinity"
+            value: "{{ item.aff | string }}"
+          - key: "sched.cpu.latencySensitivity"
+            value: "high"
+      loop: "{{ infra_vms }}"
