@@ -24,9 +24,9 @@
       - { name: "esx14", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
       - { name: "esx15", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
       - { name: "esx16", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
-      - { name: "esx17", ram: 102400, res_mem: 51200, node: "1", aff: "56-111" }
-      - { name: "esx18", ram: 102400, res_mem: 51200, node: "0", aff: "0-55" }
-      - { name: "esx19", ram: 102400, res_mem: 51200, node: "1", aff: "56-111" }
+      - { name: "esx17", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
+      - { name: "esx18", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "0", aff: "0-55" }
+      - { name: "esx19", ram: 102400, res_mem: 51200, res_cpu: 4000, node: "1", aff: "56-111" }
 
   tasks:
     - name: Update Infrastructure (High Latency)
