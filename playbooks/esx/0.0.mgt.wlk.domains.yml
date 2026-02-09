@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Infrastructure - ESXi + NFS Server
+- name: Deploy VCF 9 Infrastructure - Full Stack
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,21 +10,23 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
     
-    # Calculation: 28 vCPUs * 2100MHz * 0.12 = 7056 MHz
+    # 28 vCPUs * 2100MHz * 0.12 = 7056 MHz
     workload_res_cpu: 7056
 
     # --- NFS STORAGE SERVER (FULLY RESERVED) ---
-    # Reserved on Node 0, Threads 0-15 (Dedicated Lane)
+    # 16 vCPUs * 2100MHz = 33600 MHz
+    # Pinned to Node 0, Threads 0-15
     nfs_server:
-      - { name: "nfsserver", ram: 102400, res_mem: 102400, res_cpu: 16800, node: "0", aff: "0-15", vcpu: 8, latency: "high" }
+      - { name: "nfsserver", ram: 102400, res_mem: 102400, res_cpu: 33600, node: "0", aff: "0-15", vcpu: 16, latency: "high" }
 
     # --- MANAGEMENT CLUSTER ---
-    # Adjusted affinity to start at thread 16 to avoid NFS overlap
+    # Mgmt nodes get priority affinity on Node 0 and Node 1
     esxi_mgmt:
       - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx12", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
 
     # --- WORKLOAD CLUSTER ---
+    # Workload hosts distributed across sockets, avoiding NFS threads 0-15
     esxi_workload:
       - { name: "esx14", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx15", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
@@ -34,29 +36,8 @@
       - { name: "esx19", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
 
   tasks:
-    - name: Apply Hardware, Reservations, and Affinity
+    - name: Apply Hardware, Reservations, and CPU Affinity
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
         password: "{{ esxi_password }}"
-        validate_certs: false
-        name: "{{ item.name }}"
-        folder: "{{ vm_folder }}"
-        state: present
-        hardware:
-          num_cpus: "{{ item.vcpu }}"
-          memory_mb: "{{ item.ram | int }}"
-          num_cpu_cores_per_socket: "{{ item.vcpu }}"
-          memory_reservation: "{{ item.res_mem | int }}"
-          cpu_reservation: "{{ item.res_cpu | int }}"
-          nested_virt: true
-        advanced_settings:
-          - key: "numa.nodeAffinity"
-            value: "{{ item.node | string }}"
-          - key: "sched.cpu.affinity"
-            value: "{{ item.aff | string }}"
-          - key: "vhv.enable"
-            value: "True"
-          - key: "sched.cpu.latencySensitivity"
-            value: "{{ item.latency }}"
-      loop: "{{ nfs_server + esxi_mgmt + esxi_workload }}"
