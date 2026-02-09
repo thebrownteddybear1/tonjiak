@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Infrastructure - 12% vCPU Reservation
+- name: Update VCF 9 Infrastructure - ESXi Hosts Only
   hosts: localhost
   connection: local
   gather_facts: false
@@ -25,11 +25,8 @@
       - { name: "esx18", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "0-55", vcpu: 28, latency: "normal" }
       - { name: "esx19", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
 
-    nfs_server:
-      - { name: "nfs-server", ram: 71680, res_mem: 71680, res_cpu: 15000, node: "1", aff: "56-111", vcpu: 6, latency: "high" }
-
   tasks:
-    - name: Apply Hardware and Affinity Settings
+    - name: Apply Hardware and Affinity Settings to ESXi Hosts
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -45,7 +42,6 @@
           memory_reservation: "{{ item.res_mem | int }}"
           cpu_reservation: "{{ item.res_cpu | int }}"
           nested_virt: true
-        latency_sensitivity: "{{ item.latency }}"
         advanced_settings:
           - key: "numa.nodeAffinity"
             value: "{{ item.node | string }}"
@@ -53,4 +49,6 @@
             value: "{{ item.aff | string }}"
           - key: "vhv.enable"
             value: "True"
-      loop: "{{ esxi_mgmt + esxi_workload + nfs_server }}"
+          - key: "sched.cpu.latencySensitivity"
+            value: "{{ item.latency }}"
+      loop: "{{ esxi_mgmt + esxi_workload }}"
