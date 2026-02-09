@@ -1,5 +1,5 @@
 ---
-- name: Update VCF 9 Infrastructure - ESXi Hosts Only
+- name: Update VCF 9 Infrastructure - ESXi + NFS Server
   hosts: localhost
   connection: local
   gather_facts: false
@@ -10,23 +10,31 @@
     esxi_password: "VMware1!VMware1!"
     vm_folder: "/ha-datacenter/vm"
     
-    # 28 vCPUs * 2100MHz * 0.12 = 7056 MHz
+    # Calculation: 28 vCPUs * 2100MHz * 0.12 = 7056 MHz
     workload_res_cpu: 7056
 
+    # --- NFS STORAGE SERVER (FULLY RESERVED) ---
+    # Reserved on Node 0, Threads 0-15 (Dedicated Lane)
+    nfs_server:
+      - { name: "nfsserver", ram: 102400, res_mem: 102400, res_cpu: 16800, node: "0", aff: "0-15", vcpu: 8, latency: "high" }
+
+    # --- MANAGEMENT CLUSTER ---
+    # Adjusted affinity to start at thread 16 to avoid NFS overlap
     esxi_mgmt:
-      - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "0-55", vcpu: 28, latency: "normal" }
+      - { name: "esx11", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx12", ram: 256000, res_mem: 174080, res_cpu: 20000, node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
 
+    # --- WORKLOAD CLUSTER ---
     esxi_workload:
-      - { name: "esx14", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "0-55", vcpu: 28, latency: "normal" }
+      - { name: "esx14", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx15", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
-      - { name: "esx16", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "0-55", vcpu: 28, latency: "normal" }
+      - { name: "esx16", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx17", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
-      - { name: "esx18", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "0-55", vcpu: 28, latency: "normal" }
+      - { name: "esx18", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "0", aff: "16-55", vcpu: 28, latency: "normal" }
       - { name: "esx19", ram: 102400, res_mem: 32768, res_cpu: "{{ workload_res_cpu }}", node: "1", aff: "56-111", vcpu: 28, latency: "normal" }
 
   tasks:
-    - name: Apply Hardware and Affinity Settings to ESXi Hosts
+    - name: Apply Hardware, Reservations, and Affinity
       community.vmware.vmware_guest:
         hostname: "{{ esxi_host }}"
         username: "{{ esxi_user }}"
@@ -51,4 +59,4 @@
             value: "True"
           - key: "sched.cpu.latencySensitivity"
             value: "{{ item.latency }}"
-      loop: "{{ esxi_mgmt + esxi_workload }}"
+      loop: "{{ nfs_server + esxi_mgmt + esxi_workload }}"
