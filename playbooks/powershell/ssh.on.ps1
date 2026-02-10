@@ -1,4 +1,4 @@
-$ip = "192.168.50.14"
+$ip = "192.168.50.11"
 $user = "root"
 $pass = "VMware1!VMware1!"
 
