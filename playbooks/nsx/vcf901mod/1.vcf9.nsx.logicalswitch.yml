@@ -19,7 +19,7 @@
         vlan_ids: "11,54"
         
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "nsx-vlan-transportzone"
+        transport_zone_display_name: "vlan-tz-wlknsxnode41"
         admin_state: "UP"
         state: present
 
@@ -39,7 +39,7 @@
         vlan_ids: "11"
         
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "nsx-vlan-transportzone"
+        transport_zone_display_name: "vlan-tz-wlknsxnode41"
         admin_state: "UP"
         state: present
 
