@@ -13,7 +13,7 @@
         tier0_display_name: "tier0-gateway"
         
         # HA Mode & Failover (PREEMPTIVE = Active-Standby)
-        failover_mode: "PREEMPTIVE"
+        failover_mode: "NON_PREEMPTIVE"
         
         # Edge Resource Reservation
         pool_allocation: "LB_SMALL"
