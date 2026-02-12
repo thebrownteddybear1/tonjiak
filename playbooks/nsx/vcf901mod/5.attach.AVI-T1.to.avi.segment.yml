@@ -7,7 +7,7 @@
     password: "VMware1!VMware1!"
     t1_name: "AVI-T1"
     segment_name: "ContainerSwitchAvi-1"
-    transport_zone: "ovoverlay-tz-wlknsxnode41"
+    transport_zone: "overlay-tz-wlknsxnode41"
     gateway_ip: "10.2.2.253/24"
 
   tasks:
