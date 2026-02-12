@@ -36,7 +36,7 @@
         description: "Tier-0 Gateway with VLAN11 uplink and BGP"
         state: present
         ha_mode: "ACTIVE_STANDBY"
-        failover_mode: "PREEMPTIVE"
+        failover_mode: "NON_PREEMPTIVE"
         disable_firewall: true
         force_whitelisting: true
         
