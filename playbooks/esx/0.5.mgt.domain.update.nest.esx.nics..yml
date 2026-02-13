@@ -182,7 +182,7 @@
           memory_mb: 256000       # 56GB
           num_cpu_cores_per_socket: 2
           nested_virt: true
-          mem_reservation: 174,080 # Full RAM Lock for stability
+          mem_reservation: 174080 # Full RAM Lock for stability
           # cpu_reservation is omitted to allow dynamic sharing
 
         advanced_settings:
