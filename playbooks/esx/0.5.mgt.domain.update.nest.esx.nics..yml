@@ -1,0 +1,213 @@
+---
+- name: Deploy VCF 9 Workload Domain Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    vm_folder: "/ha-datacenter/vm"
+    workload_hosts1112:
+      - { name: "esx11" }
+      - { name: "esx12" }
+
+
+    workload_hosts13:
+      - { name: "esx13" }      
+            
+    workload_hosts14_17:
+      - { name: "esx14" }
+      - { name: "esx15" }
+      - { name: "esx16" }
+      - { name: "esx17" }
+
+    workload_hosts1819:
+      - { name: "esx18" }
+      - { name: "esx19" }
+
+  tasks:
+    - name: Create Workload ESXi 14 17 VMs on Socket 1
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 8
+          memory_mb: 32768       # 56GB
+          num_cpu_cores_per_socket: 2
+          nested_virt: true
+          mem_reservation: 16384 # Full RAM Lock for stability
+          # cpu_reservation is omitted to allow dynamic sharing
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "numa.nodeAffinity"
+            value: "1"            # Hard pinned to Physical Socket 1
+          # - key: "sched.cpu.affinity"
+          #   value: "56-111"       # Locked to threads 56-111
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts14_17 }}"
+
+
+    - name: Create Workload ESXi 18 19 VMs on Socket 0
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 8
+          memory_mb: 32768       # 56GB
+          num_cpu_cores_per_socket: 2
+          nested_virt: true
+          mem_reservation: 16384 # Full RAM Lock for stability
+          # cpu_reservation is omitted to allow dynamic sharing
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "numa.nodeAffinity"
+            value: "0"            # Hard pinned to Physical Socket 1
+          # - key: "sched.cpu.affinity"
+          #   value: "56-111"       # Locked to threads 56-111
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts1819 }}"
+
+
+    - name: Create mgt ESXi 11 12 VMs on Socket 0
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 28
+          memory_mb: 256000       # 56GB
+          num_cpu_cores_per_socket: 2
+          nested_virt: true
+          mem_reservation: 174,080 # Full RAM Lock for stability
+          # cpu_reservation is omitted to allow dynamic sharing
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "numa.nodeAffinity"
+            value: "0"            # Hard pinned to Physical Socket 1
+          # - key: "sched.cpu.affinity"
+          #   value: "56-111"       # Locked to threads 56-111
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts1112 }}"
+
+
+    - name: Create mgt esx 13 VMs on Socket 1
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 28
+          memory_mb: 256000       # 56GB
+          num_cpu_cores_per_socket: 2
+          nested_virt: true
+          mem_reservation: 174,080 # Full RAM Lock for stability
+          # cpu_reservation is omitted to allow dynamic sharing
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "numa.nodeAffinity"
+            value: "1"            # Hard pinned to Physical Socket 1
+          # - key: "sched.cpu.affinity"
+          #   value: "56-111"       # Locked to threads 56-111
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts13 }}"
+
