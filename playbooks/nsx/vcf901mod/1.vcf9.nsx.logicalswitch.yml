@@ -5,7 +5,7 @@
     hostname: "192.168.50.40"
     username: "admin"
     password: "VMware1!VMware1!"
-    
+
   tasks:
     - name: Create VLAN trunk segment in Policy Mode for edge overlay
       vmware.ansible_for_nsxt.nsxt_policy_segment:
@@ -17,9 +17,9 @@
         description: "htep = reuse same vlan as host. VLANs 11 and 54, 11 coz uplink vlan 11 gots out from here also"
 
         vlan_ids: "11,54"
-        
+
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "vlan-tz-wlknsxnode41"
+        transport_zone_display_name: "vlan-tz-wlknsxvip40"
         admin_state: "UP"
         state: present
 
@@ -27,7 +27,7 @@
       ansible.builtin.pause:
         seconds: 10
 
-    - name: Create VLAN 11 for uplink 
+    - name: Create VLAN 11 for uplink
       vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{hostname}}"
         username: "{{username}}"
@@ -37,9 +37,9 @@
         description: "Policy segment with VLANs 11"
 
         vlan_ids: "11"
-        
+
         # Transport zone (must be VLAN-backed)
-        transport_zone_display_name: "vlan-tz-wlknsxnode41"
+        transport_zone_display_name: "vlan-tz-wlknsxvip40"
         admin_state: "UP"
         state: present
 
@@ -58,5 +58,3 @@
     #     admin_state: "UP"
     #     state: present
 
-
-      
