@@ -306,6 +306,6 @@ curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADE
 
 #TODO while configuring, keep checking for status of Supervisor until ready
 #curl -X POST 'https://vcsa-01.lab9.com/api/vcenter/namespace-management/supervisors/domain-c10?action=enable_on_compute_cluster'
-rm -f /tmp/temp_*.*
-rm -f temp_final.json
-rm -f zone.json
+# rm -f /tmp/temp_*.*
+# rm -f temp_final.json
+# rm -f zone.json
