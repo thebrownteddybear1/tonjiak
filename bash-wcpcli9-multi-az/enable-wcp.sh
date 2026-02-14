@@ -1,5 +1,5 @@
 #!/bin/bash
-set -x
+set +x
 ###################################################
 # Enter Infrastructure variables here
 ###################################################
@@ -62,7 +62,7 @@ export NSX_INGRESS_COUNT=200
 export NSX_EGRESS_NW='10.220.30.0/24' 
 export NSX_EGRESS_COUNT=200
 
-export NSX_NAMESPACE_NW='10.244.0.0/16'
+export NSX_NAMESPACE_NW='10.244.0.0'
 export NSX_NAMESPACE_COUNT=4096
 
 #############################################################
