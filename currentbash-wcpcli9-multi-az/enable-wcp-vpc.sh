@@ -21,7 +21,7 @@ K8S_SUP_ZONE1='cluster1'
 K8S_SUP_ZONE2='cluster2'
 K8S_SUP_ZONE3='cluster3'
 
-DEPLOYMENT_TYPE='NSX' # Allowed values are VPC, NSX, AVI, FLB
+DEPLOYMENT_TYPE='VPC' # Allowed values are VPC, NSX, AVI, FLB
 
 #####################################################
 # Common variables
@@ -322,6 +322,6 @@ curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADE
 
 #TODO while configuring, keep checking for status of Supervisor until ready
 #curl -X POST 'https://vcsa-01.lab9.com/api/vcenter/namespace-management/supervisors/domain-c10?action=enable_on_compute_cluster'
-# rm -f /tmp/temp_*.*
-# rm -f temp_final.json
-# rm -f zone.json
+ rm -f /tmp/temp_*.*
+ rm -f temp_final.json
+ rm -f zone.json

@@ -267,7 +267,7 @@ then
         ################################################
         # Get NSX VDS from vCenter
         ###############################################
-        echo "Searching for NSX compatible VDS switch ${$NSX_DVS_PORTGROUP}..."
+        echo "Searching for NSX compatible VDS switch ${NSX_DVS_PORTGROUP}..."
         response=$(curl -ks --write-out "%{http_code}" -X POST  -H "${HEADER_SESSIONID}" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility --output /tmp/temp_vds.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch VDS details. Please validate!!"
@@ -283,7 +283,7 @@ then
         ################################################
         # Get a Edge cluster ID from NSX Manager
         ###############################################
-        echo "Searching for Edge cluster in NSX Manager ${$NSX_EDGE_CLUSTER} ..."
+        echo "Searching for Edge cluster in NSX Manager ${NSX_EDGE_CLUSTER} ..."
 	    response=$(curl -ks --write-out "%{http_code}" -X GET -u "${NSX_USERNAME}:${NSX_PASSWORD}" -H 'Content-Type: application/json' https://${NSX_MANAGER}/api/v1/edge-clusters --output /tmp/temp_edgeclusters.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch Edge Cluster details. Please validate!!"
@@ -299,7 +299,7 @@ then
         ################################################
         # Get a Tier0 ID from NSX Manager
         ###############################################
-        echo "Searching for Tier0 in NSX Manager ${$NSX_T0_GATEWAY}..."
+        echo "Searching for Tier0 in NSX Manager ${NSX_T0_GATEWAY}..."
 	    response=$(curl -ks --write-out "%{http_code}" -X GET -u "${NSX_USERNAME}:${NSX_PASSWORD}" -H 'Content-Type: application/json' https://${NSX_MANAGER}/policy/api/v1/infra/tier-0s --output /tmp/temp_t0s.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch Tier0 details. Please validate!!"
