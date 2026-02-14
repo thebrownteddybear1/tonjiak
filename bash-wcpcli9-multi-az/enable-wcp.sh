@@ -54,17 +54,16 @@ export NSX_EDGE_CLUSTER='edge-cluster-1'
 export NSX_T0_GATEWAY='tier0-gateway'
 export NSX_DVS_PORTGROUP='cluster1-vds-01'
 
-# Change Ingress to a CIDR (e.g., /28 or /29)
-export NSX_INGRESS_NW='10.220.3.0/24'
+# Change Ingress/Egress back to Starting IPs
+export NSX_INGRESS_NW='10.220.3.1'
 export NSX_INGRESS_COUNT=200
 
-# Change Egress to a CIDR (Minimum /29 required for 4+ IPs)
-export NSX_EGRESS_NW='10.220.30.0/24' 
+export NSX_EGRESS_NW='10.220.30.1'
 export NSX_EGRESS_COUNT=200
 
+# Keep Namespace as a plain IP
 export NSX_NAMESPACE_NW='10.244.0.0'
 export NSX_NAMESPACE_COUNT=4096
-
 #############################################################
 # VPC specific variables
 #############################################################
