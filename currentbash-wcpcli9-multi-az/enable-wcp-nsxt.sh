@@ -4,6 +4,7 @@
 #git pull
 #sed -i 's/\${\$/\${/g' enable-wcp.sh
 #sed -i 's/"floating_IP_address"/"DISABLED_floating_IP_address"/g' enable_on_zone_nsx.json
+#remove DISABLED if for vpc, keep it as "floating_IP_address"
 #./enable-wcp.sh
 
 set -x
