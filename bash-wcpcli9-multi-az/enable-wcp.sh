@@ -1,4 +1,11 @@
 #!/bin/bash
+#run these to get rid of the errors
+#git stash
+#git pull
+#sed -i 's/\${\$/\${/g' enable-wcp.sh
+#sed -i 's/"floating_IP_address"/"DISABLED_floating_IP_address"/g' enable_on_zone_nsx.json
+#./enable-wcp.sh
+
 set -x
 ###################################################
 # Enter Infrastructure variables here
