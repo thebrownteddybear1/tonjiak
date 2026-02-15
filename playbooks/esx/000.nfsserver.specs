@@ -1,0 +1,47 @@
+---
+- name: Set NFS Server Size and Pin to NUMA 0
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1!VMware1!"
+    vm_name: "nfsserver"
+
+  tasks:
+    - name: Stage 1 - Increase VM RAM and vCPU Size
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+        state: present
+        hardware:
+          num_cpus: 2
+          memory_mb: 30720
+      # Note: VM must be powered off for this to apply
+
+    - name: Stage 2 - Apply Reservations and NUMA Pinning
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: no
+        name: "{{ vm_name }}"
+        state: present
+        hardware:
+          # Now that the VM is 30GB, the 30GB reservation will be accepted
+          mem_reservation: 30720
+          cpu_reservation: 4200
+          mem_limit: 30720
+          cpu_limit: 4200
+          memory_reservation_lock: true
+        advanced_settings:
+          - key: "numa.nodeAffinity"
+            value: "0"
+          - key: "sched.cpu.latencySensitivity"
+            value: "high"
+          - key: "sched.mem.pin"
+            value: "TRUE"
