@@ -61,10 +61,9 @@ K8S_STORAGE_POLICY='wk1sc2'
 export NSX_EDGE_CLUSTER='edge-cluster-1'
 export NSX_T0_GATEWAY='tier0-gateway'
 export NSX_DVS_PORTGROUP='cluster1-vds-01'
-
+#NW=network, must align with CIDR, for ingress | egress, leave the namespace alone
 export NSX_INGRESS_NW='10.220.2.0'
 export NSX_INGRESS_COUNT=512
-
 export NSX_EGRESS_NW='10.220.30.0'
 export NSX_EGRESS_COUNT=512
 export NSX_NAMESPACE_NW='10.244.0.0'
