@@ -8,7 +8,7 @@
     validate_certs: false
 
     edge_transport_nodes:
-      - display_name: edge2-cluster-1.corp.internal
+      - display_name: edge2
         host_switches:
           - host_switch_profiles:
               - name: nsx-edge-single-nic-uplink-profile
@@ -23,10 +23,10 @@
               ip_pool_name: "wlkhtep"
             transport_zone_endpoints:
               - transport_zone_name: "overlay-tz-wlknsxvip40"
-              - transport_zone_name: "nsx-vlan-transportzone"
+              - transport_zone_name: "vlan-tz-wlknsxvip40"
         node_deployment_info:
           resource_type: "EdgeNode"
-          display_name: "edge1"
+          display_name: "edge2"
           deployment_type: "VIRTUAL_MACHINE"
           deployment_config:
             form_factor: "LARGE"
@@ -48,13 +48,13 @@
               vc_password: "VMware1!VMware1!"
               data_networks:
                 - seg-edge-htep
-              management_network: "segment-mgt-vlan0"
+              management_network: "cluster1-vds-01-pg-mgmt"
               compute: "cluster1"
               storage: "wlk-cluster1-ds-nfs1"
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
-            hostname: "edge1.corp.internal"
+            hostname: "edge2.corp.internal"
 
   tasks:
     - name: Create edge transport nodes (async)
