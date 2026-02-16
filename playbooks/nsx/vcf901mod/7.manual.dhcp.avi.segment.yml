@@ -28,6 +28,6 @@
               resource_type: "SegmentDhcpV4Config"
               server_address: "10.2.2.254/24" 
               dns_servers:
-                - "10.2.2.252"
+                - "192.168.50.53"
               lease_time: 86400
         state: "present"
