@@ -9,7 +9,7 @@
 
   tasks:
     - name: Create Edge Cluster and Add Member Node
-      nsxt_edge_clusters:
+      vmware.ansible_for_nsxt.nsxt_edge_clusters:
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
