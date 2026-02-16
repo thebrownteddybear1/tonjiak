@@ -14,7 +14,7 @@
         username: "{{ username }}"
         password: "{{ password }}"
         validate_certs: "{{ validate_certs }}"
-        display_name: "edge-cluster-2"
+        display_name: "edge-cluster-1"
         state: present
         members:
-          - transport_node_name: "edge2"
+          - transport_node_name: "edge1"
