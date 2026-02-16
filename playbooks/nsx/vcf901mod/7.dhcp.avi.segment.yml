@@ -11,7 +11,7 @@
 
   tasks:
     - name: Ensure NSX-T Segment with DHCP is configured
-      vmware.ansxt.nsxt_policy_segment:
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{ nsx_manager_hostname }}"
         username: "{{ nsx_manager_username }}"
         password: "{{ nsx_manager_password }}"
