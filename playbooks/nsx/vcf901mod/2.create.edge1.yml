@@ -8,7 +8,7 @@
     validate_certs: false
 
     edge_transport_nodes:
-      - display_name: edge2
+      - display_name: edge1
         host_switches:
           - host_switch_profiles:
               - name: nsx-edge-single-nic-uplink-profile
@@ -26,7 +26,7 @@
               - transport_zone_name: "vlan-tz-wlknsxvip40"
         node_deployment_info:
           resource_type: "EdgeNode"
-          display_name: "edge2"
+          display_name: "edge1
           deployment_type: "VIRTUAL_MACHINE"
           deployment_config:
             form_factor: "LARGE"
@@ -38,7 +38,7 @@
               ipv4_assignment_enabled: true
               management_port_subnets:
                 - ip_addresses:
-                    - "192.168.50.47"
+                    - "192.168.50.46"
                   prefix_length: 24
               default_gateway_addresses:
                 - "192.168.50.254"
@@ -54,7 +54,7 @@
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
-            hostname: "edge2.corp.internal"
+            hostname: "edge1.corp.internal"
 
   tasks:
     - name: Create edge transport nodes (async)
