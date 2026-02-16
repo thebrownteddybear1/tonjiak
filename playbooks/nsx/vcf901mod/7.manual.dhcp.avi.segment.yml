@@ -7,7 +7,7 @@
     nsx_manager_username: "admin"
     nsx_manager_password: "VMware1!VMware1!"
     tier1_gateway_path: "/infra/tier-1s/AVI-T1"
-    dhcp_server_profile_path: "/infra/dhcp-server-profiles/ContainerSwitchAvi-1"
+    dhcp_server_profile_path: "/infra/dhcp-server-configs/ContainerSwitchAvi-1"
 
   tasks:
     - name: Ensure NSX-T Segment with DHCP is configured
