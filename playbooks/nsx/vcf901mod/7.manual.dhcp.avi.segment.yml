@@ -19,7 +19,7 @@
         id: "ContainerSwitchAvi-1"
         display_name: "ContainerSwitchAvi-1"
         connectivity_path: "{{ tier1_gateway_path }}"
-        transport_zone_id: "overlay-tz-wlknsxvip40"
+        #transport_zone_id: "overlay-tz-wlknsxvip40"
         dhcp_config_path: "{{ dhcp_server_profile_path }}"
         subnets:
           - gateway_address: "10.2.2.253/24"
