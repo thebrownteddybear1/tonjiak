@@ -9,9 +9,9 @@
     tier1_gateway_path: "/infra/tier-1s/AVI-T1"
     dhcp_server_profile_path: "/infra/dhcp-server-profiles/ContainerSwitchAvi-1"
 
-  tasks:  # This header must exist
+  tasks:
     - name: Ensure NSX-T Segment with DHCP is configured
-      vmware.ansible_for_nsxt.nsxt_policy_segment:  # Indented under 'name'
+      vmware.ansible_for_nsxt.nsxt_policy_segment:
         hostname: "{{ nsx_manager_hostname }}"
         username: "{{ nsx_manager_username }}"
         password: "{{ nsx_manager_password }}"
@@ -19,12 +19,17 @@
         id: "ContainerSwitchAvi-1"
         display_name: "ContainerSwitchAvi-1"
         connectivity_path: "{{ tier1_gateway_path }}"
-        transport_zone_id: "Ooverlay-tz-wlknsxvip40"
+        transport_zone_id: "overlay-tz-wlknsxvip40"
         dhcp_config_path: "{{ dhcp_server_profile_path }}"
         subnets:
-          - gateway_address: "10.2.2.1/24"
+          - gateway_address: "10.2.2.253/24"
+            # dhcp_ranges is a sibling to gateway_address
             dhcp_ranges:
               - "10.2.2.10-10.2.2.100"
-            dns_servers:
-              - "192.168.50.53"
+            # dhcp_config contains the specific DHCP parameters
+            dhcp_config:
+              resource_type: "SegmentDhcpV4Config"
+              dns_servers:
+                - "10.2.2.252"
+              lease_time: 86400
         state: "present"
