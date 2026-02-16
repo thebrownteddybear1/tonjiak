@@ -50,7 +50,7 @@
                 - seg-edge-htep
               management_network: "cluster1-vds-01-pg-mgmt"
               compute: "cluster1"
-              storage: "wlk-cluster1-ds-nfs1"
+              storage: "wwlk-cluster1-nfs1"
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
