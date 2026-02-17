@@ -11,7 +11,6 @@
       - display_name: edge1
         host_switches:
           - host_switch_profiles:
-              #- name: nsx-edge-single-nic-uplink-profile
               - name: nsx-edge-multiple-vteps-uplink-profile
                 type: UplinkHostSwitchProfile
             host_switch_name: nsxHostSwitch
@@ -19,6 +18,7 @@
             pnics:
               - device_name: "fp-eth0"
                 uplink_name: "uplink-1"
+              - device_name: "fp-eth1"
                 uplink_name: "uplink-2"
             ip_assignment_spec:
               resource_type: StaticIpPoolSpec
