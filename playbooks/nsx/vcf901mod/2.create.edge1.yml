@@ -47,7 +47,7 @@
               vc_username: "administrator@vsphere.local"
               vc_password: "VMware1!VMware1!"
               data_networks:
-                - seg-edge-htep
+                - dpg-etep-v55
               management_network: "cluster1-vds-01-pg-mgmt"
               compute: "cluster1"
               storage: "wlk-cluster1-nfs1"
