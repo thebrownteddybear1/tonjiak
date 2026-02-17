@@ -28,7 +28,7 @@
               - transport_zone_name: "vlan-tz-wlknsxvip40"
         node_deployment_info:
           resource_type: "EdgeNode"
-          display_name: "edge1
+          display_name: "edge1"
           deployment_type: "VIRTUAL_MACHINE"
           deployment_config:
             form_factor: "LARGE"
