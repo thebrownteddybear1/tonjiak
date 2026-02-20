@@ -1,0 +1,6 @@
+kubectl vsphere login --server=10.10.10.1 \
+  --vsphere-username prj1admin@vsphere.local \
+  --tanzu-kubernetes-cluster-name vns1-v340-cluster \
+  --tanzu-kubernetes-cluster-namespace vns1 \
+  --insecure-skip-tls-verify
+
