@@ -1,7 +1,7 @@
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
 metadata:
-  name: vns1cls12
+  name: cls12
   namespace: vns1
 spec:
   clusterNetwork:
