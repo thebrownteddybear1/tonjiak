@@ -1,10 +1,3 @@
-#!/bin/bash
+kubectl vsphere login --server="10.10.10.3" --vsphere-username "prj1admin@vsphere.local" --tanzu-kubernetes-cluster-name "cl12" --tanzu-kubernetes-cluster-namespace "vns1" --insecure-skip-tls-verify
 
-# Configuration
-VSPHERE_SERVER="10.10.10.1"
-VSPHERE_USER="prj1admin@vsphere.local"
-CLUSTER_NAME="vns1cls12"
-NAMESPACE="vns1"
-
-
-kubectl vsphere login --server="$VSPHERE_SERVER" --vsphere-username "$VSPHERE_USER" --tanzu-kubernetes-cluster-name "$CLUSTER_NAME" --tanzu-kubernetes-cluster-namespace "$NAMESPACE" --insecure-skip-tls-verify
+kubectl vsphere login --server="10.10.10.3" --vsphere-username "prj1admin@vsphere.local" --tanzu-kubernetes-cluster-name "cl12" --tanzu-kubernetes-cluster-namespace "vns1" --insecure-skip-tls-verify
