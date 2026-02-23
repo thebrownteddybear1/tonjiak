@@ -4,6 +4,8 @@ kubectl create ns nginxdemo
 # 2. Relax security so Nginx (root) can run
 # VCF 9 defaults to 'restricted' which blocks standard images
 kubectl label --overwrite ns nginxdemo pod-security.kubernetes.io/enforce=privileged
+kubectl label --overwrite namespaces --all pod-security.kubernetes.io/enforce=privileged
+
 
 # 3. Create the Nginx Deployment and LoadBalancer Service
 kubectl apply -n nginxdemo -f - <<EOF
