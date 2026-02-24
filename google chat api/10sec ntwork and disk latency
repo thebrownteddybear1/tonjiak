@@ -1,0 +1,54 @@
+cat << 'EOF' > /root/final_audit.sh
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+
+echo "Running Deep 10GB Load Audit on sdb (1.8T)..."
+
+# 1. Network Baseline
+S_RETX=$(nstat -az TcpRetransSegs | awk 'NR==2 {print $2}')
+
+# 2. Heavy Disk Activity (10GB Sustained Write)
+# We run this in the background to ensure it overlaps the iostat window
+dd if=/dev/zero of=/mnt/nfs1/audit_test_10gb bs=1M count=10240 oflag=direct status=none &
+DD_PID=$!
+
+# Give DD a 2-second head start to saturate the bus
+sleep 2
+
+# 3. Capture iostat (10-second sample while DD is running)
+IO_STATS=$(iostat -dx 1 10 | grep "sdb" | tail -n 1)
+
+# 4. Network Final
+E_RETX=$(nstat -az TcpRetransSegs | awk 'NR==2 {print $2}')
+DIFF_RETX=$((E_RETX - S_RETX))
+
+# 5. AI Prompt - High Load Context
+PROMPT="VCF 9 LAB AUDIT (HEAVY LOAD TEST):
+Testing /mnt/nfs1 on sdb (1.8TB).
+- Network Retransmissions during load: $DIFF_RETX
+- Disk IO (10GB Direct Write Sample): $IO_STATS
+Ignore 'async'. Does the throughput and disk utilization confirm sdb is ready for VCF deployments?"
+
+JSON_DATA=$(jq -n --arg msg "$PROMPT" '{contents: [{parts: [{text: $msg}]}]}')
+
+echo "Sending 10GB Load Data to AI..."
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$JSON_DATA")
+
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 HARDWARE VALIDATION (10GB LOAD)"
+echo "----------------------------------------------------------------------"
+echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' 2>/dev/null || echo "API Error"
+echo "----------------------------------------------------------------------"
+
+# 6. Cleanup
+echo "Cleaning up 10GB test file..."
+kill $DD_PID 2>/dev/null
+rm -f /mnt/nfs1/audit_test_10gb
+EOF
+
+chmod +x /root/final_audit.sh
+./final_audit.sh

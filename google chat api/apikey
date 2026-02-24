@@ -1,0 +1,36 @@
+cat << 'EOF' > /root/send_stats.sh
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+
+# 1. Capture Dashboard (Silence errors and strip colors)
+DATA=$(/root/a 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g')
+
+# 2. Package into JSON
+JSON_DATA=$(jq -n --arg msg "Analyze this VCF 9 Lab Telemetry: $DATA" '{contents: [{parts: [{text: $msg}]}]}')
+
+# 3. Send
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -d "$JSON_DATA")
+
+# 4. Show Analysis with clear separation
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 LAB ANALYSIS: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "----------------------------------------------------------------------"
+
+ANALYSIS=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' 2>/dev/null)
+
+if [ "$ANALYSIS" != "null" ] && [ -n "$ANALYSIS" ]; then
+    echo "$ANALYSIS"
+else
+    echo "API Error: $(echo "$RESPONSE" | jq -r '.error.message // "Check Connection"')"
+fi
+echo -e "\n"
+EOF
+
+chmod +x /root/send_stats.sh
+
+
+while true; do ./send_stats.sh ; sleep 300;  done

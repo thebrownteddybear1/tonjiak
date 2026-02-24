@@ -1,0 +1,31 @@
+cat << 'EOF' > /root/check_latency.sh
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+
+echo "Capturing 10s IO Latency..."
+# Capture iostat for the disk backing your NFS (assuming it's /dev/sda or similar)
+DISK=$(df / | tail -1 | awk '{print $1}' | cut -d/ -f3 | sed 's/[0-9]*//g')
+IO_DATA=$(iostat -dx 1 10 | grep "$DISK")
+
+# 2. Package and Send
+PROMPT="Analyze the IO Latency (await and %util) for my NFS backing disk ($DISK) in VCF 9:
+$IO_DATA
+Is the disk bottlenecking the NFS threads?"
+
+JSON_DATA=$(jq -n --arg msg "$PROMPT" '{contents: [{parts: [{text: $msg}]}]}')
+
+echo "Sending Latency analysis to Gemini 3 Flash..."
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$JSON_DATA")
+
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 STORAGE LATENCY AUDIT"
+echo "----------------------------------------------------------------------"
+echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' 2>/dev/null || echo "API Error"
+echo "----------------------------------------------------------------------"
+EOF
+
+chmod +x /root/check_latency.sh

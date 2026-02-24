@@ -1,0 +1,66 @@
+cat << 'EOF' > /root/send_stats.sh
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+# Note: Using gemini-1.5-flash for maximum reliability across regions
+MODEL="gemini-1.5-flash"
+
+# 1. Capture and Clean Data
+# Strip ANSI colors and non-ascii junk that confuses the AI
+DATA=$(/root/a 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' | tr -cd '\11\12\15\40-\176')
+
+# 2. Package into JSON with a clear "System Prompt"
+# This tells the AI exactly how to look at your data
+JSON_DATA=$(jq -n \
+    --arg telemetry "$DATA" \
+    --arg system "You are the VCF 9 Lab Assistant. Analyze the provided NFS dashboard. Identify the top talker IP, check for high RETX (Retransmissions), and alert if CPU usage is uneven. Be concise." \
+    '{contents: [{role: "user", parts: [{text: ($system + "\n\n" + $telemetry)}]}]}')
+
+# 3. Send to API
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$JSON_DATA")
+
+# 4. Display Results
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 LAB AI ANALYSIS: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "----------------------------------------------------------------------"
+
+ANALYSIS=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' 2>/dev/null)
+
+if [ "$ANALYSIS" != "null" ] && [ -n "$ANALYSIS" ]; then
+    echo "$ANALYSIS"
+else
+    # Better Error Reporting
+    ERR_MSG=$(echo "$RESPONSE" | jq -r '.error.message // "No Response"')
+    echo "API Error: $ERR_MSG"
+    
+    # If the model name was the problem, list available models
+    if [[ "$ERR_MSG" == *"not found"* ]]; then
+        echo -e "\n[DEBUG] Available Flash models for your key:"
+        curl -s "https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}" | jq -r '.models[].name' | grep "flash"
+    fi
+fi
+echo "----------------------------------------------------------------------"
+EOF
+
+chmod +x /root/send_stats.sh
+
+# [DEBUG] Available Flash models for your key:
+# models/gemini-2.5-flash
+# models/gemini-2.0-flash
+# models/gemini-2.0-flash-001
+# models/gemini-2.0-flash-exp-image-generation
+# models/gemini-2.0-flash-lite-001
+# models/gemini-2.0-flash-lite
+# models/gemini-2.5-flash-preview-tts
+# models/gemini-flash-latest
+# models/gemini-flash-lite-latest
+# models/gemini-2.5-flash-lite
+# models/gemini-2.5-flash-image
+# models/gemini-2.5-flash-preview-09-2025
+# models/gemini-2.5-flash-lite-preview-09-2025
+# models/gemini-3-flash-preview
+# models/gemini-2.5-flash-native-audio-latest
+# models/gemini-2.5-flash-native-audio-preview-09-2025
+# models/gemini-2.5-flash-native-audio-preview-12-2025

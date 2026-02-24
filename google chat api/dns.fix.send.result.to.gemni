@@ -1,0 +1,54 @@
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+
+echo "-------------------------------------------------------"
+echo "  VCF 9 LAB: NTP/DNS OS REPAIR VALIDATOR"
+echo "-------------------------------------------------------"
+
+# 1. Verification of Triggers
+echo "[*] Checking OS Repair triggers..."
+
+# Check Legacy File
+if [ -f /forcefsck ]; then
+    LEGACY="FOUND"
+else
+    # Attempt to create it if missing
+    touch /forcefsck
+    LEGACY="CREATED"
+fi
+
+# Check GRUB for the Force Flags
+GRUB_STATUS=$(grep "fsck.mode=force" /etc/default/grub)
+if [ -z "$GRUB_STATUS" ]; then
+    # Prime it if missing
+    sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="fsck.mode=force fsck.repair=yes /' /etc/default/grub
+    update-grub > /dev/null 2>&1
+    GRUB_STATUS="PRIMED (Requires Reboot)"
+fi
+
+# 2. Check Services Status (Crucial for DNS/NTP)
+DNS_STATE=$(systemctl is-active bind9 2>/dev/null || systemctl is-active named 2>/dev/null)
+NTP_STATE=$(systemctl is-active ntp 2>/dev/null || systemctl is-active chrony 2>/dev/null)
+
+# 3. Report to AI
+echo "[*] Reporting NTP/DNS Health to Gemini 3 Flash..."
+
+JSON_DATA=$(jq -n \
+    --arg grub "$GRUB_STATUS" \
+    --arg legacy "$LEGACY" \
+    --arg dns "$DNS_STATE" \
+    --arg ntp "$NTP_STATE" \
+    --arg system "You are the Gemini 3 Flash VCF 9 Lab Assistant. Checking the NTP/DNS server. The user wants to ensure the OS disk will auto-fix on reboot. Verify the GRUB status and confirm that DNS ($dns) and NTP ($ntp) are healthy before the bounce." \
+    '{contents: [{role: "user", parts: [{text: ($system + "\n\nGRUB: " + $grub + "\nLegacy: " + $legacy)}]}]}')
+
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$JSON_DATA")
+
+echo "-------------------------------------------------------"
+echo "  AI VERIFICATION RESULT:"
+echo "-------------------------------------------------------"
+echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text'
+echo "-------------------------------------------------------"

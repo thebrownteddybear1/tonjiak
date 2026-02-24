@@ -1,0 +1,52 @@
+cat << 'EOF' > /root/check_retx.sh
+#!/bin/bash
+# --- CONFIG ---
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+
+echo "Step 1: Capturing baseline (T-Minus 10s)..."
+# Get initial retransmission and segment counts
+START_RETRANS=$(nstat -az TcpRetransSegs | awk 'NR==2 {print $2}')
+START_OUT=$(nstat -az TcpOutSegs | awk 'NR==2 {print $2}')
+
+sleep 10
+
+echo "Step 2: Capturing final telemetry..."
+END_RETRANS=$(nstat -az TcpRetransSegs | awk 'NR==2 {print $2}')
+END_OUT=$(nstat -az TcpOutSegs | awk 'NR==2 {print $2}')
+
+# Calculate the Delta
+DIFF_RETRANS=$((END_RETRANS - START_RETRANS))
+DIFF_OUT=$((END_OUT - START_OUT))
+
+# Calculate loss percentage (Avoid division by zero)
+if [ "$DIFF_OUT" -gt 0 ]; then
+    LOSS_PCT=$(echo "scale=4; ($DIFF_RETRANS / $DIFF_OUT) * 100" | bc)
+else
+    LOSS_PCT=0
+fi
+
+# 3. Package and Send to AI
+PROMPT="As a storage engineer, analyze this 10-second delta from my VCF 9 NFS server:
+- TCP Segments Sent: $DIFF_OUT
+- TCP Retransmissions: $DIFF_RETRANS
+- Calculated Loss Rate: ${LOSS_PCT}%
+
+Is this level of retransmission critical for an NFS workload? Diagnose if this is likely a physical cable issue or an MTU mismatch."
+
+JSON_DATA=$(jq -n --arg msg "$PROMPT" '{contents: [{parts: [{text: $msg}]}]}')
+
+echo "Sending 10s analysis to Gemini 3 Flash..."
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    --data-binary "$JSON_DATA")
+
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 LAB RETRANSMISSION AUDIT"
+echo "----------------------------------------------------------------------"
+echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text' 2>/dev/null || echo "API Error"
+echo "----------------------------------------------------------------------"
+EOF
+
+chmod +x /root/check_retx.sh
+./check_retx.sh

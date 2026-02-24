@@ -1,0 +1,41 @@
+#!/bin/bash
+
+API_KEY="AIzaSyCAZxj8vQEnn_wyXUA3PCoUEOWdT4_2NxY"
+MODEL="gemini-3-flash-preview"
+LOG_FILE="/var/log/vmware/vcf/operationsmanager/operationsmanager.log"
+
+echo "----------------------------------------------------------------------"
+echo "  VCF 9 LAB AI ANALYSIS (PAID TIER): $(date)"
+echo "----------------------------------------------------------------------"
+
+# Use Python to read the log and create the full JSON payload in one go
+# This avoids all shell escaping issues
+PAYLOAD=$(python3 -c "
+import json, sys, os
+log_data = os.popen('tail -n 100 ' + sys.argv[1]).read()
+prompt = f'VCF 9 Expert Analysis. install certificate for avi controller. analyse the logs to see the problem and the progress \n\n{log_data}'
+print(json.dumps({'contents': [{'parts': [{'text': prompt}]}]}))
+" "$LOG_FILE")
+
+# Execute Request
+RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -d "$PAYLOAD")
+
+# Parse response
+python3 -c "
+import sys, json
+try:
+    data = json.loads(sys.stdin.read())
+    if 'error' in data:
+        print(f'API Error: {data[\"error\"][\"message\"]}')
+    elif 'candidates' in data:
+        print('AI ANALYSIS RESULT:\n' + data['candidates'][0]['content']['parts'][0]['text'])
+    else:
+        print('Unexpected Response Format:', data)
+except Exception as e:
+    print('Error parsing API response. Raw output follows:')
+    print(sys.stdin.read())
+" <<< "$RESPONSE"
+
+echo "----------------------------------------------------------------------"
