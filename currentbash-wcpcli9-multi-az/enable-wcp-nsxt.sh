@@ -7,7 +7,7 @@
 #remove DISABLED if for vpc, keep it as "floating_IP_address"
 #./enable-wcp.sh
 
-set -x
+set +x
 ###################################################
 # Enter Infrastructure variables here
 ###################################################
