@@ -1,5 +1,5 @@
 ---
-- name: Create vCenter Distributed Portgroup with VLAN Trunking
+- name: Create vCenter Distributed Portgroup for Edge Trunk
   hosts: localhost
   gather_facts: false
   vars:
@@ -12,14 +12,22 @@
     portgroup_name: "cluster1-vds-01-edge-trunk"
 
   tasks:
-    - name: Create Trunk Portgroup on VDS
-      community.vmware.vmware_dpg:
+    - name: Create Trunk Portgroup using community.vmware.vmware_dvs_portgroup
+      community.vmware.vmware_dvs_portgroup:
         hostname: "{{ vcenter_spec.hostname }}"
         username: "{{ vcenter_spec.username }}"
         password: "{{ vcenter_spec.password }}"
         validate_certs: "{{ vcenter_spec.validate_certs }}"
         switch_name: "{{ vds_name }}"
         portgroup_name: "{{ portgroup_name }}"
-        vlan_id: 
-          - "4095"  # This enables VLAN Trunking for the full range
+        # Per your source code: use vlan_trunk: True for ranges
+        vlan_id: "0-4094"
+        vlan_trunk: true
+        num_ports: 128
+        portgroup_type: earlyBinding
         state: present
+        # Security policies often required for NSX Edges on VDS
+        network_policy:
+          promiscuous: true
+          forged_transmits: true
+          mac_changes: true
