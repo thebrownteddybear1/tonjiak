@@ -1,0 +1,28 @@
+ssh vcf@sddc
+su -
+
+psql --host=localhost -U postgres -d platform
+
+select id, type, used_ip_addresses, ip_inclusion_ranges from vcf_network;
+
+select id, used_ip_addresses from vcf_network;
+update vcf_network set used_ip_addresses='["192.168.1.10", "192.168.1.11"]' where id='YOUR_NETWORK_ID';
+
+
+EXAMPLE
+
+platform=# select id, used_ip_addresses from vcf_network;
+                  id                  |                                 used_ip_addresses
+--------------------------------------+-----------------------------------------------------------------------------------
+ 8407d531-b29e-40f1-b800-e449beee5d07 | ["192.168.50.14","192.168.50.15","192.168.50.70","192.168.50.71","192.168.50.72"]
+ 72615e35-c221-4876-983a-65274a8d59ba | "192.168.51.1","192.168.51.2","192.168.51.3"]
+(2 rows)
+
+platform=# update vcf_network set used_ip_addresses='["192.168.50.70","192.168.50.71","192.168.50.72"]' where id='8407d531-b29e-40f1-b800-e449beee5d07';
+UPDATE 1
+platform=# select id, used_ip_addresses from vcf_network;
+                  id                  |                 used_ip_addresses
+--------------------------------------+---------------------------------------------------
+ 72615e35-c221-4876-983a-65274a8d59ba | "192.168.51.1","192.168.51.2","192.168.51.3"]
+ 8407d531-b29e-40f1-b800-e449beee5d07 | ["192.168.50.70","192.168.50.71","192.168.50.72"]
+(2 rows)
