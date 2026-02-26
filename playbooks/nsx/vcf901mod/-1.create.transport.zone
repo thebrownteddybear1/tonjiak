@@ -1,0 +1,23 @@
+---
+- name: Create NSX-T VLAN Transport Zone
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # Defining connection details directly in the playbook
+    nsx_manager_spec:
+      hostname: "192.168.50.40"
+      username: "admin"
+      password: "VMware1!VMware1!"
+      validate_certs: false
+
+  tasks:
+    - name: Create VLAN Transport Zone "vlan-tz-wlknsxvip40"
+      vmware.ansible_for_nsxt.nsxt_transport_zones:
+        hostname: "{{ nsx_manager_spec.hostname }}"
+        username: "{{ nsx_manager_spec.username }}"
+        password: "{{ nsx_manager_spec.password }}"
+        validate_certs: "{{ nsx_manager_spec.validate_certs }}"
+        display_name: "vlan-tz-wlknsxvip40"
+        description: "Created via Ansible"
+        transport_type: "VLAN"
+        state: present
