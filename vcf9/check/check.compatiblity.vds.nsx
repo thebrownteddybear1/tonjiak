@@ -1,0 +1,1 @@
+curl -ks -X POST -H "vmware-api-session-id: $SESSION_ID" 'https://192.168.50.39/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility' | jq .
