@@ -1,1 +1,3 @@
+SESSION_ID=$(curl -sk -X POST https://192.168.50.39/rest/com/vmware/cis/session --user 'administrator@vsphere.local:VMware1!VMware1!' | jq -r .value)
+
 curl -ks -X POST -H "vmware-api-session-id: $SESSION_ID" 'https://192.168.50.39/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility' | jq .
