@@ -1,0 +1,25 @@
+---
+- name: Create vCenter Distributed Portgroup with VLAN Trunking
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vcenter_spec:
+      hostname: "192.168.50.39"
+      username: "administrator@vsphere.local"
+      password: "VMware1!VMware1!"
+      validate_certs: false
+    vds_name: "cluster1-vds-01"
+    portgroup_name: "cluster1-vds-01-edge-trunk"
+
+  tasks:
+    - name: Create Trunk Portgroup on VDS
+      community.vmware.vmware_dpg:
+        hostname: "{{ vcenter_spec.hostname }}"
+        username: "{{ vcenter_spec.username }}"
+        password: "{{ vcenter_spec.password }}"
+        validate_certs: "{{ vcenter_spec.validate_certs }}"
+        switch_name: "{{ vds_name }}"
+        portgroup_name: "{{ portgroup_name }}"
+        vlan_id: 
+          - "4095"  # This enables VLAN Trunking for the full range
+        state: present
