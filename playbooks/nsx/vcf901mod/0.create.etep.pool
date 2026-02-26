@@ -37,4 +37,5 @@
               - start: '192.168.55.51'
                 end: '192.168.55.100'
             cidr: '192.168.55.0/24'
-            gateway_address: '192.168.55.254'
+            # Switched from gateway_address to gateway_ip based on error log
+            gateway_ip: '192.168.55.254'
