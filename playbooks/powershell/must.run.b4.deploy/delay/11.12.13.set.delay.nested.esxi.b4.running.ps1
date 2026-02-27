@@ -1,5 +1,5 @@
 $user = "root"
-$pass = "VMware1!VMware1!"
+$pass = "VMware1@VMware1@"
 #$targets = @(11..13) + (14..19) | ForEach-Object { "192.168.50.$_" }
 $targets = @(11..13) | ForEach-Object { "192.168.50.$_" }
 
