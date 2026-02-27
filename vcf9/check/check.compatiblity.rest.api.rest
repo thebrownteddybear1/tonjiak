@@ -1,0 +1,14 @@
+### 1. Authenticate and Get Session ID
+# @name login
+POST https://192.168.50.39/api/session
+Authorization: Basic YWRtaW5pc3RyYXRvckB2c3BoZXJlLmxvY2FsOlZNd2FyZTEhVk13YXJlMSE=
+Content-Type: application/json
+
+### 2. Check VDS Compatibility for Namespaces
+@sessionId = {{login.response.headers.vmware-api-session-id}}
+
+POST https://192.168.50.39/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility
+vmware-api-session-id: {{sessionId}}
+Content-Type: application/json
+
+{}

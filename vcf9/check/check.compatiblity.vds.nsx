@@ -1,3 +1,24 @@
 SESSION_ID=$(curl -sk -X POST https://192.168.50.39/rest/com/vmware/cis/session --user 'administrator@vsphere.local:VMware1!VMware1!' | jq -r .value)
 
 curl -ks -X POST -H "vmware-api-session-id: $SESSION_ID" 'https://192.168.50.39/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility' | jq .
+
+
+1. Identify which hosts are in which cluster
+bash
+# Get host details
+curl -sk -X GET \
+  -H "vmware-api-session-id: $SESSION_ID" \
+  "https://192.168.50.39/api/vcenter/host" | jq '.[] | {name: .name, host: .host, cluster: .cluster, connection_state: .connection_state}'
+2. Check NSX Transport Node configuration for problematic hosts
+bash
+# Check NSX transport nodes
+curl -sk -X GET \
+  -u 'admin:VMware1!VMware1!' \
+  "https://192.168.50.40/api/v1/transport-nodes" | jq '.results[] | {display_name: .display_name, host_switch_name: .host_switch_spec.host_switches[0].host_switch_name, transport_zone_ids: .host_switch_spec.host_switches[0].transport_zone_endpoints[].transport_zone_id}'
+
+  #get host uuid
+  # Get host details including UUID from the REST API
+curl -sk -X GET \
+  -H "vmware-api-session-id: $SESSION_ID" \
+  "https://192.168.50.39/rest/vcenter/host" | jq '.'
+  `

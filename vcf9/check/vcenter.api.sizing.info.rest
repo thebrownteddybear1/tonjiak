@@ -1,0 +1,15 @@
+### 1. First, get a SAML token from STS (if needed - this is more complex)
+### For simplicity, we'll use the working session endpoint
+
+# @name login
+POST https://192.168.50.39/rest/com/vmware/cis/session
+Authorization: Basic {{$base64 "administrator@vsphere.local:VMware1!VMware1!"}}
+Content-Type: application/json
+
+### 2. Extract session ID
+@sessionId = {{login.response.body.value}}
+
+### 3. Get cluster size info
+GET https://192.168.50.39/api/vcenter/namespace-management/cluster-size-info
+vmware-api-session-id: {{sessionId}}
+Content-Type: application/json
