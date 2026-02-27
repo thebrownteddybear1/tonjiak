@@ -1,5 +1,5 @@
 $user = "root"
-$pass = "VMware1!VMware1!"
+$pass = "VMware1@VMware1@"
 $target = "192.168.50.53"
 $hosts = "192.168.50.11", "192.168.50.12", "192.168.50.13"
 
