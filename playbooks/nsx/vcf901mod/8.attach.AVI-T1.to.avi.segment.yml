@@ -4,7 +4,7 @@
   vars:
     hostname: "192.168.50.40"
     username: "admin"
-    password: "VMware1!VMware1!"
+    password: "VMware1@VMware1@"
     t1_name: "AVI-T1"
     segment_name: "ContainerSwitchAvi-1"
     transport_zone: "overlay-tz-wlknsxvip40"

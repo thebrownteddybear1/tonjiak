@@ -7,7 +7,7 @@
   vars:
     nsxt_host: "192.168.50.40"
     nsxt_user: "admin"
-    nsxt_pass: "VMware1!VMware1!"
+    nsxt_pass: "VMware1@VMware1@"
     
     # Uplink segment details
     uplink_segment_name: "segment-uplink-vlan11"
