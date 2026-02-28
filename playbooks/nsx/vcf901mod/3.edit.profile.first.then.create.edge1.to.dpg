@@ -34,8 +34,8 @@
             form_factor: "LARGE"
             node_user_settings:
               cli_username: "admin"
-              cli_password: "VMware1!VMware1!"
-              root_password: "VMware1!VMware1!"
+              cli_password: "VMware1@VMware1@"
+              root_password: "VMware1@VMware1@"
             vm_deployment_config:
               ipv4_assignment_enabled: true
               management_port_subnets:
@@ -45,7 +45,7 @@
               placement_type: VsphereDeploymentConfig
               vc_name: "wlkvc39.corp.internal"
               vc_username: "administrator@vsphere.local"
-              vc_password: "VMware1!VMware1!"
+              vc_password: "VMware1@VMware1@"
               # Even with 1 NIC in NSX, the VM usually wants two entries 
               # for the FastPath interfaces in the deployment spec.
               data_networks:
