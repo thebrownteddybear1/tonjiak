@@ -1,3 +1,6 @@
+#EXECUTE IT DIRECTLY FROM THE VCENTER THEN IT WORKS
+
+
 ### 1. First, get a SAML token from STS (if needed - this is more complex)
 ### For simplicity, we'll use the working session endpoint
 

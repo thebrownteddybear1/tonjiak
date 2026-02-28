@@ -22,3 +22,25 @@ curl -sk -X GET \
   -H "vmware-api-session-id: $SESSION_ID" \
   "https://192.168.50.39/rest/vcenter/host" | jq '.'
   `
+
+  # Get hosts in cluster1 (domain-c10) - correct format
+curl -sk -X GET \
+  -H "vmware-api-session-id: $SESSION_ID" \
+  "https://192.168.50.39/api/vcenter/host?clusters=domain-c10" | jq '.'
+
+# Get hosts in cluster2 (domain-c31)
+curl -sk -X GET \
+  -H "vmware-api-session-id: $SESSION_ID" \
+  "https://192.168.50.39/api/vcenter/host?clusters=domain-c31" | jq '.'
+
+# Get hosts in cluster3 (domain-c65)
+curl -sk -X GET \
+  -H "vmware-api-session-id: $SESSION_ID" \
+  "https://192.168.50.39/api/vcenter/host?clusters=domain-c65" | jq '.'
+
+
+
+  # List all transport nodes in NSX with their node IDs
+curl -sk -X GET \
+  -u 'admin:VMware1!VMware1!' \
+  "https://192.168.50.40/api/v1/transport-nodes" | jq '.results[] | {display_name: .display_name, id: .id, node_id: .node_id}'
