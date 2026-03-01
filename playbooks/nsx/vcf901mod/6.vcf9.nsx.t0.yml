@@ -32,7 +32,7 @@
         validate_certs: false
         
         # Basic Tier-0 configuration
-        display_name: "tier0-gateway"
+        display_name: "t0-01"
         description: "Tier-0 Gateway with VLAN11 uplink and BGP"
         state: present
         ha_mode: "ACTIVE_STANDBY"

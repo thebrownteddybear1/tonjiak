@@ -1,0 +1,1 @@
+curl -ks --write-out "%{http_code}" -X POST  -H "${HEADER_SESSIONID}" https://192.168.50.39/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility

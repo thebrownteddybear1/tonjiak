@@ -8,7 +8,7 @@
         validate_certs: False
         state: present
         display_name: "AVI-T1"
-        tier0_display_name: "tier0-gateway"
+        tier0_display_name: "t0-01"
         
         # HA Mode set to NON_PREEMPTIVE as per your requirement
         failover_mode: "NON_PREEMPTIVE"
