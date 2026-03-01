@@ -52,7 +52,7 @@ K8S_STORAGE_POLICY='sc'
 #############################################################
 export NSX_EDGE_CLUSTER='edge-cluster-01'
 export NSX_T0_GATEWAY='tier0-gateway'
-export NSX_DVS_PORTGROUP='seg-super-mgt'
+export NSX_DVS_PORTGROUP='cluster1-vds-01'
 export NSX_INGRESS_NW='10.10.10.0'
 export NSX_INGRESS_COUNT=512
 export NSX_EGRESS_NW='10.20.20.0'
