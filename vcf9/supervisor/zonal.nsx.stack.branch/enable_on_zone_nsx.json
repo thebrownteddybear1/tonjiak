@@ -9,7 +9,7 @@
                     "networks": [ "${VKS_MGMT_NETWORK1}", "${VKS_MGMT_NETWORK2}", "${VKS_MGMT_NETWORK3}" ]
                 }
             },
-            "floating_IP_address": "",
+            "dis_floating_IP_address": "",
             "ip_management": {
                 "dhcp_enabled": false,
                 "gateway_address": "${MGMT_GATEWAY_CIDR}",
