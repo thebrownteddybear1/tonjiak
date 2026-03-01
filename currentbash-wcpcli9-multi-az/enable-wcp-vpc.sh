@@ -42,7 +42,7 @@ K8S_MGMT_PORTGROUP1='cluster1-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP2='cluster2-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP3='cluster3-vds-01-pg-mgmt'
 K8S_WKD0_PORTGROUP='Workload0-VDS-PG' # Not needed for NSX
-K8S_STORAGE_POLICY='wk1sc2'
+K8S_STORAGE_POLICY='sc'
 
 ###############################################################
 # AVI specific variables
@@ -58,17 +58,17 @@ K8S_STORAGE_POLICY='wk1sc2'
 #############################################################
 # NSX specific variables
 #############################################################
-export NSX_EDGE_CLUSTER='edge-cluster-1'
-export NSX_T0_GATEWAY='tier0-gateway'
-export NSX_DVS_PORTGROUP='cluster1-vds-01'
+# export NSX_EDGE_CLUSTER='edge-cluster-1'
+# export NSX_T0_GATEWAY='tier0-gateway'
+# export NSX_DVS_PORTGROUP='cluster1-vds-01'
 
-export NSX_INGRESS_NW='10.220.2.0'
-export NSX_INGRESS_COUNT=512
+# export NSX_INGRESS_NW='10.220.2.0'
+# export NSX_INGRESS_COUNT=512
 
-export NSX_EGRESS_NW='10.220.30.0'
-export NSX_EGRESS_COUNT=512
-export NSX_NAMESPACE_NW='10.244.0.0'
-export NSX_NAMESPACE_COUNT=4096
+# export NSX_EGRESS_NW='10.220.30.0'
+# export NSX_EGRESS_COUNT=512
+# export NSX_NAMESPACE_NW='10.244.0.0'
+# export NSX_NAMESPACE_COUNT=4096
 
 
 # export NSX_INGRESS_NW='10.220.3.16'
