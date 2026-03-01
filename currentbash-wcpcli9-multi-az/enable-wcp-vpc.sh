@@ -32,7 +32,7 @@ export NTP_SERVER='192.168.50.53'
 export DNS_SEARCHDOMAIN='corp.internal'
 export MGMT_STARTING_IP='192.168.50.48'
 export MGMT_GATEWAY_CIDR='192.168.50.254/24'
-export K8S_SERVICE_SUBNET='10.96.0.0'
+export K8S_SERVICE_SUBNET='10.97.0.0'
 export K8S_SERVICE_SUBNET_COUNT=512 # Allowed values are 256, 512, 1024, 2048, 4096...
 export SUPERVISOR_NAME='supervisor01'
 export SUPERVISOR_SIZE=TINY # Allowed values are TINY, SMALL, MEDIUM, LARGE
@@ -83,8 +83,8 @@ K8S_STORAGE_POLICY='sc'
 export VPC_ORG='default'
 export VPC_PROJECT='default'
 export VPC_CONNECTIVITY_PROFILE='default'
-export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='172.16.0.0'
-export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=24
+export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='10.96.0.0'
+export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=16
 
 ################################################
 # Check if jq is installed
