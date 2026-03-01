@@ -5,7 +5,7 @@
 ###################################################
 VCENTER_VERSION=9
 VCENTER_HOSTNAME=192.168.50.39
-VCENTER_USERNAME=administrator@sfo-w01.local
+VCENTER_USERNAME=administrator@vsphere.local
 VCENTER_PASSWORD='VMware1@VMware1@'
 NSX_MANAGER=192.168.50.40
 NSX_USERNAME='admin'
