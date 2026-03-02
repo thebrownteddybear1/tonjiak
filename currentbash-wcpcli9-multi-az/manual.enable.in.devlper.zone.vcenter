@@ -1,1 +1,4 @@
  curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADER_CONTENTTYPE}" -d "@temp_final.json" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/supervisors?action=enable_on_zones
+
+hunt for enable_on_zone in developer api in vcenter
+paste the temp.final.json in as body request
