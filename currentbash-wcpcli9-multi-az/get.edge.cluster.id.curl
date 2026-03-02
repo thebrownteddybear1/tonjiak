@@ -1,0 +1,41 @@
+curl -ks --write-out "%{http_code}" -X GET -u "admin:VMware1@VMware1@" -H 'Content-Type: application/json' https://192.168.50.40/api/v1/edge-clusters 
+
+root@depot:~/tonjiak/currentbash-wcpcli9-multi-az#  curl -ks --write-out "%{http_code}" -X GET -u "admin:VMware1@VMware1@" -H 'Content-Type: application/json' https://192.168.50.40/api/v1/edge-clusters  {
+  "results" : [ {
+    "deployment_type" : "VIRTUAL_MACHINE",
+    "members" : [ {
+      "member_index" : 0,
+      "transport_node_id" : "d0302d77-f46d-4aba-bb5a-c18816f896ab",
+      "display_name" : "edge1",
+      "description" : "Edge node deployed via single-nic trunk"
+    } ],
+    "cluster_profile_bindings" : [ {
+      "resource_type" : "EdgeHighAvailabilityProfile",
+      "profile_id" : "91bcaa06-47a1-11e4-8316-17ffc770799b"
+    } ],
+    "member_node_type" : "EDGE_NODE",
+    "allocation_rules" : [ ],
+    "enable_inter_site_forwarding" : false,
+    "password_managed_by_vcf" : false,
+
+
+    "resource_type" : "EdgeCluster",
+    #this one is the id
+    "id" : "b555713f-b3bb-4cfb-b8cc-62e65728ec8c",
+    "display_name" : "edge-cluster-01",
+    
+    
+    
+    
+    "tags" : [ ],
+    "_create_time" : 1772274996778,
+    "_create_user" : "admin",
+    "_last_modified_time" : 1772315435347,
+    "_last_modified_user" : "admin",
+    "_system_owned" : false,
+    "_protection" : "NOT_PROTECTED",
+    "_revision" : 1
+  } ],
+  "result_count" : 1
+}200root@depot:~/tonjiak/currentbash-wcpcli9-multi-az# curl -ks --write-out "%{http_code}" -X GET -u "admin:VMware1@VMware1@" -H 'Content-Type: application/json' https://192.168.50.40/api/v1/edge-clusterroot@depot:~/tonjiak/currentbash-wcpcli9-multi-az# curl -ks --write-out "%{http_code}" -X GET -u "admin:VMware1@VMware1@" -H 'Content-Type: application/json' https://192.168.50.40/api/v1/edge-clusters
+

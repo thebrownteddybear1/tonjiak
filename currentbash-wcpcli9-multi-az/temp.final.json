@@ -47,7 +47,7 @@
             } ],
             "nsx": {
                 "default_ingress_TLS_certificate": "",
-                "edge_cluster_ID": "",
+                "edge_cluster_ID": "b555713f-b3bb-4cfb-b8cc-62e65728ec8c",
                 "egress_IP_ranges": [ {
                     "address": "10.20.20.0",
                     "count": 512
