@@ -42,7 +42,7 @@ K8S_MGMT_PORTGROUP1='cluster1-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP2='cluster2-vds-01-pg-mgmt'
 K8S_MGMT_PORTGROUP3='cluster3-vds-01-pg-mgmt'
 K8S_WKD0_PORTGROUP='Workload0-VDS-PG' # Not needed for NSX
-K8S_STORAGE_POLICY='wk1sc2'
+K8S_STORAGE_POLICY='sc'
 
 ###############################################################
 # AVI specific variables
@@ -79,11 +79,11 @@ export NSX_NAMESPACE_COUNT=4096
 #############################################################
 # VPC specific variables
 #############################################################
-export VPC_ORG='default'
-export VPC_PROJECT='default'
-export VPC_CONNECTIVITY_PROFILE='default'
-export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='172.16.0.0'
-export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=24
+# export VPC_ORG='default'
+# export VPC_PROJECT='default'
+# export VPC_CONNECTIVITY_PROFILE='default'
+# export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='172.16.0.0'
+# export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=24
 
 ################################################
 # Check if jq is installed
