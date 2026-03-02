@@ -7,17 +7,17 @@
 #remove DISABLED if for vpc, keep it as "floating_IP_address"
 #./enable-wcp.sh
 
-set +x
+set -x
 ###################################################
 # Enter Infrastructure variables here
 ###################################################
 VCENTER_VERSION=9
 VCENTER_HOSTNAME=192.168.50.39
 VCENTER_USERNAME=administrator@vsphere.local
-VCENTER_PASSWORD='VMware1!VMware1!'
+VCENTER_PASSWORD='VMware1@VMware1@'
 NSX_MANAGER=192.168.50.40
 NSX_USERNAME='admin'
-NSX_PASSWORD='VMware1!VMware1!'
+NSX_PASSWORD='VMware1@VMware1@'
 K8S_SUP_ZONE1='cluster1'
 K8S_SUP_ZONE2='cluster2'
 K8S_SUP_ZONE3='cluster3'
@@ -32,10 +32,10 @@ export NTP_SERVER='192.168.50.53'
 export DNS_SEARCHDOMAIN='corp.internal'
 export MGMT_STARTING_IP='192.168.50.48'
 export MGMT_GATEWAY_CIDR='192.168.50.254/24'
-export K8S_SERVICE_SUBNET='10.96.0.0'
+export K8S_SERVICE_SUBNET='10.97.0.0'
 export K8S_SERVICE_SUBNET_COUNT=512 # Allowed values are 256, 512, 1024, 2048, 4096...
 export SUPERVISOR_NAME='supervisor01'
-export SUPERVISOR_SIZE=MEDIUM # Allowed values are TINY, SMALL, MEDIUM, LARGE
+export SUPERVISOR_SIZE=TINY # Allowed values are TINY, SMALL, MEDIUM, LARGE
 export SUPERVISOR_VM_COUNT=3 # Allowed values are 1, 3
 K8S_CONTENT_LIBRARY='vks'
 K8S_MGMT_PORTGROUP1='cluster1-vds-01-pg-mgmt'
@@ -61,29 +61,25 @@ K8S_STORAGE_POLICY='sc'
 export NSX_EDGE_CLUSTER='edge-cluster-1'
 export NSX_T0_GATEWAY='tier0-gateway'
 export NSX_DVS_PORTGROUP='cluster1-vds-01'
-#NW=network, must align with CIDR, for ingress | egress, leave the namespace alone
+
 export NSX_INGRESS_NW='10.10.10.0'
 export NSX_INGRESS_COUNT=512
+
 export NSX_EGRESS_NW='10.20.20.0'
 export NSX_EGRESS_COUNT=512
 export NSX_NAMESPACE_NW='10.244.0.0'
 export NSX_NAMESPACE_COUNT=4096
 
 
-# export NSX_INGRESS_NW='10.220.3.16'
-# export NSX_INGRESS_COUNT=16
-# export NSX_EGRESS_NW='10.220.30.80'
-# export NSX_EGRESS_COUNT=16
-# export NSX_NAMESPACE_NW='10.244.0.0'
-# export NSX_NAMESPACE_COUNT=4096
+
 #############################################################
 # VPC specific variables
 #############################################################
-# export VPC_ORG='default'
-# export VPC_PROJECT='default'
-# export VPC_CONNECTIVITY_PROFILE='default'
-# export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='172.16.0.0'
-# export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=24
+export VPC_ORG='default'
+export VPC_PROJECT='default'
+export VPC_CONNECTIVITY_PROFILE='default'
+export VPC_DEFAULT_PRIVATE_CIDRS_ADDRESS='10.96.0.0'
+export VPC_DEFAULT_PRIVATE_CIDRS_PREFIX=16
 
 ################################################
 # Check if jq is installed
@@ -267,7 +263,7 @@ then
         ################################################
         # Get NSX VDS from vCenter
         ###############################################
-        echo "Searching for NSX compatible VDS switch ${NSX_DVS_PORTGROUP}..."
+        echo "Searching for NSX compatible VDS switch ${$NSX_DVS_PORTGROUP}..."
         response=$(curl -ks --write-out "%{http_code}" -X POST  -H "${HEADER_SESSIONID}" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/networks/nsx/distributed-switches?action=check_compatibility --output /tmp/temp_vds.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch VDS details. Please validate!!"
@@ -283,7 +279,7 @@ then
         ################################################
         # Get a Edge cluster ID from NSX Manager
         ###############################################
-        echo "Searching for Edge cluster in NSX Manager ${NSX_EDGE_CLUSTER} ..."
+        echo "Searching for Edge cluster in NSX Manager ${$NSX_EDGE_CLUSTER} ..."
 	    response=$(curl -ks --write-out "%{http_code}" -X GET -u "${NSX_USERNAME}:${NSX_PASSWORD}" -H 'Content-Type: application/json' https://${NSX_MANAGER}/api/v1/edge-clusters --output /tmp/temp_edgeclusters.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch Edge Cluster details. Please validate!!"
@@ -299,7 +295,7 @@ then
         ################################################
         # Get a Tier0 ID from NSX Manager
         ###############################################
-        echo "Searching for Tier0 in NSX Manager ${NSX_T0_GATEWAY}..."
+        echo "Searching for Tier0 in NSX Manager ${$NSX_T0_GATEWAY}..."
 	    response=$(curl -ks --write-out "%{http_code}" -X GET -u "${NSX_USERNAME}:${NSX_PASSWORD}" -H 'Content-Type: application/json' https://${NSX_MANAGER}/policy/api/v1/infra/tier-0s --output /tmp/temp_t0s.json)
         if [[ "${response}" -ne 200 ]] ; then
                 echo "Error: Could not fetch Tier0 details. Please validate!!"
@@ -318,10 +314,10 @@ fi
 ###############################################
 envsubst < zone.json > temp_final.json
 echo "Enabling Supervisor ..."
-#curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADER_CONTENTTYPE}" -d "@temp_final.json" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/supervisors?action=enable_on_zones
+curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADER_CONTENTTYPE}" -d "@temp_final.json" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/supervisors?action=enable_on_zones
 
 #TODO while configuring, keep checking for status of Supervisor until ready
 #curl -X POST 'https://vcsa-01.lab9.com/api/vcenter/namespace-management/supervisors/domain-c10?action=enable_on_compute_cluster'
-# rm -f /tmp/temp_*.*
-# rm -f temp_final.json
-# rm -f zone.json
+ rm -f /tmp/temp_*.*
+ rm -f temp_final.json
+ rm -f zone.json
