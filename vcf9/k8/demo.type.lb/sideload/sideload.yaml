@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-demo
+  namespace: vns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-web
+  template:
+    metadata:
+      labels:
+        app: local-web
+    spec:
+      containers:
+      - name: nginx
+        image: docker.io/library/nginx:alpine # Must match the name in 'crictl images'
+        imagePullPolicy: IfNotPresent # CRITICAL: Don't try to pull from internet
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: local-svc
+  namespace: vns
+spec:
+  type: LoadBalancer 
+  selector:
+    app: local-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
