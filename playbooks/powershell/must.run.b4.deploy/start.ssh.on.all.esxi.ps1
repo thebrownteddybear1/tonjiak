@@ -3,7 +3,7 @@ Set-PowerCLIConfiguration -DefaultVIServerMode Single -Scope User -Confirm:$fals
 
 $ips = 11..19 | ForEach-Object { "192.168.50.$_" }
 $user = "root"
-$pass = "VMware1!VMware1!"
+$pass = "VMware1@VMware1@"
 
 foreach ($ip in $ips) {
     try {
