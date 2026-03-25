@@ -1,0 +1,20 @@
+  5  chmod +x fixHostKeys.py
+    6  python fixHostKeys.py --resourceType < VCENTER | NSX_T_MANAGER | ESXI | NSXT_EDGE >
+    7  python fixHostKeys.py --resourceType
+    8  python fixHostKeys.py --resourceType VCENTER
+    9  python fixHostKeys.py --resourceType ESXI
+   10  python fixHostKeys.py --resourceType NSX_T_MANAGER
+   11  python fixHostKeys.py --node mgtnsxvip34.corp.internal
+   12  python fixHostKeys.py --node esx16.corp.internal
+   13  python fixHostKeys.py --node esx17.corp.internal
+   14  python fixHostKeys.py --node esx18.corp.internal
+   15  python fixHostKeys.py --node esx19.corp.internal
+   16  python fixHostKeys.py --node esx11.corp.internal
+   17  python fixHostKeys.py --node esx12.corp.internal
+   18  python fixHostKeys.py --node esx13.corp.internal
+   19  python fixHostKeys.py --node esx14.corp.internal
+   20  python fixHostKeys.py --node esx15.corp.internal
+   21  python fixHostKeys.py --node esx16.corp.internal
+   22  python fixHostKeys.py --node esx17.corp.internal
+   23  python fixHostKeys.py --node esx18.corp.internal
+   24  python fixHostKeys.py --node esx19.corp.internal

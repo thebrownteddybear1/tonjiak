@@ -98,5 +98,5 @@
             "image_storage_policy": "03161615-d806-4d6d-9c19-4da7f19e70a1"
         }
     },
-    "zones": [ "cluster1","cluster2","cluster3" ]
+    "zones": [ "cluster1" ]
 }
