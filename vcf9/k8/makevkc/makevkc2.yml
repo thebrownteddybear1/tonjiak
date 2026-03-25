@@ -1,8 +1,8 @@
 apiVersion: cluster.x-k8s.io/v1beta1
 kind: Cluster
 metadata:
-  name: cls1
-  namespace: vns1
+  name: cls2
+  namespace: vns
 spec:
   clusterNetwork:
     pods:
@@ -21,7 +21,7 @@ spec:
       - name: vsphereOptions
         value:
           persistentVolumes:
-            defaultStorageClass: wlksc
+            defaultStorageClass: sc
       - name: kubernetes
         value:
           certificateRotation:
@@ -30,9 +30,9 @@ spec:
       - name: vmClass
         value: best-effort-xsmall
       - name: storageClass
-        value: wlksc
+        value: sc
     controlPlane:
-      replicas: 1
+      replicas: 3
       metadata:
         annotations:
           # Force the Ubuntu 24.04 image you synced
