@@ -21,7 +21,7 @@ keytool -list -v -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store
 
 keytool -list -v -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
-
+#command to list the alias "depot" in both the keystores
 keytool -list -v -alias depot -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
 
 keytool -list -v -alias depot -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
@@ -29,7 +29,8 @@ keytool -list -v -alias depot -keystore /etc/alternatives/jre/lib/security/cacer
 
 
 
-Command to add a cert to the SDDC Manager keystores:
+#1. Command to add a cert to the SDDC Manager keystores:
+#2. see below for how to get cert of depot
 
 keytool -importcert -alias <aliasname> -file <certificate file> -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass <trust store key>
 
@@ -43,21 +44,27 @@ keytool -delete -alias <aliasname> -keystore /etc/alternatives/jre/lib/security/
 
 ---------------------------------------------------------------------------------------------------------
 
-ssh sddcmgr
+#ssh sddcmgr as vcf
+#su - to root
 
-openssl s_client -connect depot.corp.internal:9443
+openssl s_client -connect depot.corp.internal:443
 
 copy the retreived cert int a file
 
+#to delete the alias "depot" from the first store
 keytool -delete -alias depot -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
 
-keytool -importcert -alias depot -file /home/vcf/server.crt -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
 
-
+#to delete the alias "depot" from the other store
 keytool -delete -alias depot -file /home/vcf/server.crt -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
+#import depot cert in first store
+keytool -importcert -alias depot -file /home/vcf/server.crt -keystore /etc/vmware/vcf/commonsvcs/trusted_certificates.store --storepass $(cat /etc/vmware/vcf/commonsvcs/trusted_certificates.key)
+
+#import depot cert in second store
 keytool -importcert -alias depot -file /home/vcf/server.crt -keystore /etc/alternatives/jre/lib/security/cacerts --storepass changeit
 
+#Restart sddc manager services
 /opt/vmware/vcf/operationsmanager/scripts/cli/sddcmanager_restart_services.sh
 
 

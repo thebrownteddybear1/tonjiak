@@ -1,0 +1,76 @@
+cat << 'EOF' > send_vcf_logs.sh
+#!/bin/bash
+
+# Configuration
+API_KEY="AIzaSyDiFVESxPByaGBxt4jN4dpKDcgE4vol-k4"
+# Updated to the latest model from your debug list
+MODEL="gemini-3-flash-preview"
+ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}"
+
+# Define paths
+LCM_DIR="/var/log/vmware/vcf/lcm"
+TEMP_LOG="/tmp/filtered_vcf_logs.log"
+JSON_PAYLOAD="/tmp/payload.json"
+
+echo "Step 1: Filtering logs for errors and depot keywords..."
+
+{
+    echo "--- FILTERED LOG DATA ---"
+    if [ -f "$LCM_DIR/lcm-debug.log" ]; then
+        echo "[Source: lcm-debug.log]"
+        grep -iE "error|exception|depot|offline|failed|403|404|500" "$LCM_DIR/lcm-debug.log" | tail -n 250
+    fi
+
+    if [ -f "$LCM_DIR/lcm.err" ]; then
+        echo -e "\n[Source: lcm.err]"
+        cat "$LCM_DIR/lcm.err" | tail -n 50
+    fi
+} > "$TEMP_LOG"
+
+if [ ! -s "$TEMP_LOG" ]; then
+    echo "No errors or depot keywords found. Check file content manually."
+    exit 1
+fi
+
+# Sanitize: Escape backslashes, then quotes, then convert newlines to \n
+LOG_CONTENT=$(cat "$TEMP_LOG" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}' | tr -d '\r')
+
+# Create the JSON payload file
+cat <<JSON > "$JSON_PAYLOAD"
+{
+  "contents": [{
+    "parts": [{
+      "text": "Analyze these SDDC Manager logs for an Offline Depot sync error. Identify the specific root cause (e.g. local directory permissions, certificate trust, or incorrect URL mapping):\\n\\n$LOG_CONTENT"
+    }]
+  }]
+}
+JSON
+
+echo "Step 2: Sending filtered logs to $MODEL..."
+
+# Execute API Call
+RESPONSE=$(curl -s -X POST "$ENDPOINT" \
+    -H "Content-Type: application/json" \
+    --data-binary @"$JSON_PAYLOAD")
+
+# Output result
+echo "------------------------------------------------"
+echo "---           AI ANALYSIS RESULT             ---"
+echo "------------------------------------------------"
+
+# Attempt to extract text response
+RESULT=$(echo "$RESPONSE" | grep -oP '(?<="text": ")[^"]*' | sed 's/\\n/\n/g')
+
+if [ -z "$RESULT" ]; then
+    echo "No text result extracted. Raw Response for Debugging:"
+    echo "$RESPONSE"
+else
+    echo "$RESULT"
+fi
+
+# Cleanup
+rm "$TEMP_LOG" "$JSON_PAYLOAD"
+EOF
+
+chmod +x send_vcf_logs.sh
+./send_vcf_logs.sh
