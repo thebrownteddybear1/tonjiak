@@ -6,3 +6,5 @@ kubectl vsphere login --server="10.10.10.1" --vsphere-username "prj1admin@vspher
 
  kubectl vsphere login --server="10.10.10.2" --vsphere-username "user1@vsphere.local" --tanzu-kubernetes-cluster-name "cls123" --tanzu-kubernetes-cluster-namespace "vns" --insecure-skip-tls-verify
 
+ vcf context create --endpoint 10.10.10.1 --insecure-skip-tls-verify -u administrator@vsphere.local
+vcf context use 10.10.10.1:vns
