@@ -1,7 +1,7 @@
 $user = "root"
 $pass = "VMware1!VMware1!"
 $target = "192.168.50.53"
-$hosts = "192.168.50.9", "192.168.50.10"
+$hosts = "172.16.11.1"."172.16.11.2"."172.16.11.3"."172.16.11.4"."172.16.11.5"."172.16.11.6"
 
 # Suppress warnings and ignore certs
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -DisplayDeprecationWarnings $false -Confirm:$false
