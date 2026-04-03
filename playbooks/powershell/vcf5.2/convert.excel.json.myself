@@ -1,0 +1,7 @@
+
+login got  sddc manager
+copy the xls to someplace
+/opt/vmware/bringup/scripts/json-generator.sh /tmp/your-file.xlsx /tmp/your-file.json vcf-ems
+
+/opt/vmware/sddc-support/cloud_admin_tools/Resources/vcf-ems/vcf-ems.json
+
