@@ -1,5 +1,5 @@
 $user = "root"
-$pass = "VMware1!VMware1!"
+$pass = "VMware1@VMware1@"
 $targets = @(1,2 ) + (3..6) | ForEach-Object { "172.16.11.$_" }
 
 foreach ($ip in $targets) {
