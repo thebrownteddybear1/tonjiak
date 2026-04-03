@@ -1,0 +1,9 @@
+
+1. ssh to sddc mgr as admin, su to root
+
+/opt/vmware/bringup/scripts/json-generator.sh /home/admin/a.xlsx /home/admin/output.json vcf-ems
+```
+
+The output JSON will be at:
+```
+/opt/vmware/sddc-support/cloud_admin_tools/Resources/vcf-ems/vcf-ems.json
