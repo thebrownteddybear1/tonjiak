@@ -1,4 +1,5 @@
-
+1. the sddc installer @5.23  doesn't work, use 5.21
+2. esxi must be 803u3b 24280767
 1. ssh to sddc mgr as admin, su to root
 
 /opt/vmware/bringup/scripts/json-generator.sh /home/admin/a.xlsx /home/admin/output.json vcf-ems
