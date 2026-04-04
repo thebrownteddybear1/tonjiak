@@ -7,7 +7,7 @@ $hosts = "172.16.11.1","172.16.11.2","172.16.11.3","172.16.11.4","172.16.11.5","
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -DisplayDeprecationWarnings $false -Confirm:$false
 
 foreach ($ip in $hosts) {
-    Write-:Host "`n>>> Configuring $ip <<<" -ForegroundColor Cyan
+    Write-Host "`n>>> Configuring $ip <<<" -ForegroundColor Cyan
     try {
         $s = Connect-VIServer -Server $ip -User $user -Password $pass -ErrorAction Stop
         
