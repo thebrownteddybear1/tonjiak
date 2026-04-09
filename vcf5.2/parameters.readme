@@ -2,7 +2,7 @@
 2. esxi must be 803u3b 24280767
 3. add advanced config from the parent on the esxi host
 scsi0:1.virtualSSD = 1
-scsi0:1.virtualSSD = 1
+scsi0:2.virtualSSD = 1
 match the scsi id for osa disks
 
 
