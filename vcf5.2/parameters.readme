@@ -4,7 +4,8 @@
 scsi0:1.virtualSSD = 1
 scsi0:2.virtualSSD = 1
 match the scsi id for osa disks
-
+4. set ssh timout to infinity
+use the pwsh in tonjiak
 
 1. ssh to sddc mgr as admin, su to root
 
