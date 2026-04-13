@@ -1,8 +1,7 @@
 $user = "root"
 $pass = "VMware1@VMware1@"
 $target = "192.168.50.53"
-$hosts = @(1..6) | ForEach-Object { "192.168.11.$_" }
-
+$hosts = @(1..6) | ForEach-Object { "172.11.11.$_" }
 
 # Suppress warnings and ignore certs
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -DisplayDeprecationWarnings $false -Confirm:$false
