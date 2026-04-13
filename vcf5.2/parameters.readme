@@ -15,3 +15,46 @@ use the pwsh in tonjiak
 The output JSON will be at:
 ```
 /opt/vmware/sddc-support/cloud_admin_tools/Resources/vcf-ems/vcf-ems.json
+
+
+OFFLINE DEPOT FOR 5.2
+
+1. THE PATH WILL BE DIFFERENT FROM THE  ONE CREATED BY OBTU
+https://knowledge.broadcom.com/external/article/427952/error-failed-to-connect-to-vmware-depot.html
+Step 2: Update SDDC Manager Properties
+
+##############
+SSH into the SDDC Manager as vcf and switch to root.
+
+Take a backup of the properties file:
+# cp /opt/vmware/vcf/lcm/lcm-app/conf/application-prod.properties /opt/vmware/vcf/lcm/lcm-app/conf/application-prod.properties.bak
+
+Open the file for editing:
+# vi /opt/vmware/vcf/lcm/lcm-app/conf/application-prod.properties
+Locate the LCM DEPOT PROPERTIES section.
+
+Update the path variables to match the actual relative path on your IIS server.
+
+Note: The paths below are examples based on standard OBTU output. Verify your specific IIS folder structure.
+Change from (Default):
+
+lcm.depot.adapter.remote.rootDir=/PROD2
+lcm.depot.adapter.remote.repoDir=/evo/vmw
+lcm.depot.adapter.remote.lcmManifestDir=/evo/vmw/lcm/manifest
+lcm.depot.adapter.remote.lcmProductVersionCatalogDir=/evo/vmw/lcm/productVersionCatalog
+
+Change to (Example matching OBTU 5.x structure):
+
+# If your IIS root is /inetpub/wwwroot/offline_depot, and OBTU put files in /inetpub/wwwroot/offline_depot/<TOKEN>/PROD
+lcm.depot.adapter.remote.rootDir=/<YOUR_DEPOT_TOKEN_OR_PATH>/PROD
+lcm.depot.adapter.remote.repoDir=/COMP/SDDC_MANAGER_VCF
+lcm.depot.adapter.remote.lcmManifestDir=/COMP/SDDC_MANAGER_VCF/lcm/manifest
+lcm.depot.adapter.remote.lcmProductVersionCatalogDir=/COMP/SDDC_MANAGER_VCF/lcm/productVersionCatalog
+
+Save and exit the file.
+
+Restart the LCM service:
+
+# systemctl restart lcm
+
+Retry the depot connection from the SDDC Manager UI.
