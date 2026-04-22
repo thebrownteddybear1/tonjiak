@@ -80,7 +80,7 @@
             "network": "workloadnetwork0",
             "network_type": "NSXT",
             "nsx": {
-                "dvs": "50 2d 2e 72 10 3e c4 96-9a a5 31 11 46 69 d7 66",
+                "dvs": "50 2d 82 f5 fc 5c 0e f6-9a ca fa 4f 34 4f 90 4f",
                 "namespace_subnet_prefix": 28
             },
             "services": {
