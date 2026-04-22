@@ -1,0 +1,65 @@
+---
+- name: Deploy VCF 9 Workload Domain Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    esxi_host: "192.168.50.108"
+    esxi_user: "root"
+    esxi_password: "VMware1@VMware1@"
+    vm_folder: "/ha-datacenter/vm"
+
+    workload_hosts:
+      - { name: "esx20" }
+      - { name: "esx21" }
+
+
+  tasks:
+    - name: Create Workload ESXi VMs with IOMMU Expose
+      community.vmware.vmware_guest:
+        hostname: "{{ esxi_host }}"
+        username: "{{ esxi_user }}"
+        password: "{{ esxi_password }}"
+        validate_certs: false
+        name: "{{ item.name }}"
+        folder: "{{ vm_folder }}"
+        state: present
+        guest_id: "vmkernel8Guest"
+        
+        hardware:
+          num_cpus: 16
+          memory_mb: 57344       # 56GB
+          num_cpu_cores_per_socket: 16
+          nested_virt: true
+          mem_reservation: 57344 # Full RAM Lock
+
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "vvtd.enable"
+            value: "True"    # <-- EXPOSES IOMMU TO GUEST
+          - key: "numa.nodeAffinity"
+            value: "1"            
+   
+          - key: "numa.preferHT"
+            value: "True"
+
+        disk:
+          - { size_gb: 40, type: thin, datastore: "datastore1" }
+          - { size_gb: 500, type: thin, datastore: "nvme1" }
+          - { size_gb: 1024, type: thin, datastore: "datastore1" }
+            
+        networks:
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+          - { name: "nestedtrunk1g", device_type: vmxnet3 }
+
+        cdrom:
+          - controller_type: ide
+            controller_number: 0
+            unit_number: 0
+            iso_path: "[datastore1] /VMware-VMvisor-Installer-9.0.2.0.25148076.x86_64.iso"
+            type: iso
+            state: present
+      loop: "{{ workload_hosts }}"
