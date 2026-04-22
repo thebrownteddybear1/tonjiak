@@ -34,6 +34,16 @@
           nested_virt: true
           mem_reservation: 57344 # Full RAM Lock
 
+        advanced_settings:
+          - key: "vhv.enable"
+            value: "True"
+          - key: "vvtd.enable"
+            value: "True"    # <-- EXPOSES IOMMU TO GUEST
+          - key: "numa.nodeAffinity"
+            value: "1"            
+   
+          - key: "numa.preferHT"
+            value: "True"
 
         disk:
           - { size_gb: 40, type: thin, datastore: "datastore1" }
