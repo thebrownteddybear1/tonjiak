@@ -1,4 +1,21 @@
+1. check which vds id is compatible first
+2. go wlkload vcenter developer center
+3. search for check_compatibility
+4. just execute the post without adding enable_on_zones
+5. look for the 'compatible' response
+VcenterNamespaceManagementNetworksNsxDistributedSwitchesCompatibilitySummary (cluster3-vds-01)
+
+ {
+"compatible":  true,
+"distributed_switch":  "50 2d 82 f5 fc 5c 0e f6-9a ca fa 4f 34 4f 90 4f",
+"incompatibility_reasons":  [ ]
+[
+
+6. replace the distributed switch id in the "enable_on zone" json under nsx section in the temp.final.json here. 
+
  curl -ks --write-out "%{http_code}" -X POST -H "${HEADER_SESSIONID}" -H "${HEADER_CONTENTTYPE}" -d "@temp_final.json" https://${VCENTER_HOSTNAME}/api/vcenter/namespace-management/supervisors?action=enable_on_zones
 
 hunt for enable_on_zone in developer api in vcenter
 paste the temp.final.json in as body request
+
+
