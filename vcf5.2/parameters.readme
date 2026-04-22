@@ -45,10 +45,11 @@ lcm.depot.adapter.remote.lcmProductVersionCatalogDir=/evo/vmw/lcm/productVersion
 
 Change to (Example matching OBTU 5.x structure):
 
+##match the paths to the places you downloaded the bundles and bundle manifest
 # If your IIS root is /inetpub/wwwroot/offline_depot, and OBTU put files in /inetpub/wwwroot/offline_depot/<TOKEN>/PROD
 lcm.depot.adapter.remote.rootDir=/<YOUR_DEPOT_TOKEN_OR_PATH>/PROD
-lcm.depot.adapter.remote.repoDir=/COMP/SDDC_MANAGER_VCF
-lcm.depot.adapter.remote.lcmManifestDir=/COMP/SDDC_MANAGER_VCF/lcm/manifest
+lcm.depot.adapter.remote.repoDir=/PROD/COMP/SDDC_MANAGER_VCF
+lcm.depot.adapter.remote.lcmManifestDir=/PROD/COMP/SDDC_MANAGER_VCF/lcm/manifest
 lcm.depot.adapter.remote.lcmProductVersionCatalogDir=/COMP/SDDC_MANAGER_VCF/lcm/productVersionCatalog
 
 Save and exit the file.
