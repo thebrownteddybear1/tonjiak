@@ -11,8 +11,15 @@
     vm_folder: "/ha-datacenter/vm"
 
     workload_hosts:
-      - { name: "esx20" }
-      - { name: "esx21" }
+      - { name: "esx91" }
+      - { name: "esx92" }
+      - { name: "esx93" }
+      - { name: "esx94" }
+      - { name: "esx95" }
+      - { name: "esx96" }
+      - { name: "esx97" }
+      - { name: "esx98" }
+      - { name: "esx99" }
 
 
   tasks:
