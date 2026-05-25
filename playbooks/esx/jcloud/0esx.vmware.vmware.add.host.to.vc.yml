@@ -23,7 +23,7 @@
         password: "{{ vcenter_password }}"
         datacenter_name: "{{ datacenter_name }}"
         cluster_name: "{{ cluster_name }}"
-        esxi_host_name: "{{ item.ip }}"
+        esxi_hostname: "{{ item.ip }}"
         esxi_username: "root"
         esxi_password: "VMware1!VMware1!"
         validate_certs: false
@@ -36,7 +36,7 @@
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
-        esxi_host_name: "{{ item.item.ip }}"
+        esxi_hostname: "{{ item.item.ip }}"
         state: present
         validate_certs: false
       loop: "{{ host_results.results }}"
