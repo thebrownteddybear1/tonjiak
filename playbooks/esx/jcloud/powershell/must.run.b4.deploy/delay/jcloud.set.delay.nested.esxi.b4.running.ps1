@@ -1,7 +1,7 @@
 $user = "root"
 $pass = "VMware1@VMware1@"
 #$targets = @(11..13) + (14..19) | ForEach-Object { "192.168.50.$_" }
-$targets = @(1..3) | ForEach-Object { "172.16.11.$_" }
+$targets = @(1..3) | ForEach-Object { "192.168.52.$_" }
 
 foreach ($ip in $targets) {
     $conn = Connect-VIServer -Server $ip -User $user -Password $pass -WarningAction SilentlyContinue -ErrorAction SilentlyContinue

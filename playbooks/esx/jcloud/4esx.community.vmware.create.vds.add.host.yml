@@ -18,11 +18,11 @@
     
     # Define your hosts and their vmnics
     esxi_hosts:
-      - esxi_name: "172.16.11.1"
+      - esxi_name: "192.168.52.1"
         vmnics: ["vmnic1", "vmnic2"]
-      - esxi_name: "172.16.11.2"
+      - esxi_name: "192.168.52.2"
         vmnics: ["vmnic1", "vmnic2"]
-      - esxi_name: "172.16.11.3"
+      - esxi_name: "192.168.52.3"
         vmnics: ["vmnic1", "vmnic2"]
 
     # Storage Variables
