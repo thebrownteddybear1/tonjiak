@@ -1,12 +1,13 @@
 $user = "root"
 $pass = "VMware1!VMware1!"
 $target = "192.168.50.53"
-$hosts = "192.168.50.18", "192.168.50.19"
+$ips = 1..3 | ForEach-Object { "192.168.52.$_" }
+
 
 # Suppress warnings and ignore certs
 Set-PowerCLIConfiguration -InvalidCertificateAction Ignore -DisplayDeprecationWarnings $false -Confirm:$false
 
-foreach ($ip in $hosts) {
+foreach ($ip in $ips) {
     Write-Host "`n>>> Configuring $ip <<<" -ForegroundColor Cyan
     try {
         $s = Connect-VIServer -Server $ip -User $user -Password $pass -ErrorAction Stop
