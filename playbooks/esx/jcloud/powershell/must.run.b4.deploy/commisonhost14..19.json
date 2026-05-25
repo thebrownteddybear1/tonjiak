@@ -1,0 +1,53 @@
+{
+    "hosts": [
+        {
+            "fqdn": "esx14.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        },
+        {
+            "fqdn": "esx15.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        },
+        {
+            "fqdn": "esx16.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        },
+        {
+            "fqdn": "esx17.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        },
+        {
+            "fqdn": "esx18.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        },
+        {
+            "fqdn": "esx19.corp.internal",
+            "username": "root",
+            "storageType": "NFS",
+            "password": "VMware1!VMware1!",
+            "networkPoolName": "vcf-mgt-np01",
+            "vvolStorageProtocolType": "NFS"
+        }
+
+    ]
+}
