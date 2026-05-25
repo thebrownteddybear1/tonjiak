@@ -25,7 +25,7 @@
         cluster_name: "{{ cluster_name }}"
         esxi_hostname: "{{ item.ip }}"
         esxi_username: "root"
-        esxi_password: "VMware1!VMware1!"
+        esxi_password: "VMware1@VMware1@"
         validate_certs: false
         state: present
       loop: "{{ esxi_hosts }}"
