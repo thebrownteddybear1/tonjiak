@@ -19,11 +19,12 @@
     # Define your hosts and their vmnics
     esxi_hosts:
       - esxi_name: "192.168.52.1"
-        vmnics: ["vmnic1", "vmnic2"]
+        #
+        vmnics: ["vmnic1"]
       - esxi_name: "192.168.52.2"
-        vmnics: ["vmnic1", "vmnic2"]
+        vmnics: ["vmnic1"]
       - esxi_name: "192.168.52.3"
-        vmnics: ["vmnic1", "vmnic2"]
+        vmnics: ["vmnic1"]
 
     # Storage Variables
     storage_policy_name: "k8storagepolicy"
