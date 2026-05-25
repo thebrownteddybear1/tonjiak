@@ -1,0 +1,41 @@
+---
+- name: Disable CPU Mitigations on Nested ESXi Hosts
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # List of target nested ESXi hosts
+    esxi_hosts:
+      - 172.16.11.1
+      - 172.16.11.2
+      - 172.16.11.3
+
+    # Credentials
+    esxi_user: "root"
+    esxi_password: "VMware1@VMware1@"
+
+  tasks:
+    - name: Disable CPU mitigations on all nested ESXi hosts
+      ansible.builtin.shell: |
+        sshpass -p '{{ esxi_password }}' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 {{ esxi_user }}@{{ item }} '
+        esxcli system settings kernel set --setting="disableCFOH" --value="TRUE"
+        esxcli system settings kernel set --setting="delayCFOH" --value="0"
+        esxcli system settings kernel set --setting="hyperthreadingMitigationIntraVM" --value="FALSE"
+        esxcli system settings kernel set --setting="hyperthreadingMitigation" --value="FALSE"
+        esxcli system settings kernel set --setting="forceHyperthreadingMitigation" --value="FALSE"
+        '
+      args:
+        executable: /bin/bash
+      loop: "{{ esxi_hosts }}"
+      delegate_to: localhost
+      ignore_errors: false
+
+    - name: Reboot all nested ESXi hosts
+      ansible.builtin.shell: |
+        sshpass -p '{{ esxi_password }}' ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 {{ esxi_user }}@{{ item }} 'reboot'
+      args:
+        executable: /bin/bash
+      loop: "{{ esxi_hosts }}"
+      delegate_to: localhost
+      ignore_errors: true  # SSH will disconnect during reboot
