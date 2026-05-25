@@ -32,15 +32,15 @@
       register: host_results
 
     - name: Exit maintenance mode for all hosts
-      community.vmware.vmware_host_powerstate:
+      community.vmware.vmware_maintenancemode:
         hostname: "{{ vcenter_hostname }}"
         username: "{{ vcenter_username }}"
         password: "{{ vcenter_password }}"
         esxi_hostname: "{{ item.item.ip }}"
-        state: present
+        state: absent
         validate_certs: false
       loop: "{{ host_results.results }}"
-      when: item.changed or not item.failed
+      when: item.changed
       register: maintenance_results
 
     - name: Show results summary
