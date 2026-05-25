@@ -1,7 +1,7 @@
 # Ensure Single Mode is active at the start
 Set-PowerCLIConfiguration -DefaultVIServerMode Single -Scope User -Confirm:$false | Out-Null
 
-$ips = 1..3 | ForEach-Object { "172.16.11.$_" }
+$ips = 1..3 | ForEach-Object { "192.168.52.$_" }
 $user = "root"
 $pass = "VMware1@VMware1@"
 
