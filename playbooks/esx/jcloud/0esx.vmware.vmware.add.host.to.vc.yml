@@ -1,0 +1,51 @@
+---
+- name: Add ESXi hosts to the cluster and exit maintenance mode
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    esxi_hosts:
+      - ip: "192.168.50.11"
+      - ip: "192.168.50.12"
+    vcenter_hostname: "192.168.50.52"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "VMware1!VMware1!"
+    vcenter_validate_certs: false
+    datacenter_name: "datacenter"
+    cluster_name: "cluster"
+
+  tasks:
+    - name: Add ESXi hosts to cluster
+      vmware.vmware.esxi_host:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        datacenter_name: "{{ datacenter_name }}"
+        cluster_name: "{{ cluster_name }}"
+        esxi_host_name: "{{ item.ip }}"
+        esxi_username: "root"
+        esxi_password: "VMware1!VMware1!"
+        validate_certs: false
+        state: present
+      loop: "{{ esxi_hosts }}"
+      register: host_results
+
+    - name: Exit maintenance mode for all hosts
+      vmware.vmware.esxi_maintenance_mode:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        esxi_host_name: "{{ item.item.ip }}"
+        enable_maintenance_mode: false  # false = exit maintenance mode
+        validate_certs: false
+      loop: "{{ host_results.results }}"
+      when: item.changed or not item.failed
+      register: maintenance_results
+
+    - name: Show results summary
+      debug:
+        msg: |
+          Host addition and maintenance mode results:
+          {% for result in host_results.results %}
+          - {{ result.item.ip }}: Added={{ not result.failed }}, Maintenance Exit={{ maintenance_results.results[loop.index0].changed if maintenance_results.results[loop.index0] is defined else 'Skipped' }}
+          {% endfor %}
