@@ -1,6 +1,6 @@
 $user = "root"
 $pass = "VMware1@VMware1@"
-#$target = "192.168.50.53"
+$target = "192.168.50.53"
 $hosts = @(1..3) | ForEach-Object { "192.168.52.$_" }
 
 # Suppress warnings and ignore certs
