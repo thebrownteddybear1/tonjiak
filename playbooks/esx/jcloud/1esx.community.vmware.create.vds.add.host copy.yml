@@ -5,26 +5,26 @@
   gather_facts: false
   vars:
     # Connection Details
-    vcenter_hostname: "192.168.50.90"
+    vcenter_hostname: "192.168.50.95"
     vcenter_username: "administrator@vsphere.local"
     vcenter_password: "VMware1@VMware1@"
     validate_certs: false
 
     # Networking Variables
     datacenter_name: "Datacenter"
-    vds_name: "vds"
+    vds_name: "vds-tep"
     dpg_name: "vds.v0"
     mtu_size: 9000
     
     # Define your hosts and their vmnics
     esxi_hosts:
-      - esxi_name: "192.168.52.1"
+      - esxi_name: "192.168.50.96"
         #
         vmnics: ["vmnic1"]
-      - esxi_name: "192.168.52.2"
-        vmnics: ["vmnic1"]
-      - esxi_name: "192.168.52.3"
-        vmnics: ["vmnic1"]
+      - esxi_name: "192.168.50.97"
+        vmnics: ["vmnic3"]
+      - esxi_name: "192.168.50.98"
+        vmnics: ["vmnic4"]
 
     # Storage Variables
     storage_policy_name: "k8storagepolicy"
