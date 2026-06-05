@@ -53,7 +53,7 @@
                 - "cluster1-vds-01-edge-trunk"
               management_network: "cluster1-vds-01-pg-mgmt"
               compute: "Cluster"
-              storage: "nfscpu0"
+              storage: "nfs1cpu0"
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
