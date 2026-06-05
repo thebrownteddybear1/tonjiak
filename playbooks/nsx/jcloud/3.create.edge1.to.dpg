@@ -46,7 +46,7 @@
               ipv4_assignment_enabled: true
               management_port_subnets:
                 - ip_addresses: ["192.168.50.46"]
-                  prefix_length: 24
+                  prefix_length: 23
               default_gateway_addresses: ["192.168.50.254"]
               placement_type: VsphereDeploymentConfig
               vc_name: "vc2.corp.internal"                           #create this
