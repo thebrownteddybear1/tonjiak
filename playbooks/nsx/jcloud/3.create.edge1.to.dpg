@@ -38,6 +38,7 @@
               root_password: "VMware1@VMware1@"
             vm_deployment_config:
               ipv4_assignment_enabled: true
+              allow_replacing_host_key: true    # add this , will remove cert expired
               management_port_subnets:
                 - ip_addresses: ["192.168.50.46"]
                   prefix_length: 24
@@ -65,7 +66,7 @@
         hostname: "{{ hostname }}"
         username: "{{ username }}"
         password: "{{ password }}"
-        validate_certs: "{{ validate_certs }}"
+        validate_certs: false
         display_name: "{{ item.display_name }}"
         description: "Edge node deployed via single-nic trunk"
         host_switch_spec:
