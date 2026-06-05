@@ -47,7 +47,7 @@
         password: "{{ nsx_manager_spec.password }}"
         validate_certs: "{{ nsx_manager_spec.validate_certs }}"
         display_name: "overlay-tz-wlknsxvip40"
-        transport_type: "overlay"
+        transport_type: "OVERLAY"
         state: present
 
     - name: Create IP Pool "etep" using Static Subnets
