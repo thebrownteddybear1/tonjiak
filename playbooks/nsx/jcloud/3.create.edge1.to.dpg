@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: false
   vars:
-    hostname: "192.168.50.40"
+    hostname: "192.168.50.93"
     username: "admin"
     password: "VMware1@VMware1@"
     validate_certs: false
@@ -43,7 +43,7 @@
                   prefix_length: 24
               default_gateway_addresses: ["192.168.50.254"]
               placement_type: VsphereDeploymentConfig
-              vc_name: "wlkvc39.corp.internal"
+              vc_name: "vc2.corp.internal"
               vc_username: "administrator@vsphere.local"
               vc_password: "VMware1@VMware1@"
               # Even with 1 NIC in NSX, the VM usually wants two entries 
@@ -52,8 +52,8 @@
                 - "cluster1-vds-01-edge-trunk"
                 - "cluster1-vds-01-edge-trunk"
               management_network: "cluster1-vds-01-pg-mgmt"
-              compute: "cluster1"
-              storage: "wlk-cluster1-nfs1"
+              compute: "Cluster"
+              storage: "nfscpu0"
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
