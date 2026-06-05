@@ -57,7 +57,7 @@
         password: "{{ nsx_manager_spec.password }}"
         validate_certs: "{{ nsx_manager_spec.validate_certs }}"
         display_name: "htep"
-        id: "etep"
+        id: "htep"
         state: "present"
         pool_static_subnets:
           - display_name: "etep-subnet"
