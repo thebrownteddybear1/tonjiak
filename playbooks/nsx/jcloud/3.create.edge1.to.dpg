@@ -24,7 +24,7 @@
               resource_type: StaticIpPoolSpec
               ip_pool_name: "etep"
             transport_zone_endpoints:
-              - transport_zone_name: "overlay-tz-wlknsxvip40"
+              - transport_zone_name: "overlay-tz-wlknsxvip40" 
               - transport_zone_name: "vlan-tz-wlknsxvip40"
         node_deployment_info:
           resource_type: "EdgeNode"
@@ -43,21 +43,21 @@
                   prefix_length: 24
               default_gateway_addresses: ["192.168.50.254"]
               placement_type: VsphereDeploymentConfig
-              vc_name: "vc2.corp.internal"
+              vc_name: "vc2.corp.internal"                           #create this
               vc_username: "administrator@vsphere.local"
               vc_password: "VMware1@VMware1@"
               # Even with 1 NIC in NSX, the VM usually wants two entries 
               # for the FastPath interfaces in the deployment spec.
               data_networks:
-                - "cluster1-vds-01-edge-trunk"
-                - "cluster1-vds-01-edge-trunk"
-              management_network: "cluster1-vds-01-pg-mgmt"
-              compute: "Cluster"
-              storage: "nfs1cpu0"
+                - "cluster1-vds-01-edge-trunk"                           #create this
+                - "cluster1-vds-01-edge-trunk"                           #create this
+              management_network: "cluster1-vds-01-pg-mgmt"                           #create this
+              compute: "Cluster"                            #create this
+              storage: "nfs1cpu0"                          #create this
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
-            hostname: "edge1.corp.internal"
+            hostname: "edge1.corp.internal"                           #create this
 
   tasks:
     - name: Create edge transport node (Single-NIC)
