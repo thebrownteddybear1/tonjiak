@@ -7,6 +7,12 @@
     password: "VMware1@VMware1@"
     validate_certs: false
 
+    # if cert expired on deploying edge node do the following:
+    #Log in as root user to the NSX manager, via ssh and copy the file for backup:
+    #cp /config/vmware/auth/ovf_validation.properties /config/vmware/auth/ovf_validation.properties.bak
+    #Then edit the original file, using vi or vim and change INTERNAL_OVFS_VALIDATION_FLAG from 0 to 2 and save the file.
+
+
     edge_transport_nodes:
       - display_name: edge1
         host_switches:
