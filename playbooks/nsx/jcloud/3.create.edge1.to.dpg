@@ -38,7 +38,6 @@
               root_password: "VMware1@VMware1@"
             vm_deployment_config:
               ipv4_assignment_enabled: true
-              allow_replacing_host_key: true    # add this , will remove cert expired
               management_port_subnets:
                 - ip_addresses: ["192.168.50.46"]
                   prefix_length: 24
