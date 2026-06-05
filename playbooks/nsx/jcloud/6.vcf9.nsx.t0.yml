@@ -15,7 +15,7 @@
     uplink_prefix_len: 24
     
     # Edge cluster details
-    edge_cluster_name: "edge-cluster-0"
+    edge_cluster_name: "edge-cluster-01"
     edge_node_name: "edge1"
     
     # BGP configuration
