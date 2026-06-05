@@ -2,7 +2,7 @@
 - hosts: 127.0.0.1
   connection: local
   vars:
-    hostname: "192.168.50.40"
+    hostname: "192.168.50.93"
     username: "admin"
     password: "VMware1@VMware1@"
 
