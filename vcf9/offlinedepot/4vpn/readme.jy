@@ -16,7 +16,7 @@ POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
 Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH
 Challenge:
 POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
-Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH
+Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH 
 Challenge:
 POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
 Enter the verification code shown in your authenticator app:
