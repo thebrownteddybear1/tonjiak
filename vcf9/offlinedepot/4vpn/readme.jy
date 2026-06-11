@@ -1,0 +1,93 @@
+you need to use -b in the openconnect command so the process goes into the background
+use <fillme>@broadcom.net
+use your regular broadcom password
+you can choose mfa 1 authenticator which is symantex vpn client 
+use the number shown in the client
+
+root@depot:~/tonjiak/vcf9/offlinedepot/4vpn# ./vpn.up.sh
++ openconnect -u ty036880@broadcom.net --protocol=gp --csd-wrapper /usr/libexec/openconnect/hipreport.sh portal.vpn.broadcom.com -b
+POST https://portal.vpn.broadcom.com/global-protect/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Linux
+Connected to 192.19.253.195:443
+SSL negotiation with portal.vpn.broadcom.com
+Connected to HTTPS on portal.vpn.broadcom.com with ciphersuite (TLS1.2)-(ECDHE-SECP256R1)-(RSA-SHA256)-(AES-256-GCM)
+Enter login credentials to APAC Portal
+Password: use your regular password
+POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
+Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH
+Challenge:
+POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
+Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH
+Challenge:
+POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
+Enter the verification code shown in your authenticator app:
+Challenge:
+POST https://portal.vpn.broadcom.com/global-protect/getconfig.esp
+Portal reports GlobalProtect version 6.2.8-263; we will report the same client version.
+Portal set HIP report interval to 60 minutes).
+29 gateway servers available:
+  Singapore (sgn-prod-emp-gw.vpn.broadcom.com)
+  Bangalore (ibn-prod-emp-gw.vpn.broadcom.com)
+  Penang (png-prod-emp-gw.vpn.broadcom.com)
+  Hsinchu (hsi-prod-emp-gw.vpn.broadcom.com)
+  Las Vegas (lvn-prod-emp-gw.vpn.broadcom.com)
+  Irvine (igp-prod-emp-gw.vpn.broadcom.com)
+  Bangalore Full Tunnel GW (ibn-prod-emp-ft-gw.vpn.broadcom.com)
+  Las Vegas Full Tunnel GW (lvn-prod-emp-ft-gw.vpn.broadcom.com)
+  Hyderabad (ihy-prod-emp-gw.vpn.broadcom.com)
+  Hyderabad Full Tunnel GW (ihy-prod-emp-ft-gw.vpn.broadcom.com)
+  Sydney (anr-prod-emp-gw.vpn.broadcom.com)
+  Singapore Full Tunnel GW (sgn-prod-emp-ft-gw.vpn.broadcom.com)
+  Pune (inp-prod-emp-gw.vpn.broadcom.com)
+  Pune Full Tunnel GW (inp-prod-emp-ft-gw.vpn.broadcom.com)
+  Tokyo (tky-prod-emp-gw.vpn.broadcom.com)
+  Prague (cpr-prod-emp-gw.vpn.broadcom.com)
+  Prague Full Tunnel GW (cpr-prod-emp-ft-gw.vpn.broadcom.com)
+  Ashburn (acc-prod-emp-gw.vpn.broadcom.com)
+  Ashburn Full Tunnel GW (acc-prod-emp-ft-gw.vpn.broadcom.com)
+  Amsterdam (ams-prod-emp-gw.vpn.broadcom.com)
+  Amsterdam Full Tunnel GW (ams-prod-emp-ft-gw.vpn.broadcom.com)
+  Tel Aviv (tau-prod-emp-gw.vpn.broadcom.com)
+  Tel Aviv Full Tunnel GW (tau-prod-emp-ft-gw.vpn.broadcom.com)
+  seoul (sel-prod-emp-gw.vpn.broadcom.com)
+  Las Vegas 2 (lvn-prod-emp-gw2.vpn.broadcom.com)
+  Las Vegas 2 Full Tunnel GW (lvn-prod-emp-ft-gw2.vpn.broadcom.com)
+  Fort Collins (ftc-prod-emp-gw.vpn.broadcom.com)
+  Fort Collins Full Tunnel (ftc-prod-emp-ft-gw.vpn.broadcom.com)
+  Penang Full Tunnel GW (png-prod-emp-ft-gw.vpn.broadcom.com)
+Please select GlobalProtect gateway.
+GATEWAY: [Singapore|Bangalore|Penang|Hsinchu|Las Vegas|Irvine|Bangalore Full Tunnel GW|Las Vegas Full Tunnel GW|Hyderabad|Hyderabad Full Tunnel GW|Sydney|Singapore Full Tunnel GW|Pune|Pune Full Tunnel GW|Tokyo|Prague|Prague Full Tunnel GW|Ashburn|Ashburn Full Tunnel GW|Amsterdam|Amsterdam Full Tunnel GW|Tel Aviv|Tel Aviv Full Tunnel GW|seoul|Las Vegas 2|Las Vegas 2 Full Tunnel GW|Fort Collins|Fort Collins Full Tunnel|Penang Full Tunnel GW]:Singapore
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/prelogin.esp?tmp=tmp&clientVer=4100&clientos=Linux
+Connected to 192.19.253.195:443
+SSL negotiation with sgn-prod-emp-gw.vpn.broadcom.com
+Connected to HTTPS on sgn-prod-emp-gw.vpn.broadcom.com with ciphersuite (TLS1.2)-(ECDHE-SECP256R1)-(RSA-SHA256)-(AES-256-GCM)
+Enter login credentials Singapore Gateway
+Password:
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/login.esp
+Choose MFA authentication method:  1. AUTHENTICATOR OTP 2. PUSH
+Challenge:
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/login.esp
+Enter the verification code shown in your authenticator app:
+Challenge:
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/login.esp
+GlobalProtect login returned authentication-source=GP_Okta_Prod_Radius
+GlobalProtect login returned portal-userauthcookie=empty
+GlobalProtect login returned portal-prelogonuserauthcookie=empty
+GlobalProtect login returned usually-equals-4=4
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/getconfig.esp
+Tunnel timeout (rekey interval) is 180 minutes.
+Idle timeout is 180 minutes.
+No MTU received. Calculated 1422 for ESP tunnel
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/hipreportcheck.esp
+Trying to run HIP Trojan script '/usr/libexec/openconnect/hipreport.sh'.
+HIP script '/usr/libexec/openconnect/hipreport.sh' completed successfully (report is 2335 bytes).
+POST https://sgn-prod-emp-gw.vpn.broadcom.com/ssl-vpn/hipreport.esp
+HIP report submitted successfully.
+ESP session established with server
+ESP tunnel connected; exiting HTTPS mainloop.
+Configured as 10.230.16.86, with SSL disconnected and ESP established
+Session authentication will expire at Thu Jun 18 05:20:56 2026
+
+Continuing in background; pid 6325
+root@depot:~/tonjiak/vcf9/offlinedepot/4vpn# Using vhost-net for tun acceleration, ring size 32
+cd/root
+bash: cd/root: No such file or directory
