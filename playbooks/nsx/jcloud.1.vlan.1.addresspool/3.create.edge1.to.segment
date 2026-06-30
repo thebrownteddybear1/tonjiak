@@ -49,7 +49,7 @@
                   prefix_length: 23
               default_gateway_addresses: ["192.168.50.254"]
               placement_type: VsphereDeploymentConfig
-              vc_name: "192.168.50.103"                           #create this
+              vc_name: "vc103.corp.internal"                           #create this
               vc_username: "administrator@vsphere.local"
               vc_password: "VMware1@VMware1@"
               # Even with 1 NIC in NSX, the VM usually wants two entries 
