@@ -56,7 +56,7 @@
               # for the FastPath interfaces in the deployment spec.
               data_networks:
                 - "cluster1-vds-01-edge-trunk"                           #create this
-                - "cluster1-vds-01-edge-trunk"                           #create this
+               # - "cluster1-vds-01-edge-trunk"                           #create this
               management_network: "cluster1-vds-01-pg-mgmt"                           #create this
               compute: "Cluster"                            #create this
               storage: "nfs1cpu1"                          #create this
