@@ -2,7 +2,7 @@
 - hosts: localhost
   gather_facts: false
   vars:
-    hostname: "192.168.50.93"
+    hostname: "192.168.50.102"
     username: "admin"
     password: "VMware1@VMware1@"
     validate_certs: false
@@ -45,11 +45,11 @@
             vm_deployment_config:
               ipv4_assignment_enabled: true
               management_port_subnets:
-                - ip_addresses: ["192.168.50.46"]
+                - ip_addresses: ["192.168.50.109"]
                   prefix_length: 23
               default_gateway_addresses: ["192.168.50.254"]
               placement_type: VsphereDeploymentConfig
-              vc_name: "vc2.corp.internal"                           #create this
+              vc_name: "vc103.corp.internal"                           #create this
               vc_username: "administrator@vsphere.local"
               vc_password: "VMware1@VMware1@"
               # Even with 1 NIC in NSX, the VM usually wants two entries 
@@ -59,11 +59,11 @@
                 - "cluster1-vds-01-edge-trunk"                           #create this
               management_network: "cluster1-vds-01-pg-mgmt"                           #create this
               compute: "Cluster"                            #create this
-              storage: "nfs1cpu0"                          #create this
+              storage: "nfs1cpu1"                          #create this
           node_settings:
             allow_ssh_root_login: true
             enable_ssh: true
-            hostname: "edge1.corp.internal"                           #create this
+            hostname: "edge109.corp.internal"                           #create this
 
   tasks:
     - name: Create edge transport node (Single-NIC)
