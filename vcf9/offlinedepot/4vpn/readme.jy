@@ -8,10 +8,12 @@ extract to The download tool folder.
 In the edit-me.sh file, look at the path. It will tell you where the tool bin is. Make sure that it is in this folder.
 
 You can also look at the Dockerfile for the offline install. The download host adapter has to be changed to be from the staging depot.
-
+########
 You can look at the set SED to see what is needed for the changes.
-I left a sample below.
+I left a sample below. it's inside the conf directory when you extract the gz file
 sed -i 's/lcm.depot.adapter.host=dl.broadcom.com/lcm.depot.adapter.host=dl-vcfstg.broadcom.com /g' application-prod.properties
+sed -i 's/lcm.depot.adapter.host=dl.broadcom.com/lcm.depot.adapter.host=dl-vcfstg.broadcom.com/g' application-prodv2.properties
+
 
  #vpn sampleVPN 
 root@depot:~/tonjiak/vcf9/offlinedepot/4vpn# ./vpn.up.sh
