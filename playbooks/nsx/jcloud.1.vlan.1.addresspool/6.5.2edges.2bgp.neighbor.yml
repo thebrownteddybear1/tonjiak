@@ -5,7 +5,7 @@
   gather_facts: false
   
   vars:
-    nsxt_host: "192.168.50.93"
+    nsxt_host: "192.168.50.102"
     nsxt_user: "admin"
     nsxt_pass: "VMware1@VMware1@"
     
@@ -17,24 +17,24 @@
     
     # Edge node 1
     edge_node1_name: "edge1"
-    edge_node1_uplink_ip: "10.11.11.253"
+    edge_node1_uplink_ip: "10.11.11.251"
     edge_node1_prefix_len: 24
     
-    # Edge node 2
-    edge_node2_name: "edge2"
-    edge_node2_uplink_ip: "10.11.11.252"
-    edge_node2_prefix_len: 24
+    # # Edge node 2
+    # edge_node2_name: "edge2"
+    # edge_node2_uplink_ip: "10.11.11.252"
+    # edge_node2_prefix_len: 24
     
     # BGP configuration
-    local_as: "65002"
+    local_as: "65003"
     
     # Neighbor 1 — peer of edge1 uplink (10.11.11.253)
     neighbor1_ip: "10.11.11.254"
     neighbor1_as: "65001"
     
-    # Neighbor 2 — peer of edge2 uplink (10.11.11.252)
-    neighbor2_ip: "10.11.11.251"
-    neighbor2_as: "65003"
+    # # Neighbor 2 — peer of edge2 uplink (10.11.11.252)
+    # neighbor2_ip: "10.11.11.251"
+    # neighbor2_as: "65003"
   
   tasks:
     - name: Create Tier-0 Gateway Active-Active with dual uplink interfaces and BGP
@@ -48,7 +48,8 @@
         display_name: "t0-01"
         description: "Tier-0 Gateway Active-Active with VLAN11 uplinks and BGP"
         state: present
-        ha_mode: "ACTIVE_ACTIVE"          # Changed from ACTIVE_STANDBY
+        # ha_mode: "ACTIVE_ACTIVE"          # Changed from ACTIVE_STANDBY
+        ha_mode: "ACTIVE_STANDBY"          # Changed from ACTIVE_STANDBY
         disable_firewall: true
         force_whitelisting: true
         # Note: failover_mode is not applicable in ACTIVE_ACTIVE and has been removed
@@ -82,22 +83,22 @@
                   edge_cluster_display_name: "{{ edge_cluster_name }}"
                   edge_node_display_name: "{{ edge_node1_name }}"
               
-              # Edge node 2 uplink
-              - state: present
-                id: "vlan11-uplink-edge2"
-                display_name: "vlan11-uplink-edge2"
-                segment_display_name: "{{ uplink_segment_name }}"
-                subnets:
-                  - ip_addresses: ["{{ edge_node2_uplink_ip }}"]
-                    prefix_len: "{{ edge_node2_prefix_len }}"
-                urpf_mode: "STRICT"
-                mtu: 1500
-                type: "EXTERNAL"
-                edge_node_info:
-                  site_id: "default"
-                  enforcementpoint_id: "default"
-                  edge_cluster_display_name: "{{ edge_cluster_name }}"
-                  edge_node_display_name: "{{ edge_node2_name }}"
+              # # Edge node 2 uplink
+              # - state: present
+              #   id: "vlan11-uplink-edge2"
+              #   display_name: "vlan11-uplink-edge2"
+              #   segment_display_name: "{{ uplink_segment_name }}"
+              #   subnets:
+              #     - ip_addresses: ["{{ edge_node2_uplink_ip }}"]
+              #       prefix_len: "{{ edge_node2_prefix_len }}"
+              #   urpf_mode: "STRICT"
+              #   mtu: 1500
+              #   type: "EXTERNAL"
+              #   edge_node_info:
+              #     site_id: "default"
+              #     enforcementpoint_id: "default"
+              #     edge_cluster_display_name: "{{ edge_cluster_name }}"
+              #     edge_node_display_name: "{{ edge_node2_name }}"
             
             # BGP Configuration
             BGP:
@@ -126,18 +127,18 @@
                     interval: 1000
                     multiple: 3
                 
-                # Neighbor 2 — peer of edge2 uplink (10.11.11.252), AS 65003
-                - state: present
-                  display_name: "bgp-neighbor-{{ neighbor2_ip }}"
-                  neighbor_address: "{{ neighbor2_ip }}"
-                  remote_as_num: "{{ neighbor2_as }}"
-                  keep_alive_time: 60
-                  hold_down_time: 180
-                  allow_as_in: false
-                  bfd:
-                    enabled: false
-                    interval: 1000
-                    multiple: 3
+                # # Neighbor 2 — peer of edge2 uplink (10.11.11.252), AS 65003
+                # - state: present
+                #   display_name: "bgp-neighbor-{{ neighbor2_ip }}"
+                #   neighbor_address: "{{ neighbor2_ip }}"
+                #   remote_as_num: "{{ neighbor2_as }}"
+                #   keep_alive_time: 60
+                #   hold_down_time: 180
+                #   allow_as_in: false
+                #   bfd:
+                #     enabled: false
+                #     interval: 1000
+                #     multiple: 3
             
             # Route Redistribution - ALL TYPES
             route_redistribution_config:
