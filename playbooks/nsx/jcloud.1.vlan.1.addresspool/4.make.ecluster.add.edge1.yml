@@ -18,4 +18,4 @@
         state: present
         members:
           - transport_node_name: "edge1"
-          - transport_node_name: "edge2"
+          # - transport_node_name: "edge2"
