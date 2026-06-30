@@ -105,7 +105,7 @@
               state: present
               enabled: true
               local_as_num: "{{ local_as }}"
-              inter_sr_ibgp: true           # Must be true for ACTIVE_ACTIVE — enables iBGP between SRs
+              inter_sr_ibgp: false           # Must be true for ACTIVE_ACTIVE — enables iBGP between SRs
               graceful_restart_config:
                 mode: "GR_AND_HELPER"
                 timer:
