@@ -1,3 +1,30 @@
 vcf context create --endpoint <SUPERVISOR-ADDRESS> --username <VCENTER-SSO-USER> --ca-certificate <PATH-TO-CERTIFICATE-FILE> --workload-cluster-name <VKS-CLUSTER-NAME> --workload-cluster-namespace <VSPHERE-NAMESPACE> 
 
 vcf context create --endpoint 10.12.12.3 --username administrator@sso.local --insecure-skip-tls-verify --workload-cluster-name cluster-default --workload-cluster-namespace nsx-project-1
+
+vcf context list
+
+root@depot:~/tonjiak# vcf context list
+  NAME                  CURRENT  TYPE
+  vkc1:cluster-default  false    kubernetes
+
+
+vcf context use vkc1:cluster-default
+
+root@depot:~/tonjiak# vcf context use vkc1:cluster-default
+[ok] Token is still active. Skipped the token refresh for context "vkc1:cluster-default"
+[i] Successfully activated context 'vkc1:cluster-default' (Type: kubernetes)
+[i] Fetching recommended plugins for active context 'vkc1:cluster-default'...
+[ok] No recommended plugins found.
+
+
+root@depot:~/tonjiak# kubectl get ns
+NAME                                 STATUS   AGE
+default                              Active   80m
+kube-node-lease                      Active   80m
+kube-public                          Active   80m
+kube-system                          Active   80m
+secretgen-controller                 Active   72m
+tkg-system                           Active   74m
+velero-vsphere-plugin-backupdriver   Active   78m
+
