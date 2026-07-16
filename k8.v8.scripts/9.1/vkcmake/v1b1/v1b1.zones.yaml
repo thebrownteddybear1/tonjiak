@@ -1,0 +1,65 @@
+apiVersion: cluster.x-k8s.io/v1beta1
+kind: Cluster
+metadata:
+  name: cluster
+  namespace: vnsprj2
+spec:
+  clusterNetwork:
+    services:
+      cidrBlocks: ["198.51.100.0/12"]
+    pods:
+      cidrBlocks: ["192.0.2.0/16"]
+    serviceDomain: "cluster.local"
+  topology:
+    class: builtin-generic-v3.3.0 
+    version: v1.3.x-xxxx
+    controlPlane:
+      replicas: 1
+      metadata:
+        annotations:
+          run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+      variables:
+        overrides:
+        - name: volumes
+          value:
+          - name: etcd
+            mountPath: /var/lib/etcd
+            storageClass: sc-policy
+            capacity: 2Gi
+    workers:
+      machineDeployments:
+        - class: node-pool
+          name: node-pool-a
+          failureDomain: zz
+          replicas: 1
+          metadata:
+            annotations:
+              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+          variables:
+            overrides:
+            - name: volumes
+              value:
+              - name: containerd
+                storageClass: sc-policy
+                mountPath: /var/lib/containerd
+                capacity: 2Gi
+        - class: node-pool
+          name: node-pool-b
+          failureDomain: aa
+          replicas: 1
+          metadata:
+            annotations:
+              run.tanzu.vmware.com/resolve-os-image: os-name=ubuntu
+          variables:
+            overrides:
+            - name: volumes
+              value:
+              - name: containerd
+                storageClass: sc-policy
+                mountPath: /var/lib/containerd
+                capacity: 2Gi
+    variables:
+      - name: vmClass
+        value: best-effort-xsmall
+      - name: storageClass
+        value:  sc-policy
