@@ -1,0 +1,3 @@
+vcf context create --endpoint <SUPERVISOR-ADDRESS> --username <VCENTER-SSO-USER> --ca-certificate <PATH-TO-CERTIFICATE-FILE> --workload-cluster-name <VKS-CLUSTER-NAME> --workload-cluster-namespace <VSPHERE-NAMESPACE> 
+
+vcf context create --endpoint 10.12.12.3 --username administrator@sso.local --insecure-skip-tls-verify --workload-cluster-name cluster-default --workload-cluster-namespace nsx-project-1
